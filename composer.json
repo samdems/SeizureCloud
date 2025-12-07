@@ -18,7 +18,8 @@
         "laravel/framework": "^12.0",
         "laravel/nightwatch": "^1.19",
         "laravel/tinker": "^2.10.1",
-        "livewire/volt": "^1.7.0"
+        "livewire/volt": "^1.7.0",
+        "mailersend/laravel-driver": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
