@@ -4,8 +4,11 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-base-200">
+
         <div class="drawer lg:drawer-open">
             <input id="sidebar-drawer" type="checkbox" class="drawer-toggle" />
+
+
 
             <!-- Main Content -->
             <div class="drawer-content flex flex-col">
@@ -19,7 +22,7 @@
                         </label>
                     </div>
                     <div class="flex-1 px-2 mx-2">
-                        <a href="{{ route('dashboard') }}" wire:navigate class="flex">
+                        <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center">
                             <x-app-logo />
                             @if(session('viewing_as_trusted_contact'))
                                 <div class="badge badge-info badge-xs ml-2">
@@ -28,6 +31,14 @@
                                     </svg>
                                     Trusted
                                 </div>
+                            @endif
+                            @php
+                                $env = config('app.env');
+                            @endphp
+                            @if(in_array($env, ['local', 'staging']))
+                                <span class="badge badge-warning badge-xs ml-2 font-semibold">
+                                    {{ strtoupper($env) }}
+                                </span>
                             @endif
                         </a>
                     </div>
@@ -87,7 +98,15 @@
                             <x-app-logo />
                         </a>
                     </div>
-
+                    <!-- Environment Warning Banner -->
+                    @php
+                        $env = config('app.env');
+                    @endphp
+                    @if(in_array($env, ['local', 'staging']))
+                        <div class="w-full bg-yellow-500 text-black border-b-2 border-yellow-700 shadow-lg text-center py-2 font-bold z-50">
+                            ⚠️ You are viewing the {{ strtoupper($env) }} environment.
+                        </div>
+                    @endif
                     <!-- Trusted Access Indicator -->
                     @if(session('viewing_as_trusted_contact') && session('original_user_id'))
                         @php
