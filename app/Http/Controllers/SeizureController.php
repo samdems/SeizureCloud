@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Http\Requests\SeizureStoreRequest;
 use App\Http\Requests\SeizureUpdateRequest;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class SeizureController extends Controller
 {
@@ -234,5 +236,171 @@ class SeizureController extends Controller
             ->values();
 
         return view("seizures.live-tracker", compact("users", "usersData"));
+    }
+
+    public function exportMonthlyPdf(Request $request)
+    {
+        $month = $request->get("month", now()->month);
+        $year = $request->get("year", now()->year);
+
+        $startDate = Carbon::create($year, $month, 1)->startOfDay();
+        $endDate = $startDate->copy()->endOfMonth()->endOfDay();
+
+        $seizures = Auth::user()
+            ->seizures()
+            ->whereBetween("start_time", [$startDate, $endDate])
+            ->orderBy("start_time", "asc")
+            ->get();
+
+        $user = Auth::user();
+        $monthName = $startDate->format("F Y");
+
+        // Calculate statistics
+        $totalSeizures = $seizures->count();
+        $averageSeverity = $seizures->avg("severity");
+        $totalDuration = $seizures->sum("duration_minutes");
+        $longestSeizure = $seizures->max("duration_minutes");
+
+        $pdf = Pdf::loadView(
+            "seizures.pdf.monthly",
+            compact(
+                "seizures",
+                "user",
+                "monthName",
+                "startDate",
+                "endDate",
+                "totalSeizures",
+                "averageSeverity",
+                "totalDuration",
+                "longestSeizure",
+            ),
+        );
+
+        $filename = "seizures_{$user->name}_{$year}-{$month}.pdf";
+
+        return $pdf->download($filename);
+    }
+
+    public function exportMonthlyComprehensivePdf(Request $request)
+    {
+        $month = $request->get("month", now()->month);
+        $year = $request->get("year", now()->year);
+
+        $startDate = Carbon::create($year, $month, 1)->startOfDay();
+        $endDate = $startDate->copy()->endOfMonth()->endOfDay();
+
+        $seizures = Auth::user()
+            ->seizures()
+            ->whereBetween("start_time", [$startDate, $endDate])
+            ->orderBy("start_time", "asc")
+            ->get();
+
+        $user = Auth::user();
+        $monthName = $startDate->format("F Y");
+
+        // Calculate statistics
+        $totalSeizures = $seizures->count();
+        $averageSeverity = $seizures->avg("severity");
+        $totalDuration = $seizures->sum("duration_minutes");
+        $longestSeizure = $seizures->max("duration_minutes");
+
+        // Get detailed data for each seizure
+        $seizuresDetailed = $seizures->map(function ($seizure) use ($user) {
+            // Get medications active at time of seizure
+            $medications = $user
+                ->medications()
+                ->with("schedules")
+                ->get()
+                ->map(function ($medication) use ($seizure) {
+                    $wasActive =
+                        $medication->active ||
+                        ($medication->start_date &&
+                            $medication->start_date <= $seizure->start_time &&
+                            (!$medication->end_date ||
+                                $medication->end_date >= $seizure->start_time));
+
+                    return $wasActive ? $medication : null;
+                })
+                ->filter();
+
+            // Get vitals from seizure day
+            $seizureDate = $seizure->start_time->startOfDay();
+            $vitals = $user
+                ->vitals()
+                ->whereDate("recorded_at", $seizureDate)
+                ->orderBy("recorded_at", "asc")
+                ->get()
+                ->groupBy("type");
+
+            return [
+                "seizure" => $seizure,
+                "medications" => $medications,
+                "vitals" => $vitals,
+            ];
+        });
+
+        $pdf = Pdf::loadView(
+            "seizures.pdf.comprehensive",
+            compact(
+                "seizures",
+                "seizuresDetailed",
+                "user",
+                "monthName",
+                "startDate",
+                "endDate",
+                "totalSeizures",
+                "averageSeverity",
+                "totalDuration",
+                "longestSeizure",
+            ),
+        );
+
+        $filename = "seizures_comprehensive_{$user->name}_{$year}-{$month}.pdf";
+
+        return $pdf->download($filename);
+    }
+
+    public function exportSinglePdf(Seizure $seizure)
+    {
+        $this->authorize("view", $seizure);
+
+        $user = Auth::user();
+
+        // Get medications active at time of seizure
+        $medications = Auth::user()
+            ->medications()
+            ->with("schedules")
+            ->get()
+            ->map(function ($medication) use ($seizure) {
+                $wasActive =
+                    $medication->active ||
+                    ($medication->start_date &&
+                        $medication->start_date <= $seizure->start_time &&
+                        (!$medication->end_date ||
+                            $medication->end_date >= $seizure->start_time));
+
+                return $wasActive ? $medication : null;
+            })
+            ->filter();
+
+        // Get vitals from seizure day
+        $seizureDate = $seizure->start_time->startOfDay();
+        $vitals = Auth::user()
+            ->vitals()
+            ->whereDate("recorded_at", $seizureDate)
+            ->orderBy("recorded_at", "asc")
+            ->get()
+            ->groupBy("type");
+
+        $pdf = Pdf::loadView(
+            "seizures.pdf.single",
+            compact("seizure", "user", "medications", "vitals"),
+        );
+
+        $filename = "seizure_{$seizure->id}_{$seizure->start_time->format(
+            "Y-m-d_H-i",
+        )}.pdf";
+
+        return $pdf->download($filename);
     }
 }

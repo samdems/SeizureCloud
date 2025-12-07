@@ -158,6 +158,28 @@ Route::middleware(["auth"])->group(function () {
         "seizures",
         \App\Http\Controllers\SeizureController::class,
     )->middleware("account.type:patient");
+
+    // PDF export routes for seizures
+    Route::get("seizures/export/monthly-pdf", [
+        \App\Http\Controllers\SeizureController::class,
+        "exportMonthlyPdf",
+    ])
+        ->name("seizures.export.monthly-pdf")
+        ->middleware("account.type:patient");
+
+    Route::get("seizures/{seizure}/export-pdf", [
+        \App\Http\Controllers\SeizureController::class,
+        "exportSinglePdf",
+    ])
+        ->name("seizures.export.single-pdf")
+        ->middleware("account.type:patient");
+
+    Route::get("seizures/export/comprehensive-pdf", [
+        \App\Http\Controllers\SeizureController::class,
+        "exportMonthlyComprehensivePdf",
+    ])
+        ->name("seizures.export.comprehensive-pdf")
+        ->middleware("account.type:patient");
     Route::resource(
         "vitals",
         \App\Http\Controllers\VitalController::class,
