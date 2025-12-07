@@ -1,0 +1,395 @@
+@import "tailwindcss";
+@plugin 'daisyui';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans:
+        "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
+        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+        "Noto Color Emoji";
+
+    --color-zinc-50: #fafafa;
+    --color-zinc-100: #f5f5f5;
+    --color-zinc-200: #e5e5e5;
+    --color-zinc-300: #d4d4d4;
+    --color-zinc-400: #a3a3a3;
+    --color-zinc-500: #737373;
+    --color-zinc-600: #525252;
+    --color-zinc-700: #404040;
+    --color-zinc-800: #262626;
+    --color-zinc-900: #171717;
+    --color-zinc-950: #0a0a0a;
+}
+
+@layer base {
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentColor);
+    }
+
+    /* Smooth scrolling for the entire page */
+    html {
+        scroll-behavior: smooth;
+    }
+
+    /* Custom loading spinner */
+    .loading-spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: currentColor;
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Fade in animation */
+    .animate-fade-in {
+        animation: fadeIn 0.8s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Stagger animation for cards */
+    .card:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .card:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .card:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+    .card:nth-child(4) {
+        animation-delay: 0.4s;
+    }
+
+    .card:nth-child(5) {
+        animation-delay: 0.5s;
+    }
+
+    .card:nth-child(6) {
+        animation-delay: 0.6s;
+    }
+
+    /* Glass morphism effect */
+    .glass-effect {
+        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Custom button loading state */
+    .btn.loading::after {
+        content: "";
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        margin-left: 8px;
+        border: 2px solid transparent;
+        border-top: 2px solid currentColor;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    /* Pulse animation for emergency button */
+    .btn-error.emergency-pulse {
+        animation: pulse-red 2s infinite;
+    }
+
+    @keyframes pulse-red {
+        0%,
+        100% {
+            box-shadow: 0 0 0 0 rgba(248, 114, 114, 0.7);
+        }
+        50% {
+            box-shadow: 0 0 0 10px rgba(248, 114, 114, 0);
+        }
+    }
+}
+
+@layer components {
+    /* Enhanced card hover effects - no transform */
+    .enhanced-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transform-origin: center;
+    }
+
+    .enhanced-card:hover {
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        opacity: 0.95;
+    }
+
+    /* Gradient text utility */
+    .gradient-text {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Mobile responsive utilities */
+    .mobile-safe-padding {
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
+    }
+
+    /* Improved touch targets for mobile */
+    @media (max-width: 640px) {
+        .btn {
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        .btn-sm {
+            min-height: 40px;
+            min-width: 40px;
+        }
+    }
+
+    /* Better text scaling for mobile */
+    @media (max-width: 480px) {
+        .text-responsive-xl {
+            font-size: 1.5rem;
+            line-height: 2rem;
+        }
+
+        .text-responsive-lg {
+            font-size: 1.25rem;
+            line-height: 1.75rem;
+        }
+
+        .text-responsive-base {
+            font-size: 1rem;
+            line-height: 1.5rem;
+        }
+    }
+
+    /* Touch-friendly interactions */
+    @media (hover: none) and (pointer: coarse) {
+        .btn:hover {
+            transform: none !important;
+            box-shadow: none;
+        }
+
+        .btn:active {
+            transform: none !important;
+        }
+
+        .card:hover {
+            transform: none !important;
+        }
+
+        .enhanced-card:hover {
+            transform: none !important;
+            box-shadow: none;
+        }
+
+        .enhanced-card:active {
+            transform: none !important;
+        }
+    }
+
+    /* Improved scrolling for mobile */
+    @media (max-width: 640px) {
+        * {
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .overflow-auto,
+        .overflow-x-auto,
+        .overflow-y-auto {
+            -webkit-overflow-scrolling: touch;
+        }
+    }
+
+    /* Mobile modal improvements */
+    @media (max-width: 640px) {
+        .modal-box {
+            margin: 1rem;
+            max-width: calc(100vw - 2rem);
+            max-height: calc(100vh - 2rem);
+        }
+
+        .modal-box.emergency-modal {
+            margin: 0.5rem;
+            max-width: calc(100vw - 1rem);
+        }
+    }
+
+    /* Drawer improvements for mobile */
+    @media (max-width: 1024px) {
+        .drawer-side {
+            z-index: 999;
+        }
+
+        .drawer-content {
+            min-height: 100vh;
+        }
+    }
+
+    /* Better spacing for mobile cards */
+    @media (max-width: 640px) {
+        .card-body {
+            padding: 1rem;
+        }
+
+        .card-compact .card-body {
+            padding: 0.75rem;
+        }
+    }
+
+    /* Improved navbar for mobile */
+    @media (max-width: 640px) {
+        .navbar {
+            min-height: 3.5rem;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+    }
+
+    /* Emergency button pulse optimization for mobile */
+    @media (max-width: 640px) {
+        .btn-error.emergency-pulse {
+            animation: pulse-red-mobile 2s infinite;
+        }
+    }
+
+    @keyframes pulse-red-mobile {
+        0%,
+        100% {
+            box-shadow: 0 0 0 0 rgba(248, 114, 114, 0.5);
+        }
+        50% {
+            box-shadow: 0 0 0 5px rgba(248, 114, 114, 0);
+        }
+    }
+
+    /* Nuclear option - disable ALL transform effects and transitions */
+    * {
+        will-change: auto !important;
+        transform: none !important;
+        transform-origin: center !important;
+        --tw-translate-x: 0 !important;
+        --tw-translate-y: 0 !important;
+        --tw-scale-x: 1 !important;
+        --tw-scale-y: 1 !important;
+        --tw-rotate: 0 !important;
+        --tw-skew-x: 0 !important;
+        --tw-skew-y: 0 !important;
+    }
+
+    *,
+    *:before,
+    *:after,
+    *:hover,
+    *:focus,
+    *:active {
+        transition-property:
+            background-color, border-color, color, fill, stroke, opacity,
+            box-shadow, filter, backdrop-filter !important;
+        transform: none !important;
+        will-change: auto !important;
+    }
+
+    .btn,
+    .btn:hover,
+    .btn:focus,
+    .btn:active,
+    .card,
+    .card:hover,
+    .card:focus,
+    .enhanced-card,
+    .enhanced-card:hover,
+    .enhanced-card:focus,
+    *[class*="hover:scale"],
+    *[class*="hover:scale"]:hover,
+    *[class*="hover:translate"],
+    *[class*="hover:translate"]:hover,
+    *[class*="hover:-translate"],
+    *[class*="hover:-translate"]:hover,
+    *[class*="transition"],
+    *[class*="transition"]:hover {
+        transform: none !important;
+        will-change: auto !important;
+        transition-property:
+            background-color, border-color, color, fill, stroke, opacity,
+            box-shadow, filter, backdrop-filter !important;
+        --tw-translate-x: 0 !important;
+        --tw-translate-y: 0 !important;
+        --tw-scale-x: 1 !important;
+        --tw-scale-y: 1 !important;
+    }
+
+    /* Override ALL possible transform utilities and states */
+    .hover\:scale-105,
+    .hover\:scale-105:hover,
+    .hover\:scale-110,
+    .hover\:scale-110:hover,
+    .hover\:scale-95,
+    .hover\:scale-95:hover,
+    .hover\:-translate-y-1,
+    .hover\:-translate-y-1:hover,
+    .hover\:translate-y-1,
+    .hover\:translate-y-1:hover,
+    .hover\:-translate-y-2,
+    .hover\:-translate-y-2:hover,
+    .hover\:translate-y-2,
+    .hover\:translate-y-2:hover,
+    .hover\:-translate-y-4,
+    .hover\:-translate-y-4:hover,
+    .hover\:translate-y-4,
+    .hover\:translate-y-4:hover,
+    .hover\:-translate-y-8,
+    .hover\:-translate-y-8:hover,
+    .hover\:translate-y-8,
+    .hover\:translate-y-8:hover,
+    .transition-all,
+    .transition-transform {
+        transform: none !important;
+        will-change: auto !important;
+        transition-property:
+            background-color, border-color, color, fill, stroke, opacity,
+            box-shadow, filter, backdrop-filter !important;
+        --tw-translate-x: 0 !important;
+        --tw-translate-y: 0 !important;
+        --tw-scale-x: 1 !important;
+        --tw-scale-y: 1 !important;
+    }
+
+    /* Override JavaScript and inline transforms */
+    [style*="transform"],
+    [style*="transform"]:hover,
+    [style*="transform"]:focus,
+    [style*="transform"]:active {
+        transform: none !important;
+        will-change: auto !important;
+        transition-property:
+            background-color, border-color, color, fill, stroke, opacity,
+            box-shadow, filter, backdrop-filter !important;
+    }
+}
