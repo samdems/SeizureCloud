@@ -301,7 +301,7 @@
             <div class="animate-fade-in">
                 <h2 class="text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">Ready to Take Control?</h2>
                 <p class="text-xl lg:text-2xl text-white/90 mb-10 max-w-3xl mx-auto leading-relaxed">
-                    Join thousands of people managing their epilepsy with confidence. Start tracking today and gain valuable insights into your health journey.
+                    Join people managing their epilepsy with confidence. Start tracking today and gain valuable insights into your health journey.
                 </p>
                 @guest
                     <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
