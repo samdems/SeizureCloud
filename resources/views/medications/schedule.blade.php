@@ -2,15 +2,12 @@
     <div class="flex h-full w-full flex-1 flex-col gap-4">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-2xl font-bold">Today's Medication Schedule</h1>
+                <h1 class="text-2xl font-bold">Today's Medication</h1>
                 <p class="text-base-content/60">{{ now()->format('l, F j, Y') }}</p>
             </div>
-            <div class="flex gap-2">
+            <div class="flex flex-row gap-2">
                 <a href="{{ route('medications.schedule.history') }}" class="btn btn-secondary">
                     View Past Days
-                </a>
-                <a href="{{ route('medications.index') }}" class="btn btn-ghost">
-                    Back to Medications
                 </a>
             </div>
         </div>

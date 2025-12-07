@@ -465,7 +465,6 @@
     <!-- Medication Adherence -->
     <div class="form-control">
         <label class="label">
-            <span class="label-text font-semibold">Medication Adherence</span>
             <span class="label-text-alt">How well did you take your epilepsy medicines recently?</span>
         </label>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

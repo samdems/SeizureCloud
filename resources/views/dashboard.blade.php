@@ -276,8 +276,8 @@
         <!-- Emergency Live Tracker - Available to All Users -->
         <div class="card bg-error text-error-content shadow-xl border-l-4 border-l-error">
             <div class="card-body">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-4">
+                <div class="flex flex-row items-center justify-between">
+                    <div class="flex flex-row items-center gap-4">
                         <div class="text-6xl">🚨</div>
                         <div>
                             <h2 class="card-title text-2xl">Emergency Seizure Timer</h2>
@@ -286,9 +286,6 @@
                     </div>
                     <div>
                         <a href="{{ route('seizures.live-tracker') }}" class="btn btn-error emergency-pulse btn-lg">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
                             Start Live Timer
                         </a>
                     </div>
