@@ -13,6 +13,7 @@ use App\Http\Requests\MedicationUpdateRequest;
 use App\Http\Requests\MedicationLogTakenRequest;
 use App\Http\Requests\MedicationLogSkippedRequest;
 use App\Http\Requests\MedicationLogBulkTakenRequest;
+use App\Http\Requests\MedicationLogUpdateRequest;
 use App\Http\Requests\MedicationScheduleStoreRequest;
 
 class MedicationController extends Controller
@@ -23,7 +24,12 @@ class MedicationController extends Controller
     {
         $medications = Auth::user()
             ->medications()
-            ->with("schedules")
+            ->with([
+                "schedules",
+                "logs" => function ($query) {
+                    $query->latest()->limit(5);
+                },
+            ])
             ->latest()
             ->get();
         return view("medications.index", compact("medications"));
@@ -328,6 +334,29 @@ class MedicationController extends Controller
         ]);
 
         return back()->with("success", "Skipped dose logged.");
+    }
+
+    public function updateLog(
+        MedicationLogUpdateRequest $request,
+        MedicationLog $medicationLog,
+    ) {
+        $validated = $request->validated();
+
+        $medicationLog->update($validated);
+
+        return back()->with(
+            "success",
+            "Medication history updated successfully.",
+        );
+    }
+
+    public function destroyLog(MedicationLog $medicationLog)
+    {
+        $this->authorize("delete", $medicationLog);
+
+        $medicationLog->delete();
+
+        return back()->with("success", "Medication history entry deleted.");
     }
 
     public function logBulkTaken(MedicationLogBulkTakenRequest $request)

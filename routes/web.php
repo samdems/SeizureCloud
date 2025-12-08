@@ -211,6 +211,14 @@ Route::middleware(["auth"])->group(function () {
             \App\Http\Controllers\MedicationController::class,
             "logBulkTaken",
         ])->name("medications.log-bulk-taken");
+        Route::put("medications-log/{medicationLog}", [
+            \App\Http\Controllers\MedicationController::class,
+            "updateLog",
+        ])->name("medications.log-update");
+        Route::delete("medications-log/{medicationLog}", [
+            \App\Http\Controllers\MedicationController::class,
+            "destroyLog",
+        ])->name("medications.log-destroy");
         Route::post("medications/{medication}/schedules", [
             \App\Http\Controllers\MedicationController::class,
             "storeSchedule",

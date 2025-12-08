@@ -193,6 +193,7 @@
                                     <th>Status</th>
                                     <th>Dosage</th>
                                     <th>Notes</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -215,7 +216,126 @@
                                         </td>
                                         <td>{{ $log->dosage_taken ?? '-' }}</td>
                                         <td>{{ $log->notes ?? '-' }}</td>
+                                        <td>
+                                            <div class="flex gap-2">
+                                                <button class="btn btn-sm btn-info" onclick="editLogModal{{ $log->id }}.showModal()">
+                                                    <x-heroicon-o-pencil class="h-4 w-4" />
+                                                    Edit
+                                                </button>
+                                                <form action="{{ route('medications.log-destroy', $log) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this history entry?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-error">
+                                                        <x-heroicon-o-trash class="h-4 w-4" />
+                                                        Delete
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
                                     </tr>
+
+                                    <!-- Edit Log Modal -->
+                                    <dialog id="editLogModal{{ $log->id }}" class="modal">
+                                        <div class="modal-box">
+                                            <h3 class="font-bold text-lg">Edit Medication History</h3>
+                                            <form method="POST" action="{{ route('medications.log-update', $log) }}" class="space-y-4 mt-4">
+                                                @csrf
+                                                @method('PUT')
+
+                                                <x-form-field
+                                                    name="taken_at"
+                                                    label="Date & Time"
+                                                    type="datetime-local"
+                                                    value="{{ $log->taken_at->format('Y-m-d\TH:i') }}"
+                                                    required
+                                                />
+
+                                                <div class="form-control">
+                                                    <label class="label">
+                                                        <span class="label-text">Status</span>
+                                                    </label>
+                                                    <div class="flex gap-4">
+                                                        <label class="label cursor-pointer">
+                                                            <span class="label-text mr-2">Taken</span>
+                                                            <input type="radio" name="skipped" value="0" class="radio radio-primary" {{ !$log->skipped ? 'checked' : '' }}>
+                                                        </label>
+                                                        <label class="label cursor-pointer">
+                                                            <span class="label-text mr-2">Skipped</span>
+                                                            <input type="radio" name="skipped" value="1" class="radio radio-error" {{ $log->skipped ? 'checked' : '' }} onchange="toggleSkipReason{{ $log->id }}()">
+                                                        </label>
+                                                    </div>
+                                                </div>
+
+                                                <div id="skipReasonDiv{{ $log->id }}" class="form-control {{ !$log->skipped ? 'hidden' : '' }}">
+                                                    <x-form-field
+                                                        name="skip_reason"
+                                                        label="Reason for Skipping"
+                                                        type="select"
+                                                        placeholder="Select reason..."
+                                                        value="{{ $log->skip_reason }}"
+                                                        :options="[
+                                                            'Forgot' => 'Forgot',
+                                                            'Side effects' => 'Side effects',
+                                                            'Ran out' => 'Ran out',
+                                                            'Felt better' => 'Felt better',
+                                                            'Other' => 'Other'
+                                                        ]"
+                                                    />
+                                                </div>
+
+                                                <x-form-field
+                                                    name="dosage_taken"
+                                                    label="Dosage"
+                                                    type="text"
+                                                    value="{{ $log->dosage_taken }}"
+                                                    optional
+                                                />
+
+                                                <x-form-field
+                                                    name="notes"
+                                                    label="Notes"
+                                                    type="textarea"
+                                                    rows="3"
+                                                    value="{{ $log->notes }}"
+                                                    optional
+                                                />
+
+                                                <div class="modal-action">
+                                                    <button type="button" class="btn btn-outline" onclick="editLogModal{{ $log->id }}.close()">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary">
+                                                        <x-heroicon-o-check class="h-4 w-4" />
+                                                        Update History
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                        <form method="dialog" class="modal-backdrop">
+                                            <button>close</button>
+                                        </form>
+                                    </dialog>
+
+                                    <script>
+                                        function toggleSkipReason{{ $log->id }}() {
+                                            const skippedRadio = document.querySelector('#editLogModal{{ $log->id }} input[name="skipped"][value="1"]:checked');
+                                            const skipReasonDiv = document.getElementById('skipReasonDiv{{ $log->id }}');
+
+                                            if (skippedRadio) {
+                                                skipReasonDiv.classList.remove('hidden');
+                                            } else {
+                                                skipReasonDiv.classList.add('hidden');
+                                            }
+                                        }
+
+                                        // Add event listeners for the radio buttons for this specific modal
+                                        document.addEventListener('DOMContentLoaded', function() {
+                                            const radioButtons = document.querySelectorAll('#editLogModal{{ $log->id }} input[name="skipped"]');
+                                            radioButtons.forEach(function(radio) {
+                                                radio.addEventListener('change', function() {
+                                                    toggleSkipReason{{ $log->id }}();
+                                                });
+                                            });
+                                        });
+                                    </script>
                                 @endforeach
                             </tbody>
                         </table>

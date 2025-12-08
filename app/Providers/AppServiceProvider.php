@@ -24,5 +24,9 @@ class AppServiceProvider extends ServiceProvider
             \App\Models\TrustedContact::class,
             \App\Policies\TrustedContactPolicy::class,
         );
+        Gate::policy(
+            \App\Models\MedicationLog::class,
+            \App\Policies\MedicationLogPolicy::class,
+        );
     }
 }
