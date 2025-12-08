@@ -160,30 +160,27 @@
     </div>
 
     <!-- Seizure Type -->
-    <div class="form-control">
-        <label class="label">
-            <span class="label-text font-semibold">Type of Seizure</span>
-        </label>
-        <select name="seizure_type" class="select select-bordered">
-            <option value="">Select seizure type</option>
-            <option value="focal_aware" {{ old('seizure_type', $seizure?->seizure_type) === 'focal_aware' ? 'selected' : '' }}>Focal Aware (Simple Partial)</option>
-            <option value="focal_impaired" {{ old('seizure_type', $seizure?->seizure_type) === 'focal_impaired' ? 'selected' : '' }}>Focal Impaired Awareness (Complex Partial)</option>
-            <option value="focal_motor" {{ old('seizure_type', $seizure?->seizure_type) === 'focal_motor' ? 'selected' : '' }}>Focal Motor</option>
-            <option value="focal_non_motor" {{ old('seizure_type', $seizure?->seizure_type) === 'focal_non_motor' ? 'selected' : '' }}>Focal Non-Motor</option>
-            <option value="generalized_tonic_clonic" {{ old('seizure_type', $seizure?->seizure_type) === 'generalized_tonic_clonic' ? 'selected' : '' }}>Generalized Tonic-Clonic</option>
-            <option value="absence" {{ old('seizure_type', $seizure?->seizure_type) === 'absence' ? 'selected' : '' }}>Absence</option>
-            <option value="myoclonic" {{ old('seizure_type', $seizure?->seizure_type) === 'myoclonic' ? 'selected' : '' }}>Myoclonic</option>
-            <option value="atonic" {{ old('seizure_type', $seizure?->seizure_type) === 'atonic' ? 'selected' : '' }}>Atonic (Drop Attack)</option>
-            <option value="tonic" {{ old('seizure_type', $seizure?->seizure_type) === 'tonic' ? 'selected' : '' }}>Tonic</option>
-            <option value="clonic" {{ old('seizure_type', $seizure?->seizure_type) === 'clonic' ? 'selected' : '' }}>Clonic</option>
-            <option value="unknown" {{ old('seizure_type', $seizure?->seizure_type) === 'unknown' ? 'selected' : '' }}>Unknown/Uncertain</option>
-        </select>
-        @error('seizure_type')
-            <label class="label">
-                <span class="label-text-alt text-error">{{ $message }}</span>
-            </label>
-        @enderror
-    </div>
+    <x-form-field
+        name="seizure_type"
+        label="Type of Seizure"
+        type="select"
+        :value="old('seizure_type', $seizure?->seizure_type)"
+        placeholder="Select seizure type"
+        :options="[
+            'focal_aware' => 'Focal Aware (Simple Partial)',
+            'focal_impaired' => 'Focal Impaired Awareness (Complex Partial)',
+            'focal_motor' => 'Focal Motor',
+            'focal_non_motor' => 'Focal Non-Motor',
+            'generalized_tonic_clonic' => 'Generalized Tonic-Clonic',
+            'absence' => 'Absence',
+            'myoclonic' => 'Myoclonic',
+            'atonic' => 'Atonic (Drop Attack)',
+            'tonic' => 'Tonic',
+            'clonic' => 'Clonic',
+            'unknown' => 'Unknown/Uncertain'
+        ]"
+        optional
+    />
 
     <!-- Video Evidence -->
     <div class="form-control">
@@ -197,17 +194,17 @@
                        class="checkbox checkbox-primary">
                 <span class="label-text">Video recording of seizure available</span>
             </label>
-            <div class="form-control">
-                <textarea name="video_notes" rows="2" class="textarea textarea-bordered textarea-sm"
-                          placeholder="Notes about video evidence (location, who recorded, etc.)">{{ old('video_notes', $seizure?->video_notes) }}</textarea>
-            </div>
+            <x-form-field
+                name="video_notes"
+                label="Video Notes"
+                type="textarea"
+                :value="old('video_notes', $seizure?->video_notes)"
+                placeholder="Notes about video evidence (location, who recorded, etc.)"
+                rows="2"
+                optional
+            />
         </div>
         @error('has_video_evidence')
-            <label class="label">
-                <span class="label-text-alt text-error">{{ $message }}</span>
-            </label>
-        @enderror
-        @error('video_notes')
             <label class="label">
                 <span class="label-text-alt text-error">{{ $message }}</span>
             </label>
@@ -215,272 +212,216 @@
     </div>
 
     <!-- Possible Triggers -->
-    <div class="form-control">
-        <label class="label">
-            <span class="label-text font-semibold">Possible Triggers</span>
-            <span class="label-text-alt">Select all that may have contributed</span>
-        </label>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-            <label class="cursor-pointer label justify-start gap-2">
-                <input type="checkbox" name="triggers[]" value="stress"
-                       {{ in_array('stress', old('triggers', $seizure?->triggers ?? [])) ? 'checked' : '' }}
-                       class="checkbox checkbox-primary checkbox-sm">
-                <span class="label-text text-sm">Stress</span>
-            </label>
-            <label class="cursor-pointer label justify-start gap-2">
-                <input type="checkbox" name="triggers[]" value="lack_of_sleep"
-                       {{ in_array('lack_of_sleep', old('triggers', $seizure?->triggers ?? [])) ? 'checked' : '' }}
-                       class="checkbox checkbox-primary checkbox-sm">
-                <span class="label-text text-sm">Lack of sleep</span>
-            </label>
-            <label class="cursor-pointer label justify-start gap-2">
-                <input type="checkbox" name="triggers[]" value="missed_medication"
-                       {{ in_array('missed_medication', old('triggers', $seizure?->triggers ?? [])) ? 'checked' : '' }}
-                       class="checkbox checkbox-primary checkbox-sm">
-                <span class="label-text text-sm">Missed medication</span>
-            </label>
-            <label class="cursor-pointer label justify-start gap-2">
-                <input type="checkbox" name="triggers[]" value="illness"
-                       {{ in_array('illness', old('triggers', $seizure?->triggers ?? [])) ? 'checked' : '' }}
-                       class="checkbox checkbox-primary checkbox-sm">
-                <span class="label-text text-sm">Illness/fever</span>
-            </label>
-            <label class="cursor-pointer label justify-start gap-2">
-                <input type="checkbox" name="triggers[]" value="alcohol"
-                       {{ in_array('alcohol', old('triggers', $seizure?->triggers ?? [])) ? 'checked' : '' }}
-                       class="checkbox checkbox-primary checkbox-sm">
-                <span class="label-text text-sm">Alcohol</span>
-            </label>
-            <label class="cursor-pointer label justify-start gap-2">
-                <input type="checkbox" name="triggers[]" value="flashing_lights"
-                       {{ in_array('flashing_lights', old('triggers', $seizure?->triggers ?? [])) ? 'checked' : '' }}
-                       class="checkbox checkbox-primary checkbox-sm">
-                <span class="label-text text-sm">Flashing lights</span>
-            </label>
-            <label class="cursor-pointer label justify-start gap-2">
-                <input type="checkbox" name="triggers[]" value="hormonal"
-                       {{ in_array('hormonal', old('triggers', $seizure?->triggers ?? [])) ? 'checked' : '' }}
-                       class="checkbox checkbox-primary checkbox-sm">
-                <span class="label-text text-sm">Hormonal changes</span>
-            </label>
-            <label class="cursor-pointer label justify-start gap-2">
-                <input type="checkbox" name="triggers[]" value="dehydration"
-                       {{ in_array('dehydration', old('triggers', $seizure?->triggers ?? [])) ? 'checked' : '' }}
-                       class="checkbox checkbox-primary checkbox-sm">
-                <span class="label-text text-sm">Dehydration</span>
-            </label>
-            <label class="cursor-pointer label justify-start gap-2">
-                <input type="checkbox" name="triggers[]" value="low_blood_sugar"
-                       {{ in_array('low_blood_sugar', old('triggers', $seizure?->triggers ?? [])) ? 'checked' : '' }}
-                       class="checkbox checkbox-primary checkbox-sm">
-                <span class="label-text text-sm">Low blood sugar</span>
-            </label>
-        </div>
-        <div class="form-control mt-3">
-            <textarea name="other_triggers" rows="2" class="textarea textarea-bordered textarea-sm"
-                      placeholder="Other triggers not listed above">{{ old('other_triggers', $seizure?->other_triggers) }}</textarea>
-        </div>
-        @error('triggers')
-            <label class="label">
-                <span class="label-text-alt text-error">{{ $message }}</span>
-            </label>
-        @enderror
-        @error('other_triggers')
-            <label class="label">
-                <span class="label-text-alt text-error">{{ $message }}</span>
-            </label>
-        @enderror
-    </div>
+    <x-checkbox-group
+        name="triggers"
+        label="Possible Triggers"
+        help-text="Select all that may have contributed"
+        :values="old('triggers', $seizure?->triggers ?? [])"
+        :options="[
+            'stress' => 'Stress',
+            'lack_of_sleep' => 'Lack of sleep',
+            'missed_medication' => 'Missed medication',
+            'illness' => 'Illness/fever',
+            'alcohol' => 'Alcohol',
+            'flashing_lights' => 'Flashing lights',
+            'hormonal' => 'Hormonal changes',
+            'dehydration' => 'Dehydration',
+            'low_blood_sugar' => 'Low blood sugar'
+        ]"
+        columns="md:grid-cols-2 lg:grid-cols-3"
+        optional
+    />
+    <x-form-field
+        name="other_triggers"
+        label="Other Triggers"
+        type="textarea"
+        :value="old('other_triggers', $seizure?->other_triggers)"
+        placeholder="Other triggers not listed above"
+        rows="2"
+        wrapper-class="mt-3"
+        optional
+    />
 
     <!-- Pre-ictal Symptoms -->
-    <div class="form-control">
-        <label class="label">
-            <span class="label-text font-semibold">Pre-ictal Symptoms</span>
-            <span class="label-text-alt">What did you notice before the seizure?</span>
-        </label>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <label class="cursor-pointer label justify-start gap-2">
-                <input type="checkbox" name="pre_ictal_symptoms[]" value="aura"
-                       {{ in_array('aura', old('pre_ictal_symptoms', $seizure?->pre_ictal_symptoms ?? [])) ? 'checked' : '' }}
-                       class="checkbox checkbox-primary checkbox-sm">
-                <span class="label-text text-sm">Aura/warning feeling</span>
-            </label>
-            <label class="cursor-pointer label justify-start gap-2">
-                <input type="checkbox" name="pre_ictal_symptoms[]" value="mood_change"
-                       {{ in_array('mood_change', old('pre_ictal_symptoms', $seizure?->pre_ictal_symptoms ?? [])) ? 'checked' : '' }}
-                       class="checkbox checkbox-primary checkbox-sm">
-                <span class="label-text text-sm">Mood changes</span>
-            </label>
-            <label class="cursor-pointer label justify-start gap-2">
-                <input type="checkbox" name="pre_ictal_symptoms[]" value="headache"
-                       {{ in_array('headache', old('pre_ictal_symptoms', $seizure?->pre_ictal_symptoms ?? [])) ? 'checked' : '' }}
-                       class="checkbox checkbox-primary checkbox-sm">
-                <span class="label-text text-sm">Headache</span>
-            </label>
-            <label class="cursor-pointer label justify-start gap-2">
-                <input type="checkbox" name="pre_ictal_symptoms[]" value="confusion"
-                       {{ in_array('confusion', old('pre_ictal_symptoms', $seizure?->pre_ictal_symptoms ?? [])) ? 'checked' : '' }}
-                       class="checkbox checkbox-primary checkbox-sm">
-                <span class="label-text text-sm">Confusion</span>
-            </label>
-            <label class="cursor-pointer label justify-start gap-2">
-                <input type="checkbox" name="pre_ictal_symptoms[]" value="unusual_sensations"
-                       {{ in_array('unusual_sensations', old('pre_ictal_symptoms', $seizure?->pre_ictal_symptoms ?? [])) ? 'checked' : '' }}
-                       class="checkbox checkbox-primary checkbox-sm">
-                <span class="label-text text-sm">Unusual sensations</span>
-            </label>
-            <label class="cursor-pointer label justify-start gap-2">
-                <input type="checkbox" name="pre_ictal_symptoms[]" value="none_noticed"
-                       {{ in_array('none_noticed', old('pre_ictal_symptoms', $seizure?->pre_ictal_symptoms ?? [])) ? 'checked' : '' }}
-                       class="checkbox checkbox-primary checkbox-sm">
-                <span class="label-text text-sm">No warning signs</span>
-            </label>
-        </div>
-        <div class="form-control mt-3">
-            <textarea name="pre_ictal_notes" rows="2" class="textarea textarea-bordered textarea-sm"
-                      placeholder="Describe any pre-ictal symptoms in detail">{{ old('pre_ictal_notes', $seizure?->pre_ictal_notes) }}</textarea>
-        </div>
-        @error('pre_ictal_symptoms')
-            <label class="label">
-                <span class="label-text-alt text-error">{{ $message }}</span>
-            </label>
-        @enderror
-        @error('pre_ictal_notes')
-            <label class="label">
-                <span class="label-text-alt text-error">{{ $message }}</span>
-            </label>
-        @enderror
-    </div>
+    <x-checkbox-group
+        name="pre_ictal_symptoms"
+        label="Pre-ictal Symptoms"
+        help-text="What did you notice before the seizure?"
+        :values="old('pre_ictal_symptoms', $seizure?->pre_ictal_symptoms ?? [])"
+        :options="[
+            'aura' => 'Aura/warning feeling',
+            'mood_change' => 'Mood changes',
+            'headache' => 'Headache',
+            'confusion' => 'Confusion',
+            'unusual_sensations' => 'Unusual sensations',
+            'none_noticed' => 'No warning signs'
+        ]"
+        columns="md:grid-cols-2"
+        optional
+    />
+
+    <x-form-field
+        name="pre_ictal_notes"
+        label="Pre-ictal Notes"
+        type="textarea"
+        :value="old('pre_ictal_notes', $seizure?->pre_ictal_notes)"
+        placeholder="Describe any pre-ictal symptoms in detail"
+        rows="2"
+        wrapper-class="mt-3"
+        optional
+    />
 
     <!-- Post-ictal Recovery -->
-    <div class="form-control">
-        <label class="label">
-            <span class="label-text font-semibold">Post-ictal Recovery</span>
-            <span class="label-text-alt">How did you feel after the seizure?</span>
-        </label>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label class="label">
-                    <span class="label-text text-sm">Recovery time</span>
-                </label>
-                <select name="recovery_time" class="select select-bordered select-sm">
-                    <option value="">Select recovery time</option>
-                    <option value="immediate" {{ old('recovery_time', $seizure?->recovery_time) === 'immediate' ? 'selected' : '' }}>Immediate (< 5 minutes)</option>
-                    <option value="short" {{ old('recovery_time', $seizure?->recovery_time) === 'short' ? 'selected' : '' }}>Short (5-30 minutes)</option>
-                    <option value="moderate" {{ old('recovery_time', $seizure?->recovery_time) === 'moderate' ? 'selected' : '' }}>Moderate (30min - 2 hours)</option>
-                    <option value="long" {{ old('recovery_time', $seizure?->recovery_time) === 'long' ? 'selected' : '' }}>Long (2-6 hours)</option>
-                    <option value="very_long" {{ old('recovery_time', $seizure?->recovery_time) === 'very_long' ? 'selected' : '' }}>Very long (6+ hours)</option>
-                </select>
-            </div>
+    <div class="space-y-4">
+        <div class="mb-4">
+            <h3 class="text-lg font-semibold text-base-content">Post-ictal Recovery</h3>
+            <p class="text-sm text-gray-500 mt-1">How did you feel after the seizure?</p>
+        </div>
+
+        <x-form-field
+            name="recovery_time"
+            label="Recovery Time"
+            type="select"
+            :value="old('recovery_time', $seizure?->recovery_time)"
+            placeholder="Select recovery time"
+            :options="[
+                'immediate' => 'Immediate (< 5 minutes)',
+                'short' => 'Short (5-30 minutes)',
+                'moderate' => 'Moderate (30min - 2 hours)',
+                'long' => 'Long (2-6 hours)',
+                'very_long' => 'Very long (6+ hours)'
+            ]"
+            optional
+        />
+
+        <div class="space-y-2">
+            <label class="block text-sm font-semibold text-base-content mb-2">
+                Post-ictal Symptoms
+                <span class="text-sm text-gray-500 ml-1">(Optional)</span>
+                <span class="block text-xs text-gray-500 mt-1 font-normal">Select any symptoms you experienced after the seizure</span>
+            </label>
+
             <div class="space-y-2">
-                <label class="cursor-pointer label justify-start gap-2">
-                    <input type="checkbox" name="slept_after" value="1"
-                           {{ old('slept_after', $seizure?->slept_after) ? 'checked' : '' }}
-                           class="checkbox checkbox-primary checkbox-sm">
-                    <span class="label-text text-sm">Slept after seizure</span>
-                </label>
-                <label class="cursor-pointer label justify-start gap-2">
-                    <input type="checkbox" name="post_ictal_confusion" value="1"
-                           {{ old('post_ictal_confusion', $seizure?->post_ictal_confusion) ? 'checked' : '' }}
-                           class="checkbox checkbox-primary checkbox-sm">
-                    <span class="label-text text-sm">Post-ictal confusion</span>
-                </label>
-                <label class="cursor-pointer label justify-start gap-2">
-                    <input type="checkbox" name="post_ictal_headache" value="1"
-                           {{ old('post_ictal_headache', $seizure?->post_ictal_headache) ? 'checked' : '' }}
-                           class="checkbox checkbox-primary checkbox-sm">
-                    <span class="label-text text-sm">Post-ictal headache</span>
-                </label>
+                <x-form-field
+                    name="slept_after"
+                    label="Slept after seizure"
+                    type="checkbox"
+                    :value="old('slept_after', $seizure?->slept_after)"
+                    class="checkbox-primary checkbox-sm"
+                    wrapper-class="mb-2"
+                />
+
+                <x-form-field
+                    name="post_ictal_confusion"
+                    label="Post-ictal confusion"
+                    type="checkbox"
+                    :value="old('post_ictal_confusion', $seizure?->post_ictal_confusion)"
+                    class="checkbox-primary checkbox-sm"
+                    wrapper-class="mb-2"
+                />
+
+                <x-form-field
+                    name="post_ictal_headache"
+                    label="Post-ictal headache"
+                    type="checkbox"
+                    :value="old('post_ictal_headache', $seizure?->post_ictal_headache)"
+                    class="checkbox-primary checkbox-sm"
+                    wrapper-class="mb-2"
+                />
             </div>
         </div>
-        <div class="form-control mt-3">
-            <textarea name="recovery_notes" rows="2" class="textarea textarea-bordered textarea-sm"
-                      placeholder="Describe your recovery experience">{{ old('recovery_notes', $seizure?->recovery_notes) }}</textarea>
-        </div>
-        @error('recovery_time')
-            <label class="label">
-                <span class="label-text-alt text-error">{{ $message }}</span>
-            </label>
-        @enderror
-        @error('recovery_notes')
-            <label class="label">
-                <span class="label-text-alt text-error">{{ $message }}</span>
-            </label>
-        @enderror
+
+        <x-form-field
+            name="recovery_notes"
+            label="Recovery Notes"
+            type="textarea"
+            :value="old('recovery_notes', $seizure?->recovery_notes)"
+            placeholder="Describe your recovery experience"
+            rows="3"
+            optional
+        />
     </div>
 
     <!-- Medical Information -->
     <div class="divider">Medical Information</div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="form-control">
-            <label class="label">
-                <span class="label-text font-semibold">Period & Hormones</span>
-            </label>
-            <div class="space-y-2">
-                <label class="cursor-pointer label justify-start gap-2">
-                    <input type="checkbox" name="on_period" value="1"
-                           {{ old('on_period', $seizure?->on_period) ? 'checked' : '' }}
-                           class="checkbox checkbox-primary">
-                    <span class="label-text">On period</span>
-                </label>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text text-sm">Days since last period started</span>
-                    </label>
-                    <input type="number" name="days_since_period" min="0" max="100"
-                           value="{{ old('days_since_period', $seizure?->days_since_period) }}"
-                           class="input input-bordered input-sm" placeholder="Optional">
-                </div>
-            </div>
+        <!-- Emergency Response -->
+        <div class="space-y-4">
+            <x-form-field
+                name="ambulance_called"
+                label="Ambulance Called"
+                type="checkbox"
+                :value="old('ambulance_called', $seizure?->ambulance_called)"
+                class="checkbox-primary"
+                optional
+            />
+
+            <x-form-field
+                name="nhs_contact_type"
+                label="NHS Contact"
+                type="select"
+                :value="old('nhs_contact_type', $seizure?->nhs_contact_type)"
+                placeholder="No contact"
+                :options="[
+                    'gp' => 'GP',
+                    'hospital' => 'Hospital',
+                    '111' => 'NHS 111',
+                    '999' => 'Emergency (999)'
+                ]"
+                optional
+            />
         </div>
 
-        <div class="form-control">
-            <label class="label">
-                <span class="label-text font-semibold">Emergency Response</span>
-            </label>
-            <div class="space-y-2">
-                <label class="cursor-pointer label justify-start gap-2">
-                    <input type="checkbox" name="ambulance_called" value="1"
-                           {{ old('ambulance_called', $seizure?->ambulance_called) ? 'checked' : '' }}
-                           class="checkbox checkbox-primary">
-                    <span class="label-text">Ambulance called</span>
-                </label>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text text-sm">NHS Contact</span>
-                    </label>
-                    <select name="nhs_contact_type" class="select select-bordered select-sm">
-                        <option value="">No contact</option>
-                        <option value="gp" {{ old('nhs_contact_type', $seizure?->nhs_contact_type) === 'gp' ? 'selected' : '' }}>GP</option>
-                        <option value="hospital" {{ old('nhs_contact_type', $seizure?->nhs_contact_type) === 'hospital' ? 'selected' : '' }}>Hospital</option>
-                        <option value="111" {{ old('nhs_contact_type', $seizure?->nhs_contact_type) === '111' ? 'selected' : '' }}>NHS 111</option>
-                        <option value="999" {{ old('nhs_contact_type', $seizure?->nhs_contact_type) === '999' ? 'selected' : '' }}>Emergency (999)</option>
-                    </select>
-                </div>
-            </div>
+        <!-- Period & Hormones -->
+        <div class="space-y-4">
+            <x-form-field
+                name="on_period"
+                label="On Period"
+                type="checkbox"
+                :value="old('on_period', $seizure?->on_period)"
+                class="checkbox-primary"
+                optional
+            />
+
+            <x-form-field
+                name="days_since_period"
+                label="Days Since Last Period Started"
+                type="number"
+                :value="old('days_since_period', $seizure?->days_since_period)"
+                placeholder="Optional"
+                min="0"
+                max="100"
+                optional
+            />
         </div>
     </div>
 
     <!-- Medication Adherence -->
-    <div class="form-control">
-        <label class="label">
-            <span class="label-text-alt">How well did you take your epilepsy medicines recently?</span>
-        </label>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label class="label">
-                    <span class="label-text text-sm">Medication adherence (last 7 days)</span>
-                </label>
-                <select name="medication_adherence" class="select select-bordered select-sm">
-                    <option value="">Select adherence level</option>
-                    <option value="excellent" {{ old('medication_adherence', $seizure?->medication_adherence) === 'excellent' ? 'selected' : '' }}>Excellent (100% of doses)</option>
-                    <option value="good" {{ old('medication_adherence', $seizure?->medication_adherence) === 'good' ? 'selected' : '' }}>Good (75-99% of doses)</option>
-                    <option value="fair" {{ old('medication_adherence', $seizure?->medication_adherence) === 'fair' ? 'selected' : '' }}>Fair (50-74% of doses)</option>
-                    <option value="poor" {{ old('medication_adherence', $seizure?->medication_adherence) === 'poor' ? 'selected' : '' }}>Poor (< 50% of doses)</option>
-                </select>
-            </div>
-            <div class="space-y-2">
+    <x-form-field
+        name="medication_adherence"
+        label="How well did you take your epilepsy medicines recently?"
+        type="select"
+        :value="old('medication_adherence', $seizure?->medication_adherence)"
+        placeholder="Select adherence level"
+        :options="[
+            'excellent' => 'Excellent (100% of doses)',
+            'good' => 'Good (75-99% of doses)',
+            'fair' => 'Fair (50-74% of doses)',
+            'poor' => 'Poor (< 50% of doses)'
+        ]"
+        onchange="toggleMedicationDetails()"
+        optional
+    />
+
+    <div id="medication_details" class="space-y-2" style="display: none;">
+        <div class="form-control mt-3">
+            <label class="block text-sm font-semibold text-base-content mb-2">
+                Medication Issues
+                <span class="text-sm text-gray-500 ml-1">(Optional)</span>
+                <span class="block text-xs text-gray-500 mt-1 font-normal">Select any that apply</span>
+            </label>
+            <div class="grid grid-cols-1 gap-2">
                 <label class="cursor-pointer label justify-start gap-2">
                     <input type="checkbox" name="recent_medication_change" value="1"
                            {{ old('recent_medication_change', $seizure?->recent_medication_change) ? 'checked' : '' }}
@@ -493,23 +434,44 @@
                            class="checkbox checkbox-primary checkbox-sm">
                     <span class="label-text text-sm">Experiencing side effects</span>
                 </label>
+                <label class="cursor-pointer label justify-start gap-2">
+                    <input type="checkbox" name="forgot_doses" value="1"
+                           {{ old('forgot_doses', $seizure?->forgot_doses) ? 'checked' : '' }}
+                           class="checkbox checkbox-primary checkbox-sm">
+                    <span class="label-text text-sm">Forgot to take doses</span>
+                </label>
+                <label class="cursor-pointer label justify-start gap-2">
+                    <input type="checkbox" name="ran_out_of_medication" value="1"
+                           {{ old('ran_out_of_medication', $seizure?->ran_out_of_medication) ? 'checked' : '' }}
+                           class="checkbox checkbox-primary checkbox-sm">
+                    <span class="label-text text-sm">Ran out of medication</span>
+                </label>
+                <label class="cursor-pointer label justify-start gap-2">
+                    <input type="checkbox" name="intentionally_skipped" value="1"
+                           {{ old('intentionally_skipped', $seizure?->intentionally_skipped) ? 'checked' : '' }}
+                           class="checkbox checkbox-primary checkbox-sm">
+                    <span class="label-text text-sm">Intentionally skipped doses</span>
+                </label>
             </div>
         </div>
-        <div class="form-control mt-3">
-            <textarea name="medication_notes" rows="2" class="textarea textarea-bordered textarea-sm"
-                      placeholder="Notes about medications, changes, or side effects">{{ old('medication_notes', $seizure?->medication_notes) }}</textarea>
-        </div>
-        @error('medication_adherence')
-            <label class="label">
-                <span class="label-text-alt text-error">{{ $message }}</span>
-            </label>
-        @enderror
-        @error('medication_notes')
-            <label class="label">
-                <span class="label-text-alt text-error">{{ $message }}</span>
-            </label>
-        @enderror
     </div>
+
+    <x-form-field
+        name="medication_notes"
+        label="Medication Notes"
+        type="textarea"
+        :value="old('medication_notes', $seizure?->medication_notes)"
+        placeholder="Notes about medications, changes, or side effects"
+        rows="2"
+        wrapper-class="mt-3"
+        optional
+    />
+
+    @error('medication_adherence')
+        <div class="label">
+            <span class="label-text-alt text-error">{{ $message }}</span>
+        </div>
+    @enderror
 
     <!-- General Wellbeing -->
     <div class="form-control">
@@ -545,32 +507,34 @@
                 </select>
             </div>
         </div>
-        <div class="form-control mt-3">
-            <textarea name="wellbeing_notes" rows="2" class="textarea textarea-bordered textarea-sm"
-                      placeholder="Any other observations about your health, mood, or wellbeing">{{ old('wellbeing_notes', $seizure?->wellbeing_notes) }}</textarea>
-        </div>
+        <x-form-field
+            name="wellbeing_notes"
+            label="Wellbeing Notes"
+            type="textarea"
+            :value="old('wellbeing_notes', $seizure?->wellbeing_notes)"
+            placeholder="Any other observations about your health, mood, or wellbeing"
+            rows="2"
+            wrapper-class="mt-3"
+            optional
+        />
         @error('wellbeing_rating')
-            <label class="label">
+            <div class="label">
                 <span class="label-text-alt text-error">{{ $message }}</span>
-            </label>
+            </div>
         @enderror
         @error('sleep_quality')
-            <label class="label">
+            <div class="label">
                 <span class="label-text-alt text-error">{{ $message }}</span>
-            </label>
+            </div>
         @enderror
-        @error('wellbeing_notes')
-            <label class="label">
-                <span class="label-text-alt text-error">{{ $message }}</span>
-            </label>
-        @enderror
+
     </div>
 
     <!-- Postictal State End -->
     <div class="form-control">
-        <label class="label">
-            <span class="label-text font-semibold">Postictal state ended at</span>
-            <button type="button" onclick="setPostictalToNow(event)" class="btn btn-xs btn-primary" data-no-loading>
+        <label class="block text-sm font-semibold text-base-content mb-2">
+            Postictal state ended at
+            <button type="button" onclick="setPostictalToNow(event)" class="btn btn-xs btn-primary ml-2" data-no-loading>
                 Set to now
             </button>
         </label>
@@ -578,17 +542,18 @@
                value="{{ old('postictal_state_end', $seizure?->postictal_state_end?->format('Y-m-d\TH:i')) }}"
                class="input input-bordered">
         @error('postictal_state_end')
-            <label class="label">
+            <div class="label">
                 <span class="label-text-alt text-error">{{ $message }}</span>
-            </label>
+            </div>
         @enderror
     </div>
 
     <!-- Notes -->
     <div class="form-control">
-        <label class="label">
-            <span class="label-text font-semibold">Notes</span>
-            <button type="button" onclick="openNotesModal()" class="btn btn-xs btn-outline">
+        <label class="block text-sm font-semibold text-base-content mb-2">
+            Notes
+            <span class="text-sm text-gray-500 ml-1">(Optional)</span>
+            <button type="button" onclick="openNotesModal()" class="btn btn-xs btn-outline ml-2">
                 <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
                 </svg>
@@ -598,9 +563,9 @@
         <textarea name="notes" id="notes" rows="4" class="textarea textarea-bordered"
                   placeholder="Optional notes about the seizure...">{{ old('notes', $seizure?->notes) }}</textarea>
         @error('notes')
-            <label class="label">
+            <div class="label">
                 <span class="label-text-alt text-error">{{ $message }}</span>
-            </label>
+            </div>
         @enderror
     </div>
 
@@ -809,6 +774,31 @@ function cancelForm() {
     }
 }
 
+function toggleMedicationDetails() {
+    const select = document.querySelector('select[name="medication_adherence"]');
+    const details = document.getElementById('medication_details');
+
+    if (!select || !details) return;
+
+    const value = select.value;
+
+    // Check if any medication issue checkboxes are already checked
+    const hasExistingIssues = details.querySelectorAll('input[type="checkbox"]:checked').length > 0;
+
+    // Show details for fair, poor, or good adherence, or if there are existing issues
+    if (value === 'fair' || value === 'poor' || value === 'good' || hasExistingIssues) {
+        details.style.display = 'block';
+    } else if (value === 'excellent') {
+        details.style.display = 'none';
+        // Only clear checkboxes when selecting excellent adherence
+        const checkboxes = details.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(cb => cb.checked = false);
+    } else {
+        // For empty selection, hide but don't clear existing values
+        details.style.display = 'none';
+    }
+}
+
 // Initialize severity display on page load
 document.addEventListener('DOMContentLoaded', function() {
     updateSeverityDisplay({{ $defaultSeverity }});
@@ -819,5 +809,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('form_user_id').value = this.value;
         });
     }
+
+    // Initialize medication details visibility
+    toggleMedicationDetails();
 });
 </script>
