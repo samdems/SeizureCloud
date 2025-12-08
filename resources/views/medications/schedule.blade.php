@@ -31,10 +31,28 @@
 
             @foreach(['morning', 'afternoon', 'evening', 'bedtime', 'as_needed'] as $period)
                 @if(count($groupedSchedule[$period]) > 0)
-                    <div class="divider text-lg font-bold">
-                        {{ $periodLabels[$period][0] }}
-                        @if($periodLabels[$period][1])
-                            <span class="text-sm font-normal text-base-content/60">({{ $periodLabels[$period][1] }})</span>
+                    <div class="flex items-center justify-between">
+                        <div class="divider text-lg font-bold flex-1">
+                            {{ $periodLabels[$period][0] }}
+                            @if($periodLabels[$period][1])
+                                <span class="text-sm font-normal text-base-content/60">({{ $periodLabels[$period][1] }})</span>
+                            @endif
+                        </div>
+                        @if($period !== 'as_needed')
+                            @php
+                                $allTaken = collect($groupedSchedule[$period])->every(fn($item) => $item['taken']);
+                                $hasMedications = count($groupedSchedule[$period]) > 0;
+                            @endphp
+                            @if($hasMedications && !$allTaken)
+                                <button class="btn btn-success btn-sm ml-4" onclick="markAllTaken{{ ucfirst($period) }}.showModal()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    Mark All Taken
+                                </button>
+                            @elseif($allTaken)
+                                <span class="badge badge-success badge-sm ml-4">All Taken</span>
+                            @endif
                         @endif
                     </div>
 
@@ -102,26 +120,29 @@
                                     <input type="hidden" name="medication_schedule_id" value="{{ $item['schedule']->id }}">
                                 @endif
 
-                                <div class="form-control">
-                                    <label class="label">
-                                        <span class="label-text">Time Taken</span>
-                                    </label>
-                                    <input type="datetime-local" name="taken_at" value="{{ now()->format('Y-m-d\TH:i') }}" class="input input-bordered" required>
-                                </div>
+                                <x-form-field
+                                    name="taken_at"
+                                    label="Time Taken"
+                                    type="datetime-local"
+                                    value="{{ now()->format('Y-m-d\TH:i') }}"
+                                    required
+                                />
 
-                                <div class="form-control">
-                                    <label class="label">
-                                        <span class="label-text">Dosage (optional)</span>
-                                    </label>
-                                    <input type="text" name="dosage_taken" value="{{ $item['as_needed'] ? ($item['medication']->dosage . ' ' . $item['medication']->unit) : ($item['schedule']->getCalculatedDosageWithUnit() ?? ($item['medication']->dosage . ' ' . $item['medication']->unit)) }}" class="input input-bordered">
-                                </div>
+                                <x-form-field
+                                    name="dosage_taken"
+                                    label="Dosage"
+                                    type="text"
+                                    value="{{ $item['as_needed'] ? ($item['medication']->dosage . ' ' . $item['medication']->unit) : ($item['schedule']->getCalculatedDosageWithUnit() ?? ($item['medication']->dosage . ' ' . $item['medication']->unit)) }}"
+                                    optional
+                                />
 
-                                <div class="form-control">
-                                    <label class="label">
-                                        <span class="label-text">Notes (optional)</span>
-                                    </label>
-                                    <textarea name="notes" class="textarea textarea-bordered" rows="2"></textarea>
-                                </div>
+                                <x-form-field
+                                    name="notes"
+                                    label="Notes"
+                                    type="textarea"
+                                    rows="2"
+                                    optional
+                                />
 
                                 <div class="modal-action">
                                     <button type="button" class="btn btn-outline" onclick="logTaken{{ $item['medication']->id }}_{{ $item['as_needed'] ? 'asneeded' : $item['schedule']->id }}.close()">Cancel</button>
@@ -145,26 +166,27 @@
                                     <input type="hidden" name="medication_schedule_id" value="{{ $item['schedule']->id }}">
                                 @endif
 
-                                <div class="form-control">
-                                    <label class="label">
-                                        <span class="label-text">Reason for Skipping</span>
-                                    </label>
-                                    <select name="skip_reason" class="select select-bordered">
-                                        <option value="">Select reason...</option>
-                                        <option value="Forgot">Forgot</option>
-                                        <option value="Side effects">Side effects</option>
-                                        <option value="Ran out">Ran out</option>
-                                        <option value="Felt better">Felt better</option>
-                                        <option value="Other">Other</option>
-                                    </select>
-                                </div>
+                                <x-form-field
+                                    name="skip_reason"
+                                    label="Reason for Skipping"
+                                    type="select"
+                                    placeholder="Select reason..."
+                                    :options="[
+                                        'Forgot' => 'Forgot',
+                                        'Side effects' => 'Side effects',
+                                        'Ran out' => 'Ran out',
+                                        'Felt better' => 'Felt better',
+                                        'Other' => 'Other'
+                                    ]"
+                                />
 
-                                <div class="form-control">
-                                    <label class="label">
-                                        <span class="label-text">Notes (optional)</span>
-                                    </label>
-                                    <textarea name="notes" class="textarea textarea-bordered" rows="2"></textarea>
-                                </div>
+                                <x-form-field
+                                    name="notes"
+                                    label="Notes"
+                                    type="textarea"
+                                    rows="2"
+                                    optional
+                                />
 
                                 <div class="modal-action">
                                     <button type="button" class="btn btn-outline" onclick="logSkipped{{ $item['medication']->id }}_{{ $item['as_needed'] ? 'asneeded' : $item['schedule']->id }}.close()">Cancel</button>
@@ -178,6 +200,60 @@
                     </dialog>
                         @endforeach
                     </div>
+
+                    @if($period !== 'as_needed')
+                        <!-- Mark All Taken Modal -->
+                        <dialog id="markAllTaken{{ ucfirst($period) }}" class="modal">
+                            <div class="modal-box">
+                                <h3 class="font-bold text-lg">Mark All {{ ucfirst($period) }} Medications as Taken</h3>
+                                <form method="POST" action="{{ route('medications.log-bulk-taken') }}" class="space-y-4 mt-4">
+                                    @csrf
+                                    <input type="hidden" name="period" value="{{ $period }}">
+
+                                    <x-form-field
+                                        name="taken_at"
+                                        label="Time Taken"
+                                        type="datetime-local"
+                                        value="{{ now()->format('Y-m-d\TH:i') }}"
+                                        required
+                                    />
+
+                                    <x-form-field
+                                        name="notes"
+                                        label="Notes for all medications"
+                                        type="textarea"
+                                        rows="3"
+                                        placeholder="Add notes that will apply to all medications in this time slot..."
+                                        optional
+                                    />
+
+                                    <div class="bg-base-200 p-4 rounded-lg">
+                                        <h4 class="font-semibold mb-2">Medications to be marked as taken:</h4>
+                                        <ul class="list-disc list-inside space-y-1">
+                                            @foreach($groupedSchedule[$period] as $item)
+                                                @if(!$item['taken'])
+                                                    <li class="text-sm">
+                                                        {{ $item['medication']->name }}
+                                                        @if($item['schedule']->getCalculatedDosageWithUnit())
+                                                            - {{ $item['schedule']->getCalculatedDosageWithUnit() }}
+                                                        @endif
+                                                    </li>
+                                                @endif
+                                            @endforeach
+                                        </ul>
+                                    </div>
+
+                                    <div class="modal-action">
+                                        <button type="button" class="btn btn-outline" onclick="markAllTaken{{ ucfirst($period) }}.close()">Cancel</button>
+                                        <button type="submit" class="btn btn-success">Mark All as Taken</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <form method="dialog" class="modal-backdrop">
+                                <button>close</button>
+                            </form>
+                        </dialog>
+                    @endif
                 @endif
             @endforeach
         @else

@@ -12,6 +12,7 @@ use App\Http\Requests\MedicationStoreRequest;
 use App\Http\Requests\MedicationUpdateRequest;
 use App\Http\Requests\MedicationLogTakenRequest;
 use App\Http\Requests\MedicationLogSkippedRequest;
+use App\Http\Requests\MedicationLogBulkTakenRequest;
 use App\Http\Requests\MedicationScheduleStoreRequest;
 
 class MedicationController extends Controller
@@ -311,6 +312,58 @@ class MedicationController extends Controller
         ]);
 
         return back()->with("success", "Skipped dose logged.");
+    }
+
+    public function logBulkTaken(MedicationLogBulkTakenRequest $request)
+    {
+        $validated = $request->validated();
+        $user = Auth::user();
+
+        // Get all medications scheduled for the specified period
+        $medications = $user->medications()->with("schedules")->get();
+        $loggedCount = 0;
+
+        foreach ($medications as $medication) {
+            foreach ($medication->schedules as $schedule) {
+                if ($schedule->isScheduledForToday()) {
+                    $time = $schedule->scheduled_time->format("H:i");
+                    $schedulePeriod = $user->getTimePeriod($time);
+
+                    if ($schedulePeriod === $validated["period"]) {
+                        // Check if already logged for today
+                        $existingLog = MedicationLog::where(
+                            "medication_id",
+                            $medication->id,
+                        )
+                            ->where("medication_schedule_id", $schedule->id)
+                            ->whereDate("taken_at", today())
+                            ->first();
+
+                        if (!$existingLog) {
+                            MedicationLog::create([
+                                "medication_id" => $medication->id,
+                                "medication_schedule_id" => $schedule->id,
+                                "taken_at" => $validated["taken_at"],
+                                "dosage_taken" =>
+                                    $schedule->getCalculatedDosageWithUnit() ??
+                                    $medication->dosage .
+                                        " " .
+                                        $medication->unit,
+                                "notes" => $validated["notes"],
+                                "skipped" => false,
+                            ]);
+                            $loggedCount++;
+                        }
+                    }
+                }
+            }
+        }
+
+        $periodLabel = ucfirst($validated["period"]);
+        return back()->with(
+            "success",
+            "Marked {$loggedCount} {$periodLabel} medications as taken.",
+        );
     }
 
     // Schedule CRUD

@@ -13,11 +13,15 @@
         <div class="card bg-base-100 shadow-xl">
             <div class="card-body">
                 <form method="GET" action="{{ route('medications.schedule.history') }}" class="flex gap-4 items-end">
-                    <div class="form-control flex-1">
-                        <label class="label">
-                            <span class="label-text">Select Date</span>
-                        </label>
-                        <input type="date" name="date" value="{{ $date->format('Y-m-d') }}" class="input input-bordered" max="{{ now()->format('Y-m-d') }}">
+                    <div class="flex-1">
+                        <x-form-field
+                            name="date"
+                            label="Select Date"
+                            type="date"
+                            value="{{ $date->format('Y-m-d') }}"
+                            max="{{ now()->format('Y-m-d') }}"
+                            wrapperClass=""
+                        />
                     </div>
                     <button type="submit" class="btn btn-primary">View Schedule</button>
                 </form>

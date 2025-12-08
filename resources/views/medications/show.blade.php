@@ -234,12 +234,13 @@
                     <span>Logging as taken now at {{ now()->format('g:i A') }}</span>
                 </div>
 
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Notes (optional)</span>
-                    </label>
-                    <textarea name="notes" class="textarea textarea-bordered" rows="2"></textarea>
-                </div>
+                <x-form-field
+                    name="notes"
+                    label="Notes"
+                    type="textarea"
+                    rows="2"
+                    optional
+                />
 
                 <div class="modal-action">
                     <button type="button" class="btn btn-outline" onclick="quickLogModal.close()">Cancel</button>
@@ -280,37 +281,43 @@
                     <input type="time" name="scheduled_time" id="scheduled_time" class="input input-bordered" required>
                 </div>
 
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Dosage Multiplier</span>
-                    </label>
-                    <select name="dosage_multiplier" class="select select-bordered">
-                        <option value="0.25">0.25x (¼ dose)</option>
-                        <option value="0.5">0.5x (½ dose)</option>
-                        <option value="0.75">0.75x (¾ dose)</option>
-                        <option value="1" selected>1x (Standard dose)</option>
-                        <option value="1.5">1.5x (1½ doses)</option>
-                        <option value="2">2x (Double dose)</option>
-                        <option value="2.5">2.5x (2½ doses)</option>
-                        <option value="3">3x (Triple dose)</option>
-                    </select>
-                    @if($medication->dosage)
+                <x-form-field
+                    name="dosage_multiplier"
+                    label="Dosage Multiplier"
+                    type="select"
+                    value="1"
+                    :options="[
+                        '0.25' => '0.25x (¼ dose)',
+                        '0.5' => '0.5x (½ dose)',
+                        '0.75' => '0.75x (¾ dose)',
+                        '1' => '1x (Standard dose)',
+                        '1.5' => '1.5x (1½ doses)',
+                        '2' => '2x (Double dose)',
+                        '2.5' => '2.5x (2½ doses)',
+                        '3' => '3x (Triple dose)'
+                    ]"
+                />
+                @if($medication->dosage)
+                    <div class="form-control">
                         <label class="label">
                             <span class="label-text-alt">Base dosage: {{ $medication->dosage }} {{ $medication->unit }}</span>
                         </label>
-                    @endif
-                </div>
+                    </div>
+                @endif
 
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Frequency *</span>
-                    </label>
-                    <select name="frequency" id="frequency" class="select select-bordered" required onchange="toggleDaysOfWeek()">
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="as_needed">As Needed</option>
-                    </select>
-                </div>
+                <x-form-field
+                    name="frequency"
+                    label="Frequency"
+                    type="select"
+                    id="frequency"
+                    :options="[
+                        'daily' => 'Daily',
+                        'weekly' => 'Weekly',
+                        'as_needed' => 'As Needed'
+                    ]"
+                    onchange="toggleDaysOfWeek()"
+                    required
+                />
 
                 <div id="daysOfWeekContainer" class="form-control hidden">
                     <label class="label">
@@ -326,19 +333,21 @@
                     </div>
                 </div>
 
-                <div class="form-control">
-                    <label class="label cursor-pointer justify-start gap-2">
-                        <input type="checkbox" name="active" value="1" checked class="checkbox checkbox-primary">
-                        <span class="label-text">Active</span>
-                    </label>
-                </div>
+                <x-form-field
+                    name="active"
+                    label="Active"
+                    type="checkbox"
+                    value="1"
+                    class="checkbox checkbox-primary"
+                />
 
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Notes</span>
-                    </label>
-                    <textarea name="notes" class="textarea textarea-bordered" rows="2"></textarea>
-                </div>
+                <x-form-field
+                    name="notes"
+                    label="Notes"
+                    type="textarea"
+                    rows="2"
+                    optional
+                />
 
                 <div class="modal-action">
                     <button type="button" class="btn btn-outline" onclick="addScheduleModal.close()">Cancel</button>

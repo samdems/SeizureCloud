@@ -207,6 +207,10 @@ Route::middleware(["auth"])->group(function () {
             \App\Http\Controllers\MedicationController::class,
             "logSkipped",
         ])->name("medications.log-skipped");
+        Route::post("medications-log-bulk-taken", [
+            \App\Http\Controllers\MedicationController::class,
+            "logBulkTaken",
+        ])->name("medications.log-bulk-taken");
         Route::post("medications/{medication}/schedules", [
             \App\Http\Controllers\MedicationController::class,
             "storeSchedule",
