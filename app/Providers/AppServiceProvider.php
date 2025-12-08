@@ -28,5 +28,9 @@ class AppServiceProvider extends ServiceProvider
             \App\Models\MedicationLog::class,
             \App\Policies\MedicationLogPolicy::class,
         );
+        Gate::policy(
+            \App\Models\VitalTypeThreshold::class,
+            \App\Policies\VitalTypeThresholdPolicy::class,
+        );
     }
 }

@@ -361,4 +361,167 @@ class MedicationTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee("Active Med");
     }
+
+    public function test_user_can_update_medication_log(): void
+    {
+        $user = User::factory()->create();
+        $medication = Medication::factory()->create(["user_id" => $user->id]);
+        $schedule = MedicationSchedule::factory()->create([
+            "medication_id" => $medication->id,
+        ]);
+        $log = MedicationLog::factory()->create([
+            "medication_id" => $medication->id,
+            "medication_schedule_id" => $schedule->id,
+            "dosage_taken" => "500 mg",
+            "notes" => "Original notes",
+        ]);
+
+        $updateData = [
+            "taken_at" => $log->taken_at->format("Y-m-d H:i"),
+            "dosage_taken" => "750 mg",
+            "notes" => "Updated notes",
+        ];
+
+        $response = $this->actingAs($user)->putWithCsrf(
+            route("medications.log-update", $log),
+            $updateData,
+        );
+
+        $response->assertRedirect();
+        $response->assertSessionHas("success");
+        $this->assertDatabaseHas("medication_logs", [
+            "id" => $log->id,
+            "dosage_taken" => "750 mg",
+            "notes" => "Updated notes",
+        ]);
+    }
+
+    public function test_user_can_delete_medication_log(): void
+    {
+        $user = User::factory()->create();
+        $medication = Medication::factory()->create(["user_id" => $user->id]);
+        $schedule = MedicationSchedule::factory()->create([
+            "medication_id" => $medication->id,
+        ]);
+        $log = MedicationLog::factory()->create([
+            "medication_id" => $medication->id,
+            "medication_schedule_id" => $schedule->id,
+        ]);
+
+        $response = $this->actingAs($user)->deleteWithCsrf(
+            route("medications.log-destroy", $log),
+        );
+
+        $response->assertRedirect();
+        $response->assertSessionHas("success");
+        $this->assertDatabaseMissing("medication_logs", ["id" => $log->id]);
+    }
+
+    public function test_user_cannot_update_other_users_medication_log(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $medication = Medication::factory()->create([
+            "user_id" => $otherUser->id,
+        ]);
+        $schedule = MedicationSchedule::factory()->create([
+            "medication_id" => $medication->id,
+        ]);
+        $log = MedicationLog::factory()->create([
+            "medication_id" => $medication->id,
+            "medication_schedule_id" => $schedule->id,
+        ]);
+
+        $updateData = [
+            "taken_at" => $log->taken_at->format("Y-m-d H:i"),
+            "dosage_taken" => "750 mg",
+        ];
+
+        $response = $this->actingAs($user)->putWithCsrf(
+            route("medications.log-update", $log),
+            $updateData,
+        );
+
+        $response->assertStatus(403);
+    }
+
+    public function test_user_cannot_delete_other_users_medication_log(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $medication = Medication::factory()->create([
+            "user_id" => $otherUser->id,
+        ]);
+        $schedule = MedicationSchedule::factory()->create([
+            "medication_id" => $medication->id,
+        ]);
+        $log = MedicationLog::factory()->create([
+            "medication_id" => $medication->id,
+            "medication_schedule_id" => $schedule->id,
+        ]);
+
+        $response = $this->actingAs($user)->deleteWithCsrf(
+            route("medications.log-destroy", $log),
+        );
+
+        $response->assertStatus(403);
+    }
+
+    public function test_medication_log_update_validation_requires_taken_at(): void
+    {
+        $user = User::factory()->create();
+        $medication = Medication::factory()->create(["user_id" => $user->id]);
+        $schedule = MedicationSchedule::factory()->create([
+            "medication_id" => $medication->id,
+        ]);
+        $log = MedicationLog::factory()->create([
+            "medication_id" => $medication->id,
+            "medication_schedule_id" => $schedule->id,
+        ]);
+
+        $updateData = [
+            "dosage_taken" => "500 mg",
+            // Missing taken_at
+        ];
+
+        $response = $this->actingAs($user)->putWithCsrf(
+            route("medications.log-update", $log),
+            $updateData,
+        );
+
+        $response->assertSessionHasErrors("taken_at");
+    }
+
+    public function test_medication_log_update_allows_empty_dosage_and_notes(): void
+    {
+        $user = User::factory()->create();
+        $medication = Medication::factory()->create(["user_id" => $user->id]);
+        $schedule = MedicationSchedule::factory()->create([
+            "medication_id" => $medication->id,
+        ]);
+        $log = MedicationLog::factory()->create([
+            "medication_id" => $medication->id,
+            "medication_schedule_id" => $schedule->id,
+            "dosage_taken" => "500 mg",
+            "notes" => "Some notes",
+        ]);
+
+        $updateData = [
+            "taken_at" => $log->taken_at->format("Y-m-d H:i"),
+            "dosage_taken" => "",
+            "notes" => "",
+        ];
+
+        $response = $this->actingAs($user)->putWithCsrf(
+            route("medications.log-update", $log),
+            $updateData,
+        );
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas("medication_logs", [
+            "id" => $log->id,
+            "dosage_taken" => null,
+            "notes" => null,
+        ]);
+    }
 }

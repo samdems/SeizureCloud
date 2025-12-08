@@ -7,6 +7,16 @@
             </a>
         </div>
 
+        @if($errors->any())
+            <div class="alert alert-error mb-4">
+                <ul>
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <div class="card bg-base-100 shadow-xl">
             <div class="card-body">
                 <form action="{{ route('vitals.store') }}" method="POST">

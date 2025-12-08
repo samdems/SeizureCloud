@@ -120,8 +120,7 @@ return [
 
     "vital_types" => [
         "Resting BPM",
-        "Blood Pressure (Systolic)",
-        "Blood Pressure (Diastolic)",
+        "Blood Pressure",
         "Weight",
         "Temperature",
         "Oxygen Saturation",

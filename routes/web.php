@@ -185,6 +185,20 @@ Route::middleware(["auth"])->group(function () {
         \App\Http\Controllers\VitalController::class,
     )->middleware("account.type:patient");
 
+    Route::get("vitals-thresholds", [
+        \App\Http\Controllers\VitalController::class,
+        "thresholds",
+    ])
+        ->name("vitals.thresholds")
+        ->middleware("account.type:patient");
+
+    Route::put("vitals-thresholds", [
+        \App\Http\Controllers\VitalController::class,
+        "updateThresholds",
+    ])
+        ->name("vitals.thresholds.update")
+        ->middleware("account.type:patient");
+
     // Medication routes - Patient accounts only
     Route::middleware("account.type:patient")->group(function () {
         Route::resource(
