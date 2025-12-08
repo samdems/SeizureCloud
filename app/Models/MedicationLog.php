@@ -14,6 +14,7 @@ class MedicationLog extends Model
         "medication_id",
         "medication_schedule_id",
         "taken_at",
+        "intended_time",
         "dosage_taken",
         "skipped",
         "skip_reason",
@@ -22,6 +23,7 @@ class MedicationLog extends Model
 
     protected $casts = [
         "taken_at" => "datetime",
+        "intended_time" => "datetime",
         "skipped" => "boolean",
     ];
 
@@ -56,5 +58,68 @@ class MedicationLog extends Model
         return $this->taken_at->greaterThan(
             $scheduledTime->addMinutes($allowableLateness),
         );
+    }
+
+    /**
+     * Check if this medication was taken at a different time than intended
+     */
+    public function isTakenAtDifferentTime(): bool
+    {
+        if (!$this->intended_time || $this->skipped) {
+            return false;
+        }
+
+        // Allow 5 minute difference for minor timing variations
+        $timeDifference = abs(
+            $this->taken_at->diffInMinutes($this->intended_time),
+        );
+
+        return $timeDifference > 5;
+    }
+
+    /**
+     * Get the time difference between when medication was intended vs taken
+     */
+    public function getTimeDifference(): ?string
+    {
+        if (!$this->intended_time || $this->skipped) {
+            return null;
+        }
+
+        $minutes = $this->taken_at->diffInMinutes($this->intended_time, false);
+
+        if (abs($minutes) <= 5) {
+            return "On time";
+        }
+
+        if ($minutes > 0) {
+            return "+" . $minutes . " minutes late";
+        }
+
+        return abs($minutes) . " minutes early";
+    }
+
+    /**
+     * Get a human-readable description of when this was taken relative to intended time
+     */
+    public function getTakenTimeDescription(): string
+    {
+        if ($this->skipped) {
+            return "Skipped";
+        }
+
+        if ($this->intended_time) {
+            $difference = $this->getTimeDifference();
+            if ($difference === "On time") {
+                return "Taken on time at " . $this->taken_at->format("g:i A");
+            }
+            return "Taken at " .
+                $this->taken_at->format("g:i A") .
+                " (" .
+                $difference .
+                ")";
+        }
+
+        return "Taken at " . $this->taken_at->format("g:i A");
     }
 }

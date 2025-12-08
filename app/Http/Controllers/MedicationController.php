@@ -112,20 +112,37 @@ class MedicationController extends Controller
         $todaySchedule = [];
 
         foreach ($medications as $medication) {
-            // If medication is marked as_needed, add it without a specific schedule
+            // If medication is marked as_needed, add it for each dose taken today plus one for next dose
             if ($medication->as_needed) {
-                $log = MedicationLog::where("medication_id", $medication->id)
+                $logs = MedicationLog::where("medication_id", $medication->id)
                     ->whereDate("taken_at", today())
-                    ->first();
+                    ->orderBy("taken_at")
+                    ->get();
 
+                // Add entry for each dose taken today
+                foreach ($logs as $log) {
+                    $todaySchedule[] = [
+                        "medication" => $medication,
+                        "schedule" => null,
+                        "as_needed" => true,
+                        "taken" => true,
+                        "taken_late" => false, // As-needed meds can't be late
+                        "is_due" => false, // As-needed meds can't be due
+                        "is_overdue" => false, // As-needed meds can't be overdue
+                        "log" => $log,
+                    ];
+                }
+
+                // Always add one entry for the next potential dose
                 $todaySchedule[] = [
                     "medication" => $medication,
                     "schedule" => null,
                     "as_needed" => true,
-                    "taken" => $log ? true : false,
+                    "taken" => false,
                     "taken_late" => false, // As-needed meds can't be late
                     "is_due" => false, // As-needed meds can't be due
                     "is_overdue" => false, // As-needed meds can't be overdue
+                    "log" => null,
                 ];
             }
 
@@ -148,6 +165,7 @@ class MedicationController extends Controller
                         "taken_late" => $log ? $log->isTakenLate() : false,
                         "is_due" => !$log ? $schedule->isDue() : false,
                         "is_overdue" => !$log ? $schedule->isOverdue() : false,
+                        "log" => $log,
                     ];
                 }
             }
@@ -215,21 +233,40 @@ class MedicationController extends Controller
         $daySchedule = [];
 
         foreach ($medications as $medication) {
-            // If medication is marked as_needed, add it without a specific schedule
+            // If medication is marked as_needed, add it for each dose taken that day
             if ($medication->as_needed) {
-                $log = MedicationLog::where("medication_id", $medication->id)
+                $logs = MedicationLog::where("medication_id", $medication->id)
                     ->whereDate("taken_at", $date)
-                    ->first();
+                    ->orderBy("taken_at")
+                    ->get();
 
-                $daySchedule[] = [
-                    "medication" => $medication,
-                    "schedule" => null,
-                    "as_needed" => true,
-                    "taken" => $log ? true : false,
-                    "taken_late" => false, // As-needed meds can't be late
-                    "is_due" => false, // As-needed meds can't be due
-                    "is_overdue" => false, // As-needed meds can't be overdue
-                ];
+                // Add entry for each dose taken that day
+                foreach ($logs as $log) {
+                    $daySchedule[] = [
+                        "medication" => $medication,
+                        "schedule" => null,
+                        "as_needed" => true,
+                        "taken" => true,
+                        "taken_late" => false, // As-needed meds can't be late
+                        "is_due" => false, // As-needed meds can't be due
+                        "is_overdue" => false, // As-needed meds can't be overdue
+                        "log" => $log,
+                    ];
+                }
+
+                // If no logs for that day, show one empty entry
+                if ($logs->isEmpty()) {
+                    $daySchedule[] = [
+                        "medication" => $medication,
+                        "schedule" => null,
+                        "as_needed" => true,
+                        "taken" => false,
+                        "taken_late" => false, // As-needed meds can't be late
+                        "is_due" => false, // As-needed meds can't be due
+                        "is_overdue" => false, // As-needed meds can't be overdue
+                        "log" => null,
+                    ];
+                }
             }
 
             // Add scheduled medications
@@ -253,6 +290,7 @@ class MedicationController extends Controller
                         "is_overdue" => !$log
                             ? $schedule->isOverdue($date)
                             : false,
+                        "log" => $log,
                     ];
                 }
             }
@@ -311,6 +349,19 @@ class MedicationController extends Controller
         $medication = Medication::findOrFail($validated["medication_id"]);
         $this->authorize("view", $medication);
 
+        // Set intended_time based on schedule if not provided
+        if (
+            !isset($validated["intended_time"]) &&
+            isset($validated["medication_schedule_id"])
+        ) {
+            $schedule = MedicationSchedule::findOrFail(
+                $validated["medication_schedule_id"],
+            );
+            $validated["intended_time"] = now()->setTimeFrom(
+                $schedule->scheduled_time,
+            );
+        }
+
         MedicationLog::create($validated);
 
         return back()->with("success", "Medication logged successfully.");
@@ -323,11 +374,21 @@ class MedicationController extends Controller
         $medication = Medication::findOrFail($validated["medication_id"]);
         $this->authorize("view", $medication);
 
+        // Use intended_time from request, or set based on schedule if available
+        $intendedTime = $validated["intended_time"] ?? null;
+        if (!$intendedTime && isset($validated["medication_schedule_id"])) {
+            $schedule = MedicationSchedule::findOrFail(
+                $validated["medication_schedule_id"],
+            );
+            $intendedTime = now()->setTimeFrom($schedule->scheduled_time);
+        }
+
         MedicationLog::create([
             "medication_id" => $validated["medication_id"],
             "medication_schedule_id" =>
                 $validated["medication_schedule_id"] ?? null,
             "taken_at" => now(),
+            "intended_time" => $intendedTime,
             "skipped" => true,
             "skip_reason" => $validated["skip_reason"] ?? null,
             "notes" => $validated["notes"] ?? null,
@@ -385,10 +446,16 @@ class MedicationController extends Controller
                             ->first();
 
                         if (!$existingLog) {
+                            // Set intended time to the schedule's time on the taken date
+                            $intendedTime = \Carbon\Carbon::parse(
+                                $validated["taken_at"],
+                            )->setTimeFrom($schedule->scheduled_time);
+
                             MedicationLog::create([
                                 "medication_id" => $medication->id,
                                 "medication_schedule_id" => $schedule->id,
                                 "taken_at" => $validated["taken_at"],
+                                "intended_time" => $intendedTime,
                                 "dosage_taken" =>
                                     $schedule->getCalculatedDosageWithUnit() ??
                                     $medication->dosage .

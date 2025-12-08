@@ -94,7 +94,7 @@
                     </div>
 
                     <div class="space-y-4">
-                        @foreach($groupedSchedule[$period] as $item)
+                        @foreach($groupedSchedule[$period] as $key => $item)
                     <div class="card bg-base-100 shadow-xl {{ $item['taken'] ? 'opacity-60' : '' }} {{ $item['taken_late'] ? 'border-error border-2 bg-error/10' : '' }} {{ $item['is_overdue'] && !$item['taken'] ? 'border-error border-2 bg-error/10' : '' }} {{ $item['is_due'] && !$item['taken'] && !$item['is_overdue'] ? 'border-warning border-2 bg-warning/10' : '' }}">
                         <div class="card-body">
                             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -102,7 +102,11 @@
                                     <div class="flex items-center gap-3">
                                         @if($item['as_needed'])
                                             <div class="text-xl font-bold text-secondary">
-                                                As Needed
+                                                @if($item['taken'] && isset($item['log']))
+                                                    {{ $item['log']->taken_at->format('g:i A') }}
+                                                @else
+                                                    As Needed
+                                                @endif
                                             </div>
                                         @else
                                             <div class="text-3xl font-bold text-primary">
@@ -135,15 +139,26 @@
                                     @if($item['medication']->description)
                                         <p class="text-sm text-base-content/70 mt-2">{{ $item['medication']->description }}</p>
                                     @endif
+
+                                    @if($item['taken'] && isset($item['log']))
+                                        <div class="mt-3 p-2 bg-base-200 rounded-lg">
+                                            <x-medication-log-timing :log="$item['log']" />
+                                            @if($item['log']->notes)
+                                                <div class="mt-2 text-sm text-base-content/70">
+                                                    <span class="font-medium">Notes:</span> {{ $item['log']->notes }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
 
                                 @if(!$item['taken'])
                                     <div class="flex gap-2">
-                                        <button class="btn btn-success" onclick="logTaken{{ $item['medication']->id }}_{{ $item['as_needed'] ? 'asneeded' : $item['schedule']->id }}.showModal()">
+                                        <button class="btn btn-success" onclick="logTaken{{ $item['medication']->id }}_{{ $item['as_needed'] ? 'asneeded_' . $key : $item['schedule']->id }}.showModal()">
                                             <x-heroicon-o-check class="h-5 w-5" />
                                             Mark Taken
                                         </button>
-                                        <button class="btn btn-outline btn-error" onclick="logSkipped{{ $item['medication']->id }}_{{ $item['as_needed'] ? 'asneeded' : $item['schedule']->id }}.showModal()">
+                                        <button class="btn btn-outline btn-error" onclick="logSkipped{{ $item['medication']->id }}_{{ $item['as_needed'] ? 'asneeded_' . $key : $item['schedule']->id }}.showModal()">
                                             <x-heroicon-o-x-mark class="h-5 w-5" />
                                             Skip
                                         </button>
@@ -154,7 +169,7 @@
                     </div>
 
                     <!-- Mark Taken Modal -->
-                    <dialog id="logTaken{{ $item['medication']->id }}_{{ $item['as_needed'] ? 'asneeded' : $item['schedule']->id }}" class="modal">
+                    <dialog id="logTaken{{ $item['medication']->id }}_{{ $item['as_needed'] ? 'asneeded_' . $key : $item['schedule']->id }}" class="modal">
                         <div class="modal-box">
                             <h3 class="font-bold text-lg">Log Medication Taken</h3>
                             <form method="POST" action="{{ route('medications.log-taken') }}" class="space-y-4 mt-4">
@@ -171,6 +186,18 @@
                                     value="{{ now()->format('Y-m-d\TH:i') }}"
                                     required
                                 />
+
+                                @if($item['as_needed'])
+                                <x-form-field
+                                    name="intended_time"
+                                    label="When was it needed? (Optional)"
+                                    type="datetime-local"
+                                    value="{{ now()->format('Y-m-d\TH:i') }}"
+                                    optional
+                                />
+                                @else
+                                <input type="hidden" name="intended_time" value="{{ now()->format('Y-m-d') }}T{{ $item['schedule']->scheduled_time->format('H:i') }}">
+                                @endif
 
                                 <x-form-field
                                     name="dosage_taken"
@@ -189,7 +216,7 @@
                                 />
 
                                 <div class="modal-action">
-                                    <button type="button" class="btn btn-outline" onclick="logTaken{{ $item['medication']->id }}_{{ $item['as_needed'] ? 'asneeded' : $item['schedule']->id }}.close()">Cancel</button>
+                                    <button type="button" class="btn btn-outline" onclick="logTaken{{ $item['medication']->id }}_{{ $item['as_needed'] ? 'asneeded_' . $key : $item['schedule']->id }}.close()">Cancel</button>
                                     <button type="submit" class="btn btn-success">
                                         <x-heroicon-o-check class="h-4 w-4" />
                                         Log Taken
@@ -203,7 +230,7 @@
                     </dialog>
 
                     <!-- Skip Modal -->
-                    <dialog id="logSkipped{{ $item['medication']->id }}_{{ $item['as_needed'] ? 'asneeded' : $item['schedule']->id }}" class="modal">
+                    <dialog id="logSkipped{{ $item['medication']->id }}_{{ $item['as_needed'] ? 'asneeded_' . $key : $item['schedule']->id }}" class="modal">
                         <div class="modal-box">
                             <h3 class="font-bold text-lg">Log Skipped Dose</h3>
                             <form method="POST" action="{{ route('medications.log-skipped') }}" class="space-y-4 mt-4">
@@ -211,6 +238,15 @@
                                 <input type="hidden" name="medication_id" value="{{ $item['medication']->id }}">
                                 @if(!$item['as_needed'])
                                     <input type="hidden" name="medication_schedule_id" value="{{ $item['schedule']->id }}">
+                                    <input type="hidden" name="intended_time" value="{{ now()->format('Y-m-d') }}T{{ $item['schedule']->scheduled_time->format('H:i') }}">
+                                @else
+                                    <x-form-field
+                                        name="intended_time"
+                                        label="When was it needed? (Optional)"
+                                        type="datetime-local"
+                                        value="{{ now()->format('Y-m-d\TH:i') }}"
+                                        optional
+                                    />
                                 @endif
 
                                 <x-form-field
@@ -236,7 +272,7 @@
                                 />
 
                                 <div class="modal-action">
-                                    <button type="button" class="btn btn-outline" onclick="logSkipped{{ $item['medication']->id }}_{{ $item['as_needed'] ? 'asneeded' : $item['schedule']->id }}.close()">Cancel</button>
+                                    <button type="button" class="btn btn-outline" onclick="logSkipped{{ $item['medication']->id }}_{{ $item['as_needed'] ? 'asneeded_' . $key : $item['schedule']->id }}.close()">Cancel</button>
                                     <button type="submit" class="btn btn-error">
                                         <x-heroicon-o-x-mark class="h-4 w-4" />
                                         Log Skipped

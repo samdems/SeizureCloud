@@ -72,7 +72,11 @@
                                     <div class="flex items-center gap-3">
                                         @if($item['as_needed'])
                                             <div class="text-xl font-bold text-secondary">
-                                                As Needed
+                                                @if($item['taken'] && isset($item['log']))
+                                                    {{ $item['log']->taken_at->format('g:i A') }}
+                                                @else
+                                                    As Needed
+                                                @endif
                                             </div>
                                         @else
                                             <div class="text-3xl font-bold text-primary">
@@ -104,6 +108,17 @@
                                     @endif
                                     @if($item['medication']->description)
                                         <p class="text-sm text-base-content/70 mt-2">{{ $item['medication']->description }}</p>
+                                    @endif
+
+                                    @if($item['taken'] && isset($item['log']))
+                                        <div class="mt-3 p-2 bg-base-200 rounded-lg">
+                                            <x-medication-log-timing :log="$item['log']" />
+                                            @if($item['log']->notes)
+                                                <div class="mt-2 text-sm text-base-content/70">
+                                                    <span class="font-medium">Notes:</span> {{ $item['log']->notes }}
+                                                </div>
+                                            @endif
+                                        </div>
                                     @endif
                                 </div>
 

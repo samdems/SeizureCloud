@@ -524,4 +524,344 @@ class MedicationTest extends TestCase
             "notes" => null,
         ]);
     }
+
+    public function test_user_can_log_medication_taken_with_intended_time(): void
+    {
+        $user = User::factory()->create();
+        $medication = Medication::factory()->create(["user_id" => $user->id]);
+        $schedule = MedicationSchedule::factory()->create([
+            "medication_id" => $medication->id,
+            "scheduled_time" => "08:00:00",
+        ]);
+
+        $takenTime = now()->setTime(8, 15, 0); // 15 minutes late
+        $intendedTime = now()->setTime(8, 0, 0);
+
+        $logData = [
+            "medication_id" => $medication->id,
+            "medication_schedule_id" => $schedule->id,
+            "taken_at" => $takenTime->format("Y-m-d H:i"),
+            "intended_time" => $intendedTime->format("Y-m-d H:i"),
+            "dosage_taken" => "500 mg",
+        ];
+
+        $response = $this->actingAs($user)->postWithCsrf(
+            route("medications.log-taken"),
+            $logData,
+        );
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas("medication_logs", [
+            "medication_id" => $medication->id,
+            "skipped" => false,
+            "intended_time" => $intendedTime->format("Y-m-d H:i:s"),
+        ]);
+    }
+
+    public function test_intended_time_is_automatically_set_for_scheduled_medications(): void
+    {
+        $user = User::factory()->create();
+        $medication = Medication::factory()->create(["user_id" => $user->id]);
+        $schedule = MedicationSchedule::factory()->create([
+            "medication_id" => $medication->id,
+            "scheduled_time" => "08:00:00",
+        ]);
+
+        $takenTime = now()->setTime(8, 15, 0);
+
+        $logData = [
+            "medication_id" => $medication->id,
+            "medication_schedule_id" => $schedule->id,
+            "taken_at" => $takenTime->format("Y-m-d H:i"),
+            "dosage_taken" => "500 mg",
+        ];
+
+        $response = $this->actingAs($user)->postWithCsrf(
+            route("medications.log-taken"),
+            $logData,
+        );
+
+        $response->assertRedirect();
+
+        $log = MedicationLog::where("medication_id", $medication->id)->first();
+        $this->assertNotNull($log->intended_time);
+        $this->assertEquals("08:00", $log->intended_time->format("H:i"));
+    }
+
+    public function test_user_can_log_multiple_as_needed_medications_per_day(): void
+    {
+        $user = User::factory()->create();
+        $medication = Medication::factory()->create([
+            "user_id" => $user->id,
+            "as_needed" => true,
+        ]);
+
+        // Log first dose
+        $firstLogData = [
+            "medication_id" => $medication->id,
+            "taken_at" => now()->setTime(9, 0, 0)->format("Y-m-d H:i"),
+            "intended_time" => now()->setTime(8, 45, 0)->format("Y-m-d H:i"),
+            "dosage_taken" => "500 mg",
+            "notes" => "First dose for headache",
+        ];
+
+        $response1 = $this->actingAs($user)->postWithCsrf(
+            route("medications.log-taken"),
+            $firstLogData,
+        );
+
+        // Log second dose
+        $secondLogData = [
+            "medication_id" => $medication->id,
+            "taken_at" => now()->setTime(14, 30, 0)->format("Y-m-d H:i"),
+            "intended_time" => now()->setTime(14, 15, 0)->format("Y-m-d H:i"),
+            "dosage_taken" => "500 mg",
+            "notes" => "Second dose for continued pain",
+        ];
+
+        $response2 = $this->actingAs($user)->postWithCsrf(
+            route("medications.log-taken"),
+            $secondLogData,
+        );
+
+        $response1->assertRedirect();
+        $response2->assertRedirect();
+
+        // Check that both logs were created
+        $logs = MedicationLog::where("medication_id", $medication->id)
+            ->whereDate("taken_at", today())
+            ->get();
+
+        $this->assertCount(2, $logs);
+        $this->assertEquals("First dose for headache", $logs[0]->notes);
+        $this->assertEquals("Second dose for continued pain", $logs[1]->notes);
+    }
+
+    public function test_as_needed_medications_display_multiple_doses_in_schedule(): void
+    {
+        $user = User::factory()->create();
+        $medication = Medication::factory()->create([
+            "user_id" => $user->id,
+            "as_needed" => true,
+            "active" => true,
+        ]);
+
+        // Create multiple logs for today
+        MedicationLog::create([
+            "medication_id" => $medication->id,
+            "taken_at" => now()->setTime(9, 0, 0),
+            "intended_time" => now()->setTime(8, 45, 0),
+            "dosage_taken" => "500 mg",
+            "skipped" => false,
+        ]);
+
+        MedicationLog::create([
+            "medication_id" => $medication->id,
+            "taken_at" => now()->setTime(14, 30, 0),
+            "intended_time" => now()->setTime(14, 15, 0),
+            "dosage_taken" => "500 mg",
+            "skipped" => false,
+        ]);
+
+        $response = $this->actingAs($user)->get(route("medications.schedule"));
+
+        $response->assertStatus(200);
+        $response->assertViewIs("medications.schedule");
+
+        // Check that the view data contains the medication entries
+        $todaySchedule = $response->viewData("todaySchedule");
+        $asNeededItems = collect($todaySchedule)->filter(function ($item) use (
+            $medication,
+        ) {
+            return $item["medication"]->id === $medication->id &&
+                $item["as_needed"];
+        });
+
+        // Should have 2 taken doses + 1 available for next dose = 3 total
+        $this->assertGreaterThanOrEqual(3, $asNeededItems->count());
+
+        // Check that taken items have log data
+        $takenItems = $asNeededItems->filter(fn($item) => $item["taken"]);
+        $this->assertCount(2, $takenItems);
+    }
+
+    public function test_medication_log_timing_methods(): void
+    {
+        $user = User::factory()->create();
+        $medication = Medication::factory()->create(["user_id" => $user->id]);
+
+        // Test on-time medication
+        $onTimeLog = MedicationLog::create([
+            "medication_id" => $medication->id,
+            "taken_at" => now()->setTime(8, 3, 0), // 3 minutes after intended
+            "intended_time" => now()->setTime(8, 0, 0),
+            "skipped" => false,
+        ]);
+
+        $this->assertFalse($onTimeLog->isTakenAtDifferentTime());
+        $this->assertEquals("On time", $onTimeLog->getTimeDifference());
+
+        // Test late medication
+        $lateLog = MedicationLog::create([
+            "medication_id" => $medication->id,
+            "taken_at" => now()->setTime(8, 30, 0), // 30 minutes late
+            "intended_time" => now()->setTime(8, 0, 0),
+            "skipped" => false,
+        ]);
+
+        $this->assertTrue($lateLog->isTakenAtDifferentTime());
+        $this->assertEquals("+30 minutes late", $lateLog->getTimeDifference());
+
+        // Test early medication
+        $earlyLog = MedicationLog::create([
+            "medication_id" => $medication->id,
+            "taken_at" => now()->setTime(7, 45, 0), // 15 minutes early
+            "intended_time" => now()->setTime(8, 0, 0),
+            "skipped" => false,
+        ]);
+
+        $this->assertTrue($earlyLog->isTakenAtDifferentTime());
+        $this->assertEquals("15 minutes early", $earlyLog->getTimeDifference());
+    }
+
+    public function test_skipped_medication_includes_intended_time(): void
+    {
+        $user = User::factory()->create();
+        $medication = Medication::factory()->create(["user_id" => $user->id]);
+        $schedule = MedicationSchedule::factory()->create([
+            "medication_id" => $medication->id,
+            "scheduled_time" => "08:00:00",
+        ]);
+
+        $intendedTime = now()->setTime(8, 0, 0);
+
+        $logData = [
+            "medication_id" => $medication->id,
+            "medication_schedule_id" => $schedule->id,
+            "intended_time" => $intendedTime->format("Y-m-d H:i"),
+            "skip_reason" => "Forgot",
+            "notes" => "Overslept and missed morning dose",
+        ];
+
+        $response = $this->actingAs($user)->postWithCsrf(
+            route("medications.log-skipped"),
+            $logData,
+        );
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas("medication_logs", [
+            "medication_id" => $medication->id,
+            "skipped" => true,
+            "skip_reason" => "Forgot",
+            "intended_time" => $intendedTime->format("Y-m-d H:i:s"),
+        ]);
+    }
+
+    public function test_bulk_taken_includes_intended_times(): void
+    {
+        $user = User::factory()->create();
+
+        $medication1 = Medication::factory()->create(["user_id" => $user->id]);
+        $medication2 = Medication::factory()->create(["user_id" => $user->id]);
+
+        $schedule1 = MedicationSchedule::factory()->create([
+            "medication_id" => $medication1->id,
+            "scheduled_time" => "08:00:00",
+        ]);
+        $schedule2 = MedicationSchedule::factory()->create([
+            "medication_id" => $medication2->id,
+            "scheduled_time" => "08:30:00",
+        ]);
+
+        $takenTime = now()->setTime(8, 45, 0);
+
+        $bulkData = [
+            "period" => "morning",
+            "taken_at" => $takenTime->format("Y-m-d H:i"),
+            "notes" => "Took all morning medications together",
+        ];
+
+        $response = $this->actingAs($user)->postWithCsrf(
+            route("medications.log-bulk-taken"),
+            $bulkData,
+        );
+
+        $response->assertRedirect();
+
+        // Check that both medications have logs with intended times
+        $log1 = MedicationLog::where(
+            "medication_id",
+            $medication1->id,
+        )->first();
+        $log2 = MedicationLog::where(
+            "medication_id",
+            $medication2->id,
+        )->first();
+
+        $this->assertNotNull($log1);
+        $this->assertNotNull($log2);
+        $this->assertEquals("08:00", $log1->intended_time->format("H:i"));
+        $this->assertEquals("08:30", $log2->intended_time->format("H:i"));
+    }
+
+    public function test_medication_log_update_includes_intended_time(): void
+    {
+        $user = User::factory()->create();
+        $medication = Medication::factory()->create(["user_id" => $user->id]);
+        $log = MedicationLog::factory()->create([
+            "medication_id" => $medication->id,
+            "taken_at" => now()->setTime(8, 30, 0),
+            "intended_time" => now()->setTime(8, 0, 0),
+        ]);
+
+        $newIntendedTime = now()->setTime(8, 15, 0);
+        $updateData = [
+            "taken_at" => $log->taken_at->format("Y-m-d H:i"),
+            "intended_time" => $newIntendedTime->format("Y-m-d H:i"),
+            "dosage_taken" => "750 mg",
+            "notes" => "Updated dosage and timing",
+        ];
+
+        $response = $this->actingAs($user)->putWithCsrf(
+            route("medications.log-update", $log),
+            $updateData,
+        );
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas("medication_logs", [
+            "id" => $log->id,
+            "intended_time" => $newIntendedTime->format("Y-m-d H:i:s"),
+            "dosage_taken" => "750 mg",
+            "notes" => "Updated dosage and timing",
+        ]);
+    }
+
+    public function test_as_needed_medication_validation_allows_missing_schedule(): void
+    {
+        $user = User::factory()->create();
+        $medication = Medication::factory()->create([
+            "user_id" => $user->id,
+            "as_needed" => true,
+        ]);
+
+        $logData = [
+            "medication_id" => $medication->id,
+            "taken_at" => now()->format("Y-m-d H:i"),
+            "intended_time" => now()->subMinutes(15)->format("Y-m-d H:i"),
+            "dosage_taken" => "500 mg",
+            "notes" => "Taken for headache",
+        ];
+
+        $response = $this->actingAs($user)->postWithCsrf(
+            route("medications.log-taken"),
+            $logData,
+        );
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas("medication_logs", [
+            "medication_id" => $medication->id,
+            "medication_schedule_id" => null,
+            "skipped" => false,
+        ]);
+    }
 }

@@ -22,10 +22,12 @@ class MedicationLogSkippedRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'medication_id' => 'required|exists:medications,id',
-            'medication_schedule_id' => 'nullable|exists:medication_schedules,id',
-            'skip_reason' => 'nullable|string|max:255',
-            'notes' => 'nullable|string|max:1000',
+            "medication_id" => "required|exists:medications,id",
+            "medication_schedule_id" =>
+                "nullable|exists:medication_schedules,id",
+            "intended_time" => "nullable|date",
+            "skip_reason" => "nullable|string|max:255",
+            "notes" => "nullable|string|max:1000",
         ];
     }
 
@@ -37,11 +39,14 @@ class MedicationLogSkippedRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'medication_id.required' => 'Please select a medication.',
-            'medication_id.exists' => 'The selected medication is invalid.',
-            'medication_schedule_id.exists' => 'The selected medication schedule is invalid.',
-            'skip_reason.max' => 'Skip reason cannot exceed 255 characters.',
-            'notes.max' => 'Notes cannot exceed 1000 characters.',
+            "medication_id.required" => "Please select a medication.",
+            "medication_id.exists" => "The selected medication is invalid.",
+            "medication_schedule_id.exists" =>
+                "The selected medication schedule is invalid.",
+            "intended_time.date" =>
+                "The intended time must be a valid date and time.",
+            "skip_reason.max" => "Skip reason cannot exceed 255 characters.",
+            "notes.max" => "Notes cannot exceed 1000 characters.",
         ];
     }
 
@@ -53,9 +58,10 @@ class MedicationLogSkippedRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'medication_id' => 'medication',
-            'medication_schedule_id' => 'medication schedule',
-            'skip_reason' => 'skip reason',
+            "medication_id" => "medication",
+            "medication_schedule_id" => "medication schedule",
+            "intended_time" => "intended time",
+            "skip_reason" => "skip reason",
         ];
     }
 
@@ -65,9 +71,9 @@ class MedicationLogSkippedRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         // Ensure medication_schedule_id is null if empty
-        if ($this->medication_schedule_id === '') {
+        if ($this->medication_schedule_id === "") {
             $this->merge([
-                'medication_schedule_id' => null,
+                "medication_schedule_id" => null,
             ]);
         }
     }
