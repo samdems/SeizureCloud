@@ -84,9 +84,11 @@
                 <div class="card-body">
                     <h2 class="card-title">Quick Actions</h2>
                     <button class="btn btn-success btn-block" onclick="quickLogModal.showModal()">
+                        <x-heroicon-o-check class="h-5 w-5" />
                         Log Taken Now
                     </button>
                     <button class="btn btn-primary btn-block" onclick="addScheduleModal.showModal()">
+                        <x-heroicon-o-plus class="h-5 w-5" />
                         Add Schedule
                     </button>
                     <form action="{{ route('medications.destroy', $medication) }}" method="POST" onsubmit="return confirm('Are you sure?')">
@@ -103,7 +105,10 @@
             <div class="card-body">
                 <div class="flex justify-between items-center">
                     <h2 class="card-title">Schedules</h2>
-                    <button class="btn btn-primary btn-sm" onclick="addScheduleModal.showModal()">Add Schedule</button>
+                    <button class="btn btn-primary btn-sm" onclick="addScheduleModal.showModal()">
+                        <x-heroicon-o-plus class="h-4 w-4" />
+                        Add Schedule
+                    </button>
                 </div>
 
                 @if($medication->schedules->count() > 0)
@@ -192,7 +197,7 @@
                             </thead>
                             <tbody>
                                 @foreach($medication->logs as $log)
-                                    <tr>
+                                    <tr class="{{ $log->isTakenLate() ? 'bg-error/10' : '' }}">
                                         <td>{{ $log->taken_at->format('M d, Y g:i A') }}</td>
                                         <td>
                                             @if($log->skipped)
@@ -201,7 +206,11 @@
                                                     <span class="text-xs">({{ $log->skip_reason }})</span>
                                                 @endif
                                             @else
-                                                <span class="badge badge-success">Taken</span>
+                                                @if($log->isTakenLate())
+                                                    <span class="badge badge-error"><x-heroicon-o-exclamation-triangle class="w-4 h-4 inline mr-1" />Taken Late</span>
+                                                @else
+                                                    <span class="badge badge-success">Taken</span>
+                                                @endif
                                             @endif
                                         </td>
                                         <td>{{ $log->dosage_taken ?? '-' }}</td>
@@ -244,7 +253,10 @@
 
                 <div class="modal-action">
                     <button type="button" class="btn btn-outline" onclick="quickLogModal.close()">Cancel</button>
-                    <button type="submit" class="btn btn-success">Log Taken</button>
+                    <button type="submit" class="btn btn-success">
+                        <x-heroicon-o-check class="h-4 w-4" />
+                        Log Taken
+                    </button>
                 </div>
             </form>
         </div>
@@ -351,7 +363,10 @@
 
                 <div class="modal-action">
                     <button type="button" class="btn btn-outline" onclick="addScheduleModal.close()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add Schedule</button>
+                    <button type="submit" class="btn btn-primary">
+                        <x-heroicon-o-plus class="h-4 w-4" />
+                        Add Schedule
+                    </button>
                 </div>
             </form>
         </div>

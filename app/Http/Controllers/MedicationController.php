@@ -108,33 +108,40 @@ class MedicationController extends Controller
         foreach ($medications as $medication) {
             // If medication is marked as_needed, add it without a specific schedule
             if ($medication->as_needed) {
+                $log = MedicationLog::where("medication_id", $medication->id)
+                    ->whereDate("taken_at", today())
+                    ->first();
+
                 $todaySchedule[] = [
                     "medication" => $medication,
                     "schedule" => null,
                     "as_needed" => true,
-                    "taken" => MedicationLog::where(
-                        "medication_id",
-                        $medication->id,
-                    )
-                        ->whereDate("taken_at", today())
-                        ->exists(),
+                    "taken" => $log ? true : false,
+                    "taken_late" => false, // As-needed meds can't be late
+                    "is_due" => false, // As-needed meds can't be due
+                    "is_overdue" => false, // As-needed meds can't be overdue
                 ];
             }
 
             // Add scheduled medications
             foreach ($medication->schedules as $schedule) {
                 if ($schedule->isScheduledForToday()) {
+                    $log = MedicationLog::where(
+                        "medication_id",
+                        $medication->id,
+                    )
+                        ->where("medication_schedule_id", $schedule->id)
+                        ->whereDate("taken_at", today())
+                        ->first();
+
                     $todaySchedule[] = [
                         "medication" => $medication,
                         "schedule" => $schedule,
                         "as_needed" => false,
-                        "taken" => MedicationLog::where(
-                            "medication_id",
-                            $medication->id,
-                        )
-                            ->where("medication_schedule_id", $schedule->id)
-                            ->whereDate("taken_at", today())
-                            ->exists(),
+                        "taken" => $log ? true : false,
+                        "taken_late" => $log ? $log->isTakenLate() : false,
+                        "is_due" => !$log ? $schedule->isDue() : false,
+                        "is_overdue" => !$log ? $schedule->isOverdue() : false,
                     ];
                 }
             }
@@ -204,33 +211,42 @@ class MedicationController extends Controller
         foreach ($medications as $medication) {
             // If medication is marked as_needed, add it without a specific schedule
             if ($medication->as_needed) {
+                $log = MedicationLog::where("medication_id", $medication->id)
+                    ->whereDate("taken_at", $date)
+                    ->first();
+
                 $daySchedule[] = [
                     "medication" => $medication,
                     "schedule" => null,
                     "as_needed" => true,
-                    "taken" => MedicationLog::where(
-                        "medication_id",
-                        $medication->id,
-                    )
-                        ->whereDate("taken_at", $date)
-                        ->exists(),
+                    "taken" => $log ? true : false,
+                    "taken_late" => false, // As-needed meds can't be late
+                    "is_due" => false, // As-needed meds can't be due
+                    "is_overdue" => false, // As-needed meds can't be overdue
                 ];
             }
 
             // Add scheduled medications
             foreach ($medication->schedules as $schedule) {
                 if ($schedule->isScheduledForToday()) {
+                    $log = MedicationLog::where(
+                        "medication_id",
+                        $medication->id,
+                    )
+                        ->where("medication_schedule_id", $schedule->id)
+                        ->whereDate("taken_at", $date)
+                        ->first();
+
                     $daySchedule[] = [
                         "medication" => $medication,
                         "schedule" => $schedule,
                         "as_needed" => false,
-                        "taken" => MedicationLog::where(
-                            "medication_id",
-                            $medication->id,
-                        )
-                            ->where("medication_schedule_id", $schedule->id)
-                            ->whereDate("taken_at", $date)
-                            ->exists(),
+                        "taken" => $log ? true : false,
+                        "taken_late" => $log ? $log->isTakenLate() : false,
+                        "is_due" => !$log ? $schedule->isDue($date) : false,
+                        "is_overdue" => !$log
+                            ? $schedule->isOverdue($date)
+                            : false,
                     ];
                 }
             }

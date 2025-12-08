@@ -37,4 +37,24 @@ class MedicationLog extends Model
             "medication_schedule_id",
         );
     }
+
+    /**
+     * Check if this medication was taken late (more than 30 minutes after scheduled time)
+     */
+    public function isTakenLate(): bool
+    {
+        // If no schedule or skipped, not considered late
+        if (!$this->schedule || $this->skipped) {
+            return false;
+        }
+
+        $scheduledTime = $this->taken_at
+            ->copy()
+            ->setTimeFrom($this->schedule->scheduled_time);
+        $allowableLateness = 30; // 30 minutes grace period
+
+        return $this->taken_at->greaterThan(
+            $scheduledTime->addMinutes($allowableLateness),
+        );
+    }
 }

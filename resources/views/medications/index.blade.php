@@ -7,6 +7,7 @@
                     Today's Schedule
                 </a>
                 <a href="{{ route('medications.create') }}" class="btn btn-primary">
+                    <x-heroicon-o-plus class="h-5 w-5" />
                     Add Medication
                 </a>
             </div>
@@ -73,12 +74,21 @@
                             </td>
                             <td>
                                 <div class="flex gap-2">
-                                    <a href="{{ route('medications.show', $medication) }}" class="btn btn-sm btn-info">View</a>
-                                    <a href="{{ route('medications.edit', $medication) }}" class="btn btn-sm btn-warning">Edit</a>
+                                    <a href="{{ route('medications.show', $medication) }}" class="btn btn-sm btn-info">
+                                        <x-heroicon-o-eye class="h-4 w-4" />
+                                        View
+                                    </a>
+                                    <a href="{{ route('medications.edit', $medication) }}" class="btn btn-sm btn-warning">
+                                        <x-heroicon-o-pencil class="h-4 w-4" />
+                                        Edit
+                                    </a>
                                     <form action="{{ route('medications.destroy', $medication) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this medication?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-error">Delete</button>
+                                        <button type="submit" class="btn btn-sm btn-error">
+                                            <x-heroicon-o-trash class="h-4 w-4" />
+                                            Delete
+                                        </button>
                                     </form>
                                 </div>
                             </td>
@@ -86,7 +96,10 @@
                     @empty
                         <tr>
                             <td colspan="5" class="text-center">
-                                No medications added yet. <a href="{{ route('medications.create') }}" class="link link-primary">Add your first medication</a>
+                                No medications added yet. <a href="{{ route('medications.create') }}" class="link link-primary">
+                                    <x-heroicon-o-plus class="h-4 w-4 inline" />
+                                    Add your first medication
+                                </a>
                             </td>
                         </tr>
                     @endforelse

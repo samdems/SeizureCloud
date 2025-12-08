@@ -4,6 +4,21 @@
             <div>
                 <h1 class="text-2xl font-bold">Today's Medication</h1>
                 <p class="text-base-content/60">{{ now()->format('l, F j, Y') }}</p>
+                @php
+                    $totalOverdueCount = collect($todaySchedule)->filter(fn($item) => $item['is_overdue'] && !$item['taken'])->count();
+                    $totalDueCount = collect($todaySchedule)->filter(fn($item) => $item['is_due'] && !$item['taken'] && !$item['is_overdue'])->count();
+                @endphp
+                @if($totalOverdueCount > 0)
+                    <div class="badge badge-error badge-lg mt-2">
+                        <x-heroicon-o-exclamation-triangle class="h-4 w-4 mr-1" />
+                        {{ $totalOverdueCount }} Medication{{ $totalOverdueCount > 1 ? 's' : '' }} Overdue
+                    </div>
+                @elseif($totalDueCount > 0)
+                    <div class="badge badge-warning badge-lg mt-2">
+                        <x-heroicon-o-clock class="h-4 w-4 mr-1" />
+                        {{ $totalDueCount }} Medication{{ $totalDueCount > 1 ? 's' : '' }} Due
+                    </div>
+                @endif
             </div>
             <div class="flex flex-row gap-2">
                 <a href="{{ route('medications.schedule.history') }}" class="btn btn-secondary">
@@ -18,47 +33,69 @@
             </div>
         @endif
 
+        <div class="alert alert-info alert-outline">
+            <x-heroicon-o-information-circle class="stroke-current shrink-0 w-6 h-6" />
+            <div class="text-sm">
+                <div><strong>Due Medications:</strong> <span class="badge badge-warning badge-sm"><x-heroicon-o-clock class="w-3 h-3 inline mr-1" />Due</span> Yellow warnings show medications that are past their scheduled time.</div>
+                <div class="mt-1"><strong>Overdue Medications:</strong> <span class="badge badge-error badge-sm"><x-heroicon-o-exclamation-triangle class="w-3 h-3 inline mr-1" />Overdue</span> Red warnings show medications more than 30 minutes overdue.</div>
+                <div class="mt-1"><strong>Late Taken:</strong> <span class="badge badge-error badge-sm"><x-heroicon-o-exclamation-triangle class="w-3 h-3 inline mr-1" />Taken Late</span> Red badges for medications that were taken late.</div>
+            </div>
+        </div>
+
         @if(count($todaySchedule) > 0)
             @php
                 $periodLabels = [
-                    'morning' => ['🌅 Morning', $user->morning_time->format('g:i A')],
-                    'afternoon' => ['☀️ Afternoon', $user->afternoon_time->format('g:i A')],
-                    'evening' => ['🌆 Evening', $user->evening_time->format('g:i A')],
-                    'bedtime' => ['🌙 Bedtime', $user->bedtime->format('g:i A')],
-                    'as_needed' => ['💊 As Needed', '']
+                    'morning' => ['Morning', $user->morning_time->format('g:i A'), 'sun'],
+                    'afternoon' => ['Afternoon', $user->afternoon_time->format('g:i A'), 'sun'],
+                    'evening' => ['Evening', $user->evening_time->format('g:i A'), 'moon'],
+                    'bedtime' => ['Bedtime', $user->bedtime->format('g:i A'), 'moon'],
+                    'as_needed' => ['As Needed', '', 'heart']
                 ];
             @endphp
 
             @foreach(['morning', 'afternoon', 'evening', 'bedtime', 'as_needed'] as $period)
                 @if(count($groupedSchedule[$period]) > 0)
                     <div class="flex items-center justify-between">
+                        @php
+                            $allTaken = collect($groupedSchedule[$period])->every(fn($item) => $item['taken']);
+                            $hasMedications = count($groupedSchedule[$period]) > 0;
+                            $hasLateMedications = collect($groupedSchedule[$period])->some(fn($item) => $item['taken_late']);
+                        @endphp
                         <div class="divider text-lg font-bold flex-1">
-                            {{ $periodLabels[$period][0] }}
-                            @if($periodLabels[$period][1])
-                                <span class="text-sm font-normal text-base-content/60">({{ $periodLabels[$period][1] }})</span>
-                            @endif
+                            <div class="flex items-center gap-2">
+                                @if($periodLabels[$period][2] === 'sun')
+                                    <x-heroicon-o-sun class="w-5 h-5" />
+                                @elseif($periodLabels[$period][2] === 'moon')
+                                    <x-heroicon-o-moon class="w-5 h-5" />
+                                @elseif($periodLabels[$period][2] === 'heart')
+                                    <x-heroicon-o-heart class="w-5 h-5" />
+                                @endif
+                                <span>{{ $periodLabels[$period][0] }}</span>
+                                @if($periodLabels[$period][1])
+                                    <span class="text-sm font-normal text-base-content/60">({{ $periodLabels[$period][1] }})</span>
+                                @endif
+
+                            </div>
                         </div>
                         @if($period !== 'as_needed')
-                            @php
-                                $allTaken = collect($groupedSchedule[$period])->every(fn($item) => $item['taken']);
-                                $hasMedications = count($groupedSchedule[$period]) > 0;
-                            @endphp
                             @if($hasMedications && !$allTaken)
                                 <button class="btn btn-success btn-sm ml-4" onclick="markAllTaken{{ ucfirst($period) }}.showModal()">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                    </svg>
+                                    <x-heroicon-o-check class="h-4 w-4" />
                                     Mark All Taken
                                 </button>
                             @elseif($allTaken)
-                                <span class="badge badge-success badge-sm ml-4">All Taken</span>
+                                @if($hasLateMedications)
+                                    <span class="badge badge-warning badge-sm ml-4">All Taken (Some Late)</span>
+                                @else
+                                    <span class="badge badge-success badge-sm ml-4">All Taken</span>
+                                @endif
                             @endif
                         @endif
                     </div>
 
                     <div class="space-y-4">
                         @foreach($groupedSchedule[$period] as $item)
-                    <div class="card bg-base-100 shadow-xl {{ $item['taken'] ? 'opacity-60' : '' }}">
+                    <div class="card bg-base-100 shadow-xl {{ $item['taken'] ? 'opacity-60' : '' }} {{ $item['taken_late'] ? 'border-error border-2 bg-error/10' : '' }} {{ $item['is_overdue'] && !$item['taken'] ? 'border-error border-2 bg-error/10' : '' }} {{ $item['is_due'] && !$item['taken'] && !$item['is_overdue'] ? 'border-warning border-2 bg-warning/10' : '' }}">
                         <div class="card-body">
                             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                 <div class="flex-1">
@@ -73,7 +110,15 @@
                                             </div>
                                         @endif
                                         @if($item['taken'])
-                                            <span class="badge badge-success badge-lg">✓ Taken</span>
+                                            @if($item['taken_late'])
+                                                <span class="badge badge-error badge-lg"><x-heroicon-o-exclamation-triangle class="w-4 h-4 inline mr-1" />Taken Late</span>
+                                            @else
+                                                <span class="badge badge-success badge-lg"><x-heroicon-o-check class="w-4 h-4 inline mr-1" />Taken</span>
+                                            @endif
+                                        @elseif($item['is_overdue'])
+                                            <span class="badge badge-error badge-lg"><x-heroicon-o-exclamation-triangle class="w-4 h-4 inline mr-1" />Overdue</span>
+                                        @elseif($item['is_due'])
+                                            <span class="badge badge-warning badge-lg"><x-heroicon-o-clock class="w-4 h-4 inline mr-1" />Due</span>
                                         @endif
                                     </div>
                                     <h3 class="text-xl font-bold mt-2">{{ $item['medication']->name }}</h3>
@@ -95,12 +140,11 @@
                                 @if(!$item['taken'])
                                     <div class="flex gap-2">
                                         <button class="btn btn-success" onclick="logTaken{{ $item['medication']->id }}_{{ $item['as_needed'] ? 'asneeded' : $item['schedule']->id }}.showModal()">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                            </svg>
+                                            <x-heroicon-o-check class="h-5 w-5" />
                                             Mark Taken
                                         </button>
                                         <button class="btn btn-outline btn-error" onclick="logSkipped{{ $item['medication']->id }}_{{ $item['as_needed'] ? 'asneeded' : $item['schedule']->id }}.showModal()">
+                                            <x-heroicon-o-x-mark class="h-5 w-5" />
                                             Skip
                                         </button>
                                     </div>
@@ -146,7 +190,10 @@
 
                                 <div class="modal-action">
                                     <button type="button" class="btn btn-outline" onclick="logTaken{{ $item['medication']->id }}_{{ $item['as_needed'] ? 'asneeded' : $item['schedule']->id }}.close()">Cancel</button>
-                                    <button type="submit" class="btn btn-success">Log Taken</button>
+                                    <button type="submit" class="btn btn-success">
+                                        <x-heroicon-o-check class="h-4 w-4" />
+                                        Log Taken
+                                    </button>
                                 </div>
                             </form>
                         </div>
@@ -190,7 +237,10 @@
 
                                 <div class="modal-action">
                                     <button type="button" class="btn btn-outline" onclick="logSkipped{{ $item['medication']->id }}_{{ $item['as_needed'] ? 'asneeded' : $item['schedule']->id }}.close()">Cancel</button>
-                                    <button type="submit" class="btn btn-error">Log Skipped</button>
+                                    <button type="submit" class="btn btn-error">
+                                        <x-heroicon-o-x-mark class="h-4 w-4" />
+                                        Log Skipped
+                                    </button>
                                 </div>
                             </form>
                         </div>
@@ -232,20 +282,63 @@
                                         <ul class="list-disc list-inside space-y-1">
                                             @foreach($groupedSchedule[$period] as $item)
                                                 @if(!$item['taken'])
-                                                    <li class="text-sm">
+                                                    @php
+                                                        $scheduledTime = $item['schedule']->scheduled_time;
+                                                        $now = now();
+                                                        $willBeLate = $now->greaterThan($scheduledTime->copy()->addMinutes(30));
+                                                        $isDue = $item['is_due'];
+                                                        $isOverdue = $item['is_overdue'];
+                                                    @endphp
+                                                    <li class="text-sm {{ $willBeLate ? 'text-error font-medium' : ($isOverdue ? 'text-error font-medium' : ($isDue ? 'text-warning font-medium' : '')) }}">
                                                         {{ $item['medication']->name }}
                                                         @if($item['schedule']->getCalculatedDosageWithUnit())
                                                             - {{ $item['schedule']->getCalculatedDosageWithUnit() }}
+                                                        @endif
+                                                        @if($willBeLate)
+                                                            <span class="text-xs text-error">(Will be marked as late)</span>
+                                                        @elseif($isOverdue)
+                                                            <span class="text-xs text-error">(Overdue)</span>
+                                                        @elseif($isDue)
+                                                            <span class="text-xs text-warning">(Due)</span>
                                                         @endif
                                                     </li>
                                                 @endif
                                             @endforeach
                                         </ul>
+                                        @php
+                                            $untakenItems = collect($groupedSchedule[$period])->filter(fn($item) => !$item['taken']);
+                                            $hasLateItems = $untakenItems->some(function($item) {
+                                                $scheduledTime = $item['schedule']->scheduled_time;
+                                                return now()->greaterThan($scheduledTime->copy()->addMinutes(30));
+                                            });
+                                            $hasDueItems = $untakenItems->some(fn($item) => $item['is_due'] && !$item['is_overdue']);
+                                            $hasOverdueItems = $untakenItems->some(fn($item) => $item['is_overdue']);
+                                        @endphp
+
+                                        @if($hasOverdueItems)
+                                            <div class="alert alert-error mt-3">
+                                                <x-heroicon-o-exclamation-triangle class="stroke-current shrink-0 w-6 h-6" />
+                                                <span class="text-sm">Some medications are overdue (more than 30 minutes past scheduled time).</span>
+                                            </div>
+                                        @elseif($hasDueItems && !$hasLateItems)
+                                            <div class="alert alert-warning mt-3">
+                                                <x-heroicon-o-clock class="stroke-current shrink-0 w-6 h-6" />
+                                                <span class="text-sm">Some medications are currently due for their scheduled time.</span>
+                                            </div>
+                                        @elseif($hasLateItems)
+                                            <div class="alert alert-error mt-3">
+                                                <x-heroicon-o-exclamation-triangle class="stroke-current shrink-0 w-6 h-6" />
+                                                <span class="text-sm">Some medications will be marked as late (taken more than 30 minutes after scheduled time).</span>
+                                            </div>
+                                        @endif
                                     </div>
 
                                     <div class="modal-action">
                                         <button type="button" class="btn btn-outline" onclick="markAllTaken{{ ucfirst($period) }}.close()">Cancel</button>
-                                        <button type="submit" class="btn btn-success">Mark All as Taken</button>
+                                        <button type="submit" class="btn btn-success">
+                                            <x-heroicon-o-check class="h-4 w-4" />
+                                            Mark All as Taken
+                                        </button>
                                     </div>
                                 </form>
                             </div>
