@@ -89,7 +89,7 @@ class Vital extends Model
     /**
      * Get default low threshold for this vital type from user's settings or defaults.
      */
-    protected function getDefaultLowThreshold(): ?float
+    public function getDefaultLowThreshold(): ?float
     {
         $userThreshold = VitalTypeThreshold::where("user_id", $this->user_id)
             ->where("vital_type", $this->type)
@@ -107,7 +107,7 @@ class Vital extends Model
     /**
      * Get default high threshold for this vital type from user's settings or defaults.
      */
-    protected function getDefaultHighThreshold(): ?float
+    public function getDefaultHighThreshold(): ?float
     {
         $userThreshold = VitalTypeThreshold::where("user_id", $this->user_id)
             ->where("vital_type", $this->type)
