@@ -4,21 +4,21 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Epilepsy Diary - Track Your Journey</title>
-    <meta name="description" content="Comprehensive epilepsy management app for tracking seizures, medications, vitals, and emergency alerts. Take control of your epilepsy journey with confidence.">
-    <meta name="keywords" content="epilepsy, seizure tracker, medication management, health tracking, emergency alerts">
+    <meta name="description" content="Comprehensive epilepsy management app for tracking seizures, medications, vitals. Take control of your epilepsy journey with confidence.">
+    <meta name="keywords" content="epilepsy, seizure tracker, medication management, health tracking">
     <meta name="author" content="Epilepsy Diary">
     <meta name="robots" content="index, follow">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="Epilepsy Diary - Track Your Journey">
-    <meta property="og:description" content="Comprehensive epilepsy management app for tracking seizures, medications, vitals, and emergency alerts.">
+    <meta property="og:description" content="Comprehensive epilepsy management app for tracking seizures, medications, vitals.">
     <meta property="og:site_name" content="Epilepsy Diary">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Epilepsy Diary - Track Your Journey">
-    <meta name="twitter:description" content="Comprehensive epilepsy management app for tracking seizures, medications, vitals, and emergency alerts.">
+    <meta name="twitter:description" content="Comprehensive epilepsy management app for tracking seizures, medications, vitals.">
 
     <!-- Performance optimizations -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -30,17 +30,18 @@
 <body class="min-h-screen bg-base-100 font-sans antialiased">
     <!-- Navigation -->
     <nav class="navbar bg-base-200/80 backdrop-blur-md shadow-lg border-b border-base-300/20 sticky top-0 z-50">
-        <div class="container mx-auto px-6">
-            <div class="navbar-start">
-                <div class="flex items-center gap-3">
-                    <div class="text-2xl animate-pulse">📊</div>
-                    <span class="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Epilepsy Diary</span>
-                </div>
+        <div class="container mx-auto px-6 flex justify-between">
+            <div>
+                <a href="{{ route('home') }}" class="flex items-center gap-3" wire:navigate>
+                    <span class="flex h-10 w-10 items-center justify-center rounded-md">
+                        <x-app-logo-icon class="size-8 fill-current text-primary" />
+                    </span>
+                    <span class="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{{ config('app.name') }}</span>
+                </a>
             </div>
-            <div class="navbar-end gap-3">
+            <div>
                 @auth
                     <a href="{{ route('dashboard') }}" class="btn btn-primary btn-sm lg:btn-md">Dashboard</a>
-                    <a href="{{ route('seizures.live-tracker') }}" class="btn btn-error emergency-pulse btn-sm lg:btn-md">🚨 Emergency Timer</a>
                 @else
                     <a href="{{ route('login') }}" class="btn btn-ghost btn-sm lg:btn-md">Sign In</a>
                     <a href="{{ route('register') }}" class="btn btn-primary btn-sm lg:btn-md">Get Started</a>
@@ -60,7 +61,7 @@
                     </h1>
                     <p class="text-lg lg:text-xl mb-8 opacity-80 leading-relaxed max-w-2xl mx-auto lg:mx-0">
                         Track seizures, manage medications, monitor vitals, and share trusted access with caregivers.
-                        Your comprehensive epilepsy management tool with emergency alerts.
+                        Your comprehensive epilepsy management tool.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                         @guest
@@ -70,9 +71,7 @@
                                 </svg>
                                 Start Your Journey
                             </a>
-                            <a href="{{ route('seizures.live-tracker') }}" class="btn btn-error emergency-pulse btn-lg">
-                                🚨 Emergency Timer
-                            </a>
+
                         @else
                             <a href="{{ route('dashboard') }}" class="btn btn-primary btn-lg">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -80,9 +79,7 @@
                                 </svg>
                                 Go to Dashboard
                             </a>
-                            <a href="{{ route('seizures.live-tracker') }}" class="btn btn-error emergency-pulse btn-lg">
-                                🚨 Emergency Timer
-                            </a>
+
                         @endauth
                     </div>
                 </div>
@@ -90,13 +87,10 @@
                     <div class="mockup-phone border-primary">
                         <div class="camera"></div>
                         <div class="display">
-                            <div class="artboard artboard-demo phone-1 bg-base-100 p-4">
-                                <div class="text-center space-y-4">
-                                    <div class="text-6xl">⏱️</div>
-                                    <h3 class="text-2xl font-bold">Live Tracking</h3>
-                                    <p class="text-sm opacity-70">Real-time seizure monitoring with emergency alerts</p>
-                                    <div class="badge badge-error">Emergency at 5 minutes</div>
-                                </div>
+                            <div class="artboard artboard-demo phone-1 bg-base-100 p-0 overflow-hidden">
+                                <img src="/Screenshot from 2025-12-09 14-54-10.png"
+                                     alt="App Screenshot"
+                                     class="w-full h-full object-cover object-top">
                             </div>
                         </div>
                     </div>
@@ -114,16 +108,6 @@
             </div>
 
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Live Tracking -->
-                <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:opacity-95">
-                    <div class="card-body text-center">
-                        <div class="text-5xl mb-4">🚨</div>
-                        <h3 class="card-title justify-center text-2xl mb-2">Emergency Live Tracker</h3>
-                        <p class="opacity-70 mb-4">Real-time seizure timing with automatic emergency alerts when duration exceeds safe limits</p>
-                        <div class="badge badge-error">Critical Safety Feature</div>
-                    </div>
-                </div>
-
                 <!-- Seizure Tracking -->
                 <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:opacity-95">
                     <div class="card-body text-center">
@@ -311,9 +295,7 @@
                             </svg>
                             Start Your Journey
                         </a>
-                        <a href="{{ route('seizures.live-tracker') }}" class="btn btn-lg btn-error emergency-pulse hover:opacity-95 transition-all duration-300 shadow-xl border-0 px-8">
-                            🚨 Emergency Access
-                        </a>
+
                     </div>
                 @else
                     <a href="{{ route('dashboard') }}" class="btn btn-lg bg-white text-primary hover:bg-base-100 hover:opacity-95 transition-all duration-300 shadow-xl border-0 px-8">
@@ -363,13 +345,7 @@
                 </div>
 
                 <!-- Emergency section -->
-                <div class="text-center md:text-right">
-                    <h4 class="font-semibold text-lg mb-4 text-error">Emergency Access</h4>
-                    <a href="{{ route('seizures.live-tracker') }}" class="btn btn-error emergency-pulse btn-sm hover:opacity-95 transition-all duration-300">
-                        🚨 Emergency Timer
-                    </a>
-                    <p class="text-xs text-base-content/60 mt-2">Quick access for seizure tracking</p>
-                </div>
+
             </div>
 
             <!-- Copyright -->

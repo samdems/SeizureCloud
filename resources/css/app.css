@@ -39,20 +39,69 @@
         scroll-behavior: smooth;
     }
 
-    /* Custom loading spinner */
-    .loading-spinner {
-        width: 20px;
-        height: 20px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
-        border-top-color: currentColor;
-        animation: spin 1s ease-in-out infinite;
+    /* Fix autofill styling to prevent white backgrounds */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    input:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0 30px var(--fallback-b1, oklch(var(--b1) / 1))
+            inset !important;
+        -webkit-text-fill-color: var(
+            --fallback-bc,
+            oklch(var(--bc) / 1)
+        ) !important;
+        caret-color: var(--fallback-bc, oklch(var(--bc) / 1)) !important;
     }
 
-    @keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
+    /* Dark mode autofill fix */
+    .dark input:-webkit-autofill,
+    .dark input:-webkit-autofill:hover,
+    .dark input:-webkit-autofill:focus,
+    .dark input:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0 30px var(--fallback-b1, oklch(var(--b1) / 1))
+            inset !important;
+        -webkit-text-fill-color: var(
+            --fallback-bc,
+            oklch(var(--bc) / 1)
+        ) !important;
+    }
+
+    /* Additional autofill fixes for different input types */
+    input[type="text"]:-webkit-autofill,
+    input[type="email"]:-webkit-autofill,
+    input[type="password"]:-webkit-autofill {
+        background-color: transparent !important;
+        background-image: none !important;
+        color: inherit !important;
+    }
+
+    /* DaisyUI input component autofill fixes */
+    .input:-webkit-autofill,
+    .input:-webkit-autofill:hover,
+    .input:-webkit-autofill:focus,
+    .input:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0 30px var(--fallback-b1, oklch(var(--b1) / 1))
+            inset !important;
+        -webkit-text-fill-color: var(
+            --fallback-bc,
+            oklch(var(--bc) / 1)
+        ) !important;
+        border-color: var(--fallback-bc, oklch(var(--bc) / 0.2)) !important;
+        transition: none !important;
+    }
+
+    /* Input bordered autofill fix */
+    .input-bordered:-webkit-autofill {
+        border-color: var(--fallback-bc, oklch(var(--bc) / 0.2)) !important;
+    }
+
+    /* Input primary/error states with autofill */
+    .input-primary:-webkit-autofill {
+        border-color: var(--fallback-p, oklch(var(--p) / 1)) !important;
+    }
+
+    .input-error:-webkit-autofill {
+        border-color: var(--fallback-er, oklch(var(--er) / 1)) !important;
     }
 
     /* Fade in animation */
@@ -101,34 +150,6 @@
         backdrop-filter: blur(10px);
         background: rgba(255, 255, 255, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    /* Custom button loading state */
-    .btn.loading::after {
-        content: "";
-        display: inline-block;
-        width: 16px;
-        height: 16px;
-        margin-left: 8px;
-        border: 2px solid transparent;
-        border-top: 2px solid currentColor;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-    }
-
-    /* Pulse animation for emergency button */
-    .btn-error.emergency-pulse {
-        animation: pulse-red 2s infinite;
-    }
-
-    @keyframes pulse-red {
-        0%,
-        100% {
-            box-shadow: 0 0 0 0 rgba(248, 114, 114, 0.7);
-        }
-        50% {
-            box-shadow: 0 0 0 10px rgba(248, 114, 114, 0);
-        }
     }
 }
 
@@ -269,23 +290,6 @@
             min-height: 3.5rem;
             padding-left: 0.5rem;
             padding-right: 0.5rem;
-        }
-    }
-
-    /* Emergency button pulse optimization for mobile */
-    @media (max-width: 640px) {
-        .btn-error.emergency-pulse {
-            animation: pulse-red-mobile 2s infinite;
-        }
-    }
-
-    @keyframes pulse-red-mobile {
-        0%,
-        100% {
-            box-shadow: 0 0 0 0 rgba(248, 114, 114, 0.5);
-        }
-        50% {
-            box-shadow: 0 0 0 5px rgba(248, 114, 114, 0);
         }
     }
 

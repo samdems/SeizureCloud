@@ -8,8 +8,6 @@
         <div class="drawer lg:drawer-open">
             <input id="sidebar-drawer" type="checkbox" class="drawer-toggle" />
 
-
-
             <!-- Main Content -->
             <div class="drawer-content flex flex-col">
                 <!-- Mobile Navbar -->
@@ -19,26 +17,12 @@
                             <x-heroicon-o-bars-3 class="inline-block w-5 h-5 stroke-current" />
                         </label>
                     </div>
-                    <div class="flex-1 px-2 mx-2">
-                        <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center">
-                            <x-app-logo />
-                            @if(session('viewing_as_trusted_contact'))
-                                <div class="badge badge-info badge-xs ml-2">
-                                    <x-heroicon-o-users class="w-2 h-2 mr-1" />
-                                    Trusted
-                                </div>
-                            @endif
-                            @php
-                                $env = config('app.env');
-                            @endphp
-                            @if(in_array($env, ['local', 'staging']))
-                                <span class="badge badge-warning badge-xs ml-2 font-semibold">
-                                    {{ strtoupper($env) }}
-                                </span>
-                            @endif
-                        </a>
-                    </div>
+                    <div class="flex-1"></div>
                     <div class="flex-none flex gap-2">
+                        <a href="{{ route('dashboard') }}" wire:navigate class="btn btn-ghost btn-sm">
+                            <x-heroicon-o-home class="w-5 h-5" />
+                            Dashboard
+                        </a>
                         <div class="dropdown dropdown-end">
                             <label tabindex="0" class="btn btn-ghost btn-circle avatar">
                                 <x-avatar size="md" />
@@ -142,18 +126,7 @@
                             </a>
                         </li>
 
-                        <li class="menu-title mt-4">
-                            <span class="flex items-center gap-2">
-                                <x-heroicon-o-clock class="w-4 h-4" />
-                                Emergency Tools
-                            </span>
-                        </li>
-                        <li>
-                            <a href="{{ route('seizures.live-tracker') }}" class="{{ request()->routeIs('seizures.live-tracker') ? 'active' : '' }}" wire:navigate>
-                                <x-heroicon-o-clock class="w-5 h-5" />
-                                🚨 Live Seizure Timer
-                            </a>
-                        </li>
+
 
                         @if(auth()->user()->canTrackSeizures())
                         <li class="menu-title mt-4">

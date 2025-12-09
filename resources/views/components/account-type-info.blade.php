@@ -10,7 +10,7 @@
             'icon' => '👤',
             'color' => 'success',
             'features' => [
-                'Track your own seizures with live timer',
+                'Track your own seizures',
                 'Manage medications and schedules',
                 'Record vitals and health data',
                 'Grant trusted access to carers',

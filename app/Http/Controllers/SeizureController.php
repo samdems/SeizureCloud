@@ -206,38 +206,6 @@ class SeizureController extends Controller
             ->with("success", "Seizure record deleted successfully.");
     }
 
-    public function liveTracker()
-    {
-        // Get all users that the current user has trusted access to
-        $accessibleUsers = Auth::user()->validAccessibleAccounts()->get();
-
-        // Add the current user to the list
-        $users = collect([Auth::user()])
-            ->merge($accessibleUsers)
-            ->unique("id")
-            ->filter(function ($user) {
-                return $user->canTrackSeizures();
-            });
-
-        // Prepare user data for JavaScript
-        $usersData = $users
-            ->map(function ($user) {
-                return [
-                    "id" => $user->id,
-                    "name" => $user->name,
-                    "email" => $user->email,
-                    "avatar_url" => $user->avatarUrl(40),
-                    "account_type" => $user->account_type,
-                    "status_epilepticus_duration_minutes" =>
-                        $user->status_epilepticus_duration_minutes ?? 5,
-                    "emergency_contact_info" => $user->emergency_contact_info,
-                ];
-            })
-            ->values();
-
-        return view("seizures.live-tracker", compact("users", "usersData"));
-    }
-
     public function exportMonthlyPdf(Request $request)
     {
         $month = $request->get("month", now()->month);

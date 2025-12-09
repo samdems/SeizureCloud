@@ -16,18 +16,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Application Emoji
-    |--------------------------------------------------------------------------
-    |
-    | This value is the emoji that will be displayed alongside your application
-    | name in the user interface. You can set this in your ".env" file.
-    |
-    */
-
-    "emoji" => env("APP_EMOJI", "🚀"),
-
-    /*
-    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |

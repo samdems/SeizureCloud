@@ -8,7 +8,7 @@
 
         <x-dashboard.emergency-settings />
 
-        <x-dashboard.emergency-tracker />
+
 
         <x-dashboard.non-patient-info />
 

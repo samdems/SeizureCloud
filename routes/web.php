@@ -144,16 +144,6 @@ Route::middleware(["auth"])->group(function () {
         )
         ->name("two-factor.show");
 
-    Route::get("seizures/live-tracker", [
-        \App\Http\Controllers\SeizureController::class,
-        "liveTracker",
-    ])->name("seizures.live-tracker");
-
-    // Short URL for emergency access to live seizure tracker
-    Route::get("live", [
-        \App\Http\Controllers\SeizureController::class,
-        "liveTracker",
-    ])->name("live");
     Route::resource(
         "seizures",
         \App\Http\Controllers\SeizureController::class,

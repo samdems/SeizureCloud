@@ -16,19 +16,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // Add loading states for submit buttons only
-    document.querySelectorAll(".btn").forEach((button) => {
-        button.addEventListener("click", function () {
-            if (
-                this.type === "submit" &&
-                this.form &&
-                !this.dataset.noLoading
-            ) {
-                this.classList.add("loading");
-            }
-        });
-    });
-
     // Intersection Observer for scroll animations
     const observerOptions = {
         threshold: 0.1,
