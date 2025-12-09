@@ -35,6 +35,10 @@ class User extends Authenticatable implements MustVerifyEmail
         "emergency_seizure_count",
         "emergency_seizure_timeframe_hours",
         "emergency_contact_info",
+        "notify_medication_taken",
+        "notify_seizure_added",
+        "notify_trusted_contacts_medication",
+        "notify_trusted_contacts_seizures",
     ];
 
     /**
@@ -66,6 +70,10 @@ class User extends Authenticatable implements MustVerifyEmail
             "status_epilepticus_duration_minutes" => "integer",
             "emergency_seizure_count" => "integer",
             "emergency_seizure_timeframe_hours" => "integer",
+            "notify_medication_taken" => "boolean",
+            "notify_seizure_added" => "boolean",
+            "notify_trusted_contacts_medication" => "boolean",
+            "notify_trusted_contacts_seizures" => "boolean",
         ];
     }
 
