@@ -77,9 +77,13 @@
                     @php
                         $env = config('app.env');
                     @endphp
-                    @if(in_array($env, ['local', 'staging']))
+                    @if($env === 'local')
                         <div class="w-full bg-yellow-500 text-black border-b-2 border-yellow-700 shadow-lg text-center py-2 font-bold z-50">
-                            ⚠️ You are viewing the {{ strtoupper($env) }} environment.
+                            ⚠️ You are viewing the LOCAL environment.
+                        </div>
+                    @elseif($env === 'staging')
+                        <div class="w-full bg-orange-500 text-white border-b-2 border-orange-700 shadow-lg text-center py-2 font-bold z-50">
+                            🚧 You are viewing the STAGING environment.
                         </div>
                     @endif
                     <!-- Trusted Access Indicator -->
