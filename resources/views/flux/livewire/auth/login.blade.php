@@ -78,5 +78,11 @@
                 <a href="{{ route('register') }}" class="link link-primary" wire:navigate>{{ __('Sign up') }}</a>
             </div>
         @endif
+
+        <div class="text-center text-xs text-zinc-500 dark:text-zinc-500 mt-4 space-x-2">
+            <a href="{{ route('legal.terms') }}" class="link link-primary" wire:navigate>Terms of Service</a>
+            <span>•</span>
+            <a href="{{ route('legal.privacy') }}" class="link link-primary" wire:navigate>Privacy Policy</a>
+        </div>
     </div>
 </x-layouts.auth>

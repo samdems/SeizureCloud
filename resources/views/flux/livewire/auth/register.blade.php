@@ -77,6 +77,13 @@
             <span>{{ __('Already have an account?') }}</span>
             <a href="{{ route('login') }}" class="link link-primary" wire:navigate>{{ __('Log in') }}</a>
         </div>
+
+        <div class="text-center text-xs text-zinc-500 dark:text-zinc-500 mt-4 space-x-2">
+            <span>By creating an account, you agree to our</span>
+            <a href="{{ route('legal.terms') }}" class="link link-primary" wire:navigate>Terms of Service</a>
+            <span>and</span>
+            <a href="{{ route('legal.privacy') }}" class="link link-primary" wire:navigate>Privacy Policy</a>
+        </div>
     </div>
 
 
