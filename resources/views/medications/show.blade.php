@@ -38,6 +38,9 @@
                                 @else
                                     <span class="badge badge-ghost">Inactive</span>
                                 @endif
+                                @if($medication->as_needed)
+                                    <span class="badge badge-secondary ml-2">PRN (As Needed)</span>
+                                @endif
                             </p>
                         </div>
 
@@ -87,10 +90,12 @@
                         <x-heroicon-o-check class="h-5 w-5" />
                         Log Taken Now
                     </button>
-                    <button class="btn btn-primary btn-block" onclick="addScheduleModal.showModal()">
-                        <x-heroicon-o-plus class="h-5 w-5" />
-                        Add Schedule
-                    </button>
+                    @if(!$medication->as_needed)
+                        <button class="btn btn-primary btn-block" onclick="addScheduleModal.showModal()">
+                            <x-heroicon-o-plus class="h-5 w-5" />
+                            Add Schedule
+                        </button>
+                    @endif
                     <form action="{{ route('medications.destroy', $medication) }}" method="POST" onsubmit="return confirm('Are you sure?')">
                         @csrf
                         @method('DELETE')
@@ -100,84 +105,101 @@
             </div>
         </div>
 
-        <!-- Schedules -->
-        <div class="card bg-base-100 shadow-xl">
-            <div class="card-body">
-                <div class="flex justify-between items-center">
-                    <h2 class="card-title">Schedules</h2>
-                    <button class="btn btn-primary btn-sm" onclick="addScheduleModal.showModal()">
-                        <x-heroicon-o-plus class="h-4 w-4" />
-                        Add Schedule
-                    </button>
-                </div>
+        @if(!$medication->as_needed)
+            <!-- Schedules -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <div class="flex justify-between items-center">
+                        <h2 class="card-title">Schedules</h2>
+                        <button class="btn btn-primary btn-sm" onclick="addScheduleModal.showModal()">
+                            <x-heroicon-o-plus class="h-4 w-4" />
+                            Add Schedule
+                        </button>
+                    </div>
 
-                @if($medication->schedules->count() > 0)
-                    <div class="overflow-x-auto">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Time</th>
-                                    <th>Dosage</th>
-                                    <th>Frequency</th>
-                                    <th>Days</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($medication->schedules as $schedule)
+                    @if($medication->schedules->count() > 0)
+                        <div class="overflow-x-auto">
+                            <table class="table">
+                                <thead>
                                     <tr>
-                                        <td class="font-semibold">{{ Carbon\Carbon::parse($schedule->scheduled_time)->format('g:i A') }}</td>
-                                        <td>
-                                            @if($schedule->getCalculatedDosageWithUnit())
-                                                {{ $schedule->getCalculatedDosageWithUnit() }}
-                                                @if($schedule->dosage_multiplier != 1)
-                                                    <span class="text-xs text-base-content/60">({{ $schedule->dosage_multiplier }}x)</span>
-                                                @endif
-                                            @else
-                                                <span class="text-base-content/50">-</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <span class="badge">{{ ucfirst($schedule->frequency) }}</span>
-                                        </td>
-                                        <td>
-                                            @if($schedule->frequency === 'weekly' && $schedule->days_of_week)
-                                                @php
-                                                    $days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                                                    $scheduledDays = collect($schedule->days_of_week)->map(fn($d) => $days[$d])->join(', ');
-                                                @endphp
-                                                {{ $scheduledDays }}
-                                            @else
-                                                Every day
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if($schedule->active)
-                                                <span class="badge badge-success">Active</span>
-                                            @else
-                                                <span class="badge badge-ghost">Inactive</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <form action="{{ route('medications.schedules.destroy', [$medication, $schedule]) }}" method="POST" class="inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-error" onclick="return confirm('Delete this schedule?')">Delete</button>
-                                            </form>
-                                        </td>
+                                        <th>Time</th>
+                                        <th>Dosage</th>
+                                        <th>Frequency</th>
+                                        <th>Days</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @else
-                    <div class="alert">
-                        <span>No schedules set up yet. Add a schedule to track when to take this medication.</span>
-                    </div>
-                @endif
+                                </thead>
+                                <tbody>
+                                    @foreach($medication->schedules as $schedule)
+                                        <tr>
+                                            <td class="font-semibold">{{ Carbon\Carbon::parse($schedule->scheduled_time)->format('g:i A') }}</td>
+                                            <td>
+                                                @if($schedule->getCalculatedDosageWithUnit())
+                                                    {{ $schedule->getCalculatedDosageWithUnit() }}
+                                                    @if($schedule->dosage_multiplier != 1)
+                                                        <span class="text-xs text-base-content/60">({{ $schedule->dosage_multiplier }}x)</span>
+                                                    @endif
+                                                @else
+                                                    <span class="text-base-content/50">-</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <span class="badge">{{ ucfirst($schedule->frequency) }}</span>
+                                            </td>
+                                            <td>
+                                                @if($schedule->frequency === 'weekly' && $schedule->days_of_week)
+                                                    @php
+                                                        $days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                                                        $scheduledDays = collect($schedule->days_of_week)->map(fn($d) => $days[$d])->join(', ');
+                                                    @endphp
+                                                    {{ $scheduledDays }}
+                                                @else
+                                                    Every day
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if($schedule->active)
+                                                    <span class="badge badge-success">Active</span>
+                                                @else
+                                                    <span class="badge badge-ghost">Inactive</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <form action="{{ route('medications.schedules.destroy', [$medication, $schedule]) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-error" onclick="return confirm('Delete this schedule?')">Delete</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="alert">
+                            <span>No schedules set up yet. Add a schedule to track when to take this medication.</span>
+                        </div>
+                    @endif
+                </div>
             </div>
-        </div>
+        @else
+            <!-- PRN Information -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title">PRN Medication</h2>
+                    <div class="alert alert-info">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>
+                            This is a PRN (as needed) medication. No regular schedule is required - take only when needed as directed by your healthcare provider.
+                        </span>
+                    </div>
+                </div>
+            </div>
+        @endif
 
         <!-- Recent Logs -->
         <div class="card bg-base-100 shadow-xl">
@@ -385,8 +407,9 @@
         </form>
     </dialog>
 
-    <!-- Add Schedule Modal -->
-    <dialog id="addScheduleModal" class="modal">
+    @if(!$medication->as_needed)
+        <!-- Add Schedule Modal -->
+        <dialog id="addScheduleModal" class="modal">
         <div class="modal-box">
             <h3 class="font-bold text-lg">Add Schedule</h3>
             <form method="POST" action="{{ route('medications.schedules.store', $medication) }}" class="space-y-4 mt-4">
@@ -494,6 +517,7 @@
             <button>close</button>
         </form>
     </dialog>
+    @endif
 
     <script>
         function toggleDaysOfWeek() {

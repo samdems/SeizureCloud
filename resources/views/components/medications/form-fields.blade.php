@@ -82,9 +82,10 @@
                 type="checkbox"
                 :value="old('as_needed', $medication?->as_needed)"
                 class="checkbox-secondary"
+                id="as_needed_checkbox"
             />
             <div class="mt-1">
-                <span class="text-sm text-gray-500">Always show in schedule for PRN medications</span>
+                <span class="text-sm text-gray-500">PRN medications don't require regular schedules - take only when needed</span>
             </div>
         </div>
     </div>
@@ -117,14 +118,33 @@
             optional
         />
 
-    <div class="alert alert-info">
+    <div class="alert alert-info" id="schedule_info">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
-        <span>
+        <span id="schedule_info_text">
             After {{ $medication ? 'updating' : 'adding' }} this medication, you can set up schedules for when to take it.
         </span>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const asNeededCheckbox = document.getElementById('as_needed_checkbox');
+            const scheduleInfo = document.getElementById('schedule_info_text');
+            const isUpdate = {{ $medication ? 'true' : 'false' }};
+
+            function updateScheduleInfo() {
+                if (asNeededCheckbox.checked) {
+                    scheduleInfo.textContent = 'PRN medications are taken as needed - no regular schedule is required.';
+                } else {
+                    scheduleInfo.textContent = 'After ' + (isUpdate ? 'updating' : 'adding') + ' this medication, you can set up schedules for when to take it.';
+                }
+            }
+
+            asNeededCheckbox.addEventListener('change', updateScheduleInfo);
+            updateScheduleInfo(); // Initial call
+        });
+    </script>
 
     {{-- Form Actions --}}
     <div class="flex justify-end gap-4">

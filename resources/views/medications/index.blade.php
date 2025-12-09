@@ -52,9 +52,14 @@
                                 @else
                                     <span class="badge badge-ghost">Inactive</span>
                                 @endif
+                                @if($medication->as_needed)
+                                    <span class="badge badge-secondary ml-2">PRN</span>
+                                @endif
                             </td>
                             <td>
-                                @if($medication->schedules->count() > 0)
+                                @if($medication->as_needed)
+                                    <span class="text-sm text-base-content/70">As needed only</span>
+                                @elseif($medication->schedules->count() > 0)
                                     <div class="text-sm">
                                         @foreach($medication->schedules->take(2) as $schedule)
                                             <div>
