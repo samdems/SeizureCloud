@@ -1,17 +1,24 @@
 <x-layouts.app :title="__('Medications')">
     <div class="flex h-full w-full flex-1 flex-col gap-4">
-        <div class="flex items-center justify-between">
-            <h1 class="text-2xl font-bold">Medications</h1>
-            <div class="flex gap-2">
-                <a href="{{ route('medications.schedule') }}" class="btn btn-accent">
-                    Today's Schedule
-                </a>
-                <a href="{{ route('medications.create') }}" class="btn btn-primary">
-                    <x-heroicon-o-plus class="h-5 w-5" />
-                    Add Medication
-                </a>
-            </div>
-        </div>
+        <x-page-title
+            title="Medications"
+            :actions="[
+                [
+                    'href' => route('medications.schedule'),
+                    'class' => 'btn-accent',
+                    'icon' => 'heroicon-o-calendar',
+                    'mobile_text' => 'Schedule',
+                    'desktop_text' => 'Today\'s Schedule',
+                ],
+                [
+                    'href' => route('medications.create'),
+                    'class' => 'btn-primary',
+                    'icon' => 'heroicon-o-plus',
+                    'mobile_text' => 'Add',
+                    'desktop_text' => 'Add Medication',
+                ],
+            ]"
+        />
 
         @if(session('success'))
             <div class="alert alert-success">
@@ -19,7 +26,8 @@
             </div>
         @endif
 
-        <div class="overflow-x-auto">
+        <!-- Desktop Table View -->
+        <div class="hidden lg:block overflow-x-auto">
             <table class="table table-zebra">
                 <thead>
                     <tr>
@@ -77,28 +85,36 @@
                                     <span class="text-base-content/50">No schedules</span>
                                 @endif
                             </td>
-                            <td>
-                                <div class="flex gap-2">
-                                    <a href="{{ route('medications.show', $medication) }}" class="btn btn-sm btn-info">
+                            <td class="px-6 py-4">
+                                <div class="flex gap-4 items-center justify-center">
+                                    <a href="{{ route('medications.show', $medication) }}" class="btn btn-sm btn-info" wire:navigate>
                                         <x-heroicon-o-eye class="h-4 w-4" />
                                         View
                                     </a>
-                                    <button class="btn btn-sm btn-secondary" onclick="historyModal{{ $medication->id }}.showModal()">
-                                        <x-heroicon-o-clock class="h-4 w-4" />
-                                        History
-                                    </button>
-                                    <a href="{{ route('medications.edit', $medication) }}" class="btn btn-sm btn-warning">
-                                        <x-heroicon-o-pencil class="h-4 w-4" />
-                                        Edit
-                                    </a>
-                                    <form action="{{ route('medications.destroy', $medication) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this medication?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-error">
-                                            <x-heroicon-o-trash class="h-4 w-4" />
-                                            Delete
-                                        </button>
-                                    </form>
+                                    <x-kebab-menu
+                                        :items="[
+                                            [
+                                                'label' => 'History',
+                                                'action' => 'historyModal' . $medication->id . '.showModal()',
+                                                'icon' => 'heroicon-o-clock',
+                                            ],
+                                            [
+                                                'label' => 'Edit',
+                                                'href' => route('medications.edit', $medication),
+                                                'icon' => 'heroicon-o-pencil',
+                                                'wire:navigate' => true,
+                                            ],
+                                            [
+                                                'label' => 'Delete',
+                                                'form' => [
+                                                    'action' => route('medications.destroy', $medication),
+                                                    'method' => 'DELETE',
+                                                    'confirm' => 'Are you sure you want to delete this medication?',
+                                                ],
+                                                'icon' => 'heroicon-o-trash',
+                                            ],
+                                        ]"
+                                    />
                                 </div>
                             </td>
                         </tr>
@@ -114,6 +130,99 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="lg:hidden space-y-4">
+            @forelse($medications as $medication)
+                <div class="card bg-base-100 shadow-md {{ !$medication->active ? 'opacity-60' : '' }}">
+                    <div class="card-body p-4">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <div class="font-semibold text-base">{{ $medication->name }}</div>
+                                @if($medication->description)
+                                    <div class="text-sm text-base-content/70">{{ Str::limit($medication->description, 50) }}</div>
+                                @endif
+                            </div>
+                            <div class="flex gap-1">
+                                @if($medication->active)
+                                    <span class="badge badge-success badge-sm">Active</span>
+                                @else
+                                    <span class="badge badge-ghost badge-sm">Inactive</span>
+                                @endif
+                                @if($medication->as_needed)
+                                    <span class="badge badge-secondary badge-sm">PRN</span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div>
+                                <div class="text-xs text-base-content/60 uppercase tracking-wider">Dosage</div>
+                                <div class="font-medium">
+                                    @if($medication->dosage)
+                                        {{ $medication->dosage }} {{ $medication->unit }}
+                                    @else
+                                        <span class="text-base-content/50">N/A</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-base-content/60 uppercase tracking-wider">Schedules</div>
+                                <div class="text-sm">
+                                    @if($medication->as_needed)
+                                        <span class="text-base-content/70">As needed only</span>
+                                    @elseif($medication->schedules->count() > 0)
+                                        <div>
+                                            @foreach($medication->schedules->take(2) as $schedule)
+                                                <div class="text-xs">
+                                                    {{ Carbon\Carbon::parse($schedule->scheduled_time)->format('g:i A') }}
+                                                    @if($schedule->getCalculatedDosageWithUnit())
+                                                        - {{ $schedule->getCalculatedDosageWithUnit() }}
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                            @if($medication->schedules->count() > 2)
+                                                <div class="text-xs text-base-content/50">+{{ $medication->schedules->count() - 2 }} more</div>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="text-base-content/50">No schedules</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2 pt-2 border-t border-base-300">
+                            <a href="{{ route('medications.show', $medication) }}" class="btn btn-sm btn-info flex-1 min-w-0" wire:navigate>
+                                <x-heroicon-o-eye class="h-4 w-4" />
+                                View
+                            </a>
+                            <button class="btn btn-sm btn-secondary" onclick="historyModal{{ $medication->id }}.showModal()" title="History">
+                                <x-heroicon-o-clock class="h-4 w-4" />
+                            </button>
+                            <a href="{{ route('medications.edit', $medication) }}" class="btn btn-sm btn-warning" wire:navigate>
+                                <x-heroicon-o-pencil class="h-4 w-4" />
+                            </a>
+                            <form action="{{ route('medications.destroy', $medication) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this medication?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-error">
+                                    <x-heroicon-o-trash class="h-4 w-4" />
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="text-center py-12">
+                    <p class="text-base-content/70 mb-4">No medications added yet.</p>
+                    <a href="{{ route('medications.create') }}" class="btn btn-primary">
+                        <x-heroicon-o-plus class="h-5 w-5" />
+                        Add your first medication
+                    </a>
+                </div>
+            @endforelse
         </div>
 
         <!-- History Modals for each medication -->

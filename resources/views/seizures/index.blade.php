@@ -1,73 +1,57 @@
 <x-layouts.app :title="__('Seizure Tracker')">
     <div class="flex h-full w-full flex-1 flex-col gap-4">
-        <div class="flex items-center justify-between">
-            <h1 class="text-2xl font-bold">Seizure Tracker</h1>
-            <div class="flex gap-2">
-                <div class="dropdown dropdown-end">
-                    <div tabindex="0" role="button" class="btn btn-outline">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                        </svg>
-                        Export PDF
-                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
-                    </div>
-                    <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-                        <li>
-                            <a href="{{ route('seizures.export.monthly-pdf', ['month' => now()->month, 'year' => now()->year]) }}">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                </svg>
-                                Summary - This Month ({{ now()->format('M Y') }})
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('seizures.export.monthly-pdf', ['month' => now()->subMonth()->month, 'year' => now()->subMonth()->year]) }}">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                </svg>
-                                Summary - Last Month ({{ now()->subMonth()->format('M Y') }})
-                            </a>
-                        </li>
-                        <li>
-                            <hr class="my-1">
-                        </li>
-                        <li>
-                            <a href="{{ route('seizures.export.comprehensive-pdf', ['month' => now()->month, 'year' => now()->year]) }}">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                </svg>
-                                Comprehensive - This Month ({{ now()->format('M Y') }})
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('seizures.export.comprehensive-pdf', ['month' => now()->subMonth()->month, 'year' => now()->subMonth()->year]) }}">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                </svg>
-                                Comprehensive - Last Month ({{ now()->subMonth()->format('M Y') }})
-                            </a>
-                        </li>
-                        <li>
-                            <hr class="my-1">
-                        </li>
-                        <li>
-                            <a href="#" onclick="showCustomDateModal()">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                </svg>
-                                Custom Date Range
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-                <a href="{{ route('seizures.create') }}" class="btn btn-primary">
-                    Add Past Seizure
-                </a>
-            </div>
-        </div>
+        <x-page-title
+            title="Seizure Tracker"
+            :actions="[
+                [
+                    'class' => 'btn-outline',
+                    'mobile_text' => 'Export PDF',
+                    'desktop_text' => 'Export PDF',
+                    'icon' => 'heroicon-o-document',
+                    'dropdown' => [
+                        [
+                            'text' => 'Summary - This Month (' . now()->format('M Y') . ')',
+                            'href' => route('seizures.export.monthly-pdf', ['month' => now()->month, 'year' => now()->year]),
+                            'icon' => 'heroicon-o-calendar',
+                        ],
+                        [
+                            'text' => 'Summary - Last Month (' . now()->subMonth()->format('M Y') . ')',
+                            'href' => route('seizures.export.monthly-pdf', ['month' => now()->subMonth()->month, 'year' => now()->subMonth()->year]),
+                            'icon' => 'heroicon-o-calendar',
+                        ],
+                        [
+                            'divider' => true,
+                        ],
+                        [
+                            'text' => 'Comprehensive - This Month (' . now()->format('M Y') . ')',
+                            'href' => route('seizures.export.comprehensive-pdf', ['month' => now()->month, 'year' => now()->year]),
+                            'icon' => 'heroicon-o-document-text',
+                        ],
+                        [
+                            'text' => 'Comprehensive - Last Month (' . now()->subMonth()->format('M Y') . ')',
+                            'href' => route('seizures.export.comprehensive-pdf', ['month' => now()->subMonth()->month, 'year' => now()->subMonth()->year]),
+                            'icon' => 'heroicon-o-document-text',
+                        ],
+                        [
+                            'divider' => true,
+                        ],
+                        [
+                            'text' => 'Custom Date Range',
+                            'href' => '#',
+                            'onclick' => 'showCustomDateModal()',
+                            'icon' => 'heroicon-o-cog-6-tooth',
+                        ],
+                    ],
+                ],
+                [
+                    'href' => route('seizures.create'),
+                    'class' => 'btn-primary',
+                    'icon' => 'heroicon-o-plus',
+                    'mobile_text' => 'Add',
+                    'desktop_text' => 'Add Past Seizure',
+                ],
+            ]"
+        />
 
         @if(session('success'))
             <div class="alert alert-success">
@@ -75,7 +59,8 @@
             </div>
         @endif
 
-        <div class="overflow-x-auto">
+        <!-- Desktop Table View -->
+        <div class="hidden lg:block overflow-x-auto">
             <table class="table table-zebra">
                 <thead>
                     <tr>
@@ -142,20 +127,36 @@
                                     <span class="text-base-content/50">No</span>
                                 @endif
                             </td>
-                            <td>
-                                <div class="flex gap-2">
-                                    <a href="{{ route('seizures.show', $seizure) }}" class="btn btn-sm btn-info">View</a>
-                                    <a href="{{ route('seizures.export.single-pdf', $seizure) }}" class="btn btn-sm btn-secondary" title="Export PDF">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                                        </svg>
+                            <td class="px-6 py-4">
+                                <div class="flex gap-4 items-center justify-center">
+                                    <a href="{{ route('seizures.show', $seizure) }}" class="btn btn-sm btn-info" wire:navigate>
+                                        <x-heroicon-o-eye class="h-4 w-4" />
+                                        View
                                     </a>
-                                    <a href="{{ route('seizures.edit', $seizure) }}" class="btn btn-sm btn-warning">Edit</a>
-                                    <form action="{{ route('seizures.destroy', $seizure) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this record?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-error">Delete</button>
-                                    </form>
+                                    <x-kebab-menu
+                                        :items="[
+                                            [
+                                                'label' => 'Export PDF',
+                                                'href' => route('seizures.export.single-pdf', $seizure),
+                                                'icon' => 'heroicon-o-document-arrow-down',
+                                            ],
+                                            [
+                                                'label' => 'Edit',
+                                                'href' => route('seizures.edit', $seizure),
+                                                'icon' => 'heroicon-o-pencil',
+                                                'wire:navigate' => true,
+                                            ],
+                                            [
+                                                'label' => 'Delete',
+                                                'form' => [
+                                                    'action' => route('seizures.destroy', $seizure),
+                                                    'method' => 'DELETE',
+                                                    'confirm' => 'Are you sure you want to delete this record?',
+                                                ],
+                                                'icon' => 'heroicon-o-trash',
+                                            ],
+                                        ]"
+                                    />
                                 </div>
                             </td>
                         </tr>
@@ -168,6 +169,111 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="lg:hidden space-y-4">
+            @forelse($seizures as $seizure)
+                <div class="card bg-base-100 shadow-md {{ $seizure->emergency_status['is_emergency'] ? 'border-l-4 border-l-error bg-error/5' : '' }}">
+                    <div class="card-body p-4">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <div class="font-semibold text-base">{{ $seizure->start_time->format('M d, Y') }}</div>
+                                <div class="text-sm text-base-content/70">{{ $seizure->start_time->format('H:i') }}</div>
+                            </div>
+                            @if($seizure->emergency_status['is_emergency'])
+                                <div class="flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-error">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                                    </svg>
+                                    <span class="badge badge-error badge-xs">EMERGENCY</span>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div>
+                                <div class="text-xs text-base-content/60 uppercase tracking-wider">Duration</div>
+                                <div class="font-medium">{{ $seizure->calculated_duration ?? 'N/A' }} min</div>
+                                @if($seizure->emergency_status['status_epilepticus'])
+                                    <div class="badge badge-error badge-xs mt-1">Status Epilepticus</div>
+                                @endif
+                            </div>
+                            <div>
+                                <div class="text-xs text-base-content/60 uppercase tracking-wider">Severity</div>
+                                <div>
+                                    <span class="badge
+                                        @if($seizure->severity >= 7) badge-error
+                                        @elseif($seizure->severity >= 4) badge-warning
+                                        @else badge-success
+                                        @endif">
+                                        {{ $seizure->severity }}/10
+                                    </span>
+                                    @if($seizure->emergency_status['cluster_emergency'])
+                                        <div class="badge badge-error badge-xs mt-1">Cluster</div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div>
+                                <div class="text-xs text-base-content/60 uppercase tracking-wider">Vitals</div>
+                                <div class="text-sm">
+                                    @if($seizure->vitals_count > 0)
+                                        <span class="badge badge-info badge-sm">{{ $seizure->vitals_count }} recorded</span>
+                                    @else
+                                        <span class="text-base-content/50">None</span>
+                                    @endif
+                                    @if($seizure->event_seizure_count > 1)
+                                        <div class="mt-1">
+                                            <span class="badge badge-warning badge-xs">Event: {{ $seizure->event_seizure_count }} seizures</span>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-base-content/60 uppercase tracking-wider">NHS Contact</div>
+                                <div class="text-sm">
+                                    @if($seizure->nhs_contacted)
+                                        <span class="text-success">✓ {{ $seizure->nhs_contact_type }}</span>
+                                    @else
+                                        <span class="text-base-content/50">No</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2 pt-2 border-t border-base-300">
+                            <a href="{{ route('seizures.show', $seizure) }}" class="btn btn-sm btn-info flex-1 min-w-0" wire:navigate>
+                                <x-heroicon-o-eye class="h-4 w-4" />
+                                View
+                            </a>
+                            <a href="{{ route('seizures.export.single-pdf', $seizure) }}" class="btn btn-sm btn-secondary" title="Export PDF">
+                                <x-heroicon-o-document-arrow-down class="h-4 w-4" />
+                            </a>
+                            <a href="{{ route('seizures.edit', $seizure) }}" class="btn btn-sm btn-warning" wire:navigate>
+                                <x-heroicon-o-pencil class="h-4 w-4" />
+                            </a>
+                            <form action="{{ route('seizures.destroy', $seizure) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this record?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-error">
+                                    <x-heroicon-o-trash class="h-4 w-4" />
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="text-center py-12">
+                    <p class="text-base-content/70 mb-4">No seizure records found.</p>
+                    <a href="{{ route('seizures.create') }}" class="btn btn-primary">
+                        <x-heroicon-o-plus class="h-5 w-5" />
+                        Add your first record
+                    </a>
+                </div>
+            @endforelse
         </div>
 
         @if($seizures->hasPages())

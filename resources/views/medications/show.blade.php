@@ -3,12 +3,23 @@
         <div class="flex items-center justify-between">
             <h1 class="text-2xl font-bold">{{ $medication->name }}</h1>
             <div class="flex gap-2">
-                <a href="{{ route('medications.edit', $medication) }}" class="btn btn-warning btn-sm">
-                    Edit
-                </a>
-                <a href="{{ route('medications.index') }}" class="btn btn-outline btn-sm">
-                    Back to List
-                </a>
+                <x-kebab-menu
+                    :items="[
+                        [
+                            'label' => 'Edit',
+                            'href' => route('medications.edit', $medication),
+                            'icon' => 'heroicon-o-pencil',
+                            'wire:navigate' => true,
+                        ],
+
+                        [
+                            'label' => 'Back to List',
+                            'href' => route('medications.index'),
+                            'icon' => 'heroicon-o-arrow-left',
+                            'wire:navigate' => true,
+                        ],
+                    ]"
+                />
             </div>
         </div>
 
