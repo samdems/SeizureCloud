@@ -113,7 +113,7 @@
                     <div class="card-body text-center">
                         <div class="text-5xl mb-4">📊</div>
                         <h3 class="card-title justify-center text-2xl mb-2">Seizure Tracking</h3>
-                        <p class="opacity-70 mb-4">Log seizure details including type, severity, triggers, medications, and recovery notes</p>
+                        <p class="opacity-70 mb-4">Comprehensive seizure logging with trigger analysis - connects with medications and vitals data</p>
                         <div class="badge badge-primary">Comprehensive Logging</div>
                     </div>
                 </div>
@@ -123,8 +123,8 @@
                     <div class="card-body text-center">
                         <div class="text-5xl mb-4">💊</div>
                         <h3 class="card-title justify-center text-2xl mb-2">Medication Management</h3>
-                        <p class="opacity-70 mb-4">Track medications, schedules, adherence, and side effects with daily management tools</p>
-                        <div class="badge badge-success">Daily Scheduling</div>
+                        <p class="opacity-70 mb-4">Track medications and their effects on seizure patterns - helping identify triggers and optimize treatments</p>
+                        <div class="badge badge-success">Trigger Analysis</div>
                     </div>
                 </div>
 
@@ -133,8 +133,8 @@
                     <div class="card-body text-center">
                         <div class="text-5xl mb-4">💗</div>
                         <h3 class="card-title justify-center text-2xl mb-2">Vitals Monitoring</h3>
-                        <p class="opacity-70 mb-4">Record and track vital signs, blood pressure, heart rate, and other health metrics</p>
-                        <div class="badge badge-info">Health Insights</div>
+                        <p class="opacity-70 mb-4">Monitor vitals to identify seizure triggers - track patterns between health metrics and seizure activity</p>
+                        <div class="badge badge-info">Trigger Insights</div>
                     </div>
                 </div>
 
@@ -155,6 +155,86 @@
                         <h3 class="card-title justify-center text-2xl mb-2">Multiple Account Types</h3>
                         <p class="opacity-70 mb-4">Patient, caregiver, and medical professional accounts with appropriate access levels</p>
                         <div class="badge badge-accent">Role-Based Access</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trigger Identification Section -->
+    <section class="py-20 bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl lg:text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Discover Your Seizure Triggers</h2>
+                <p class="text-xl opacity-80 max-w-3xl mx-auto leading-relaxed">Our integrated tracking system connects seizures, medications, and vitals to help identify patterns and triggers</p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8 mb-12">
+                <!-- Medication Connection -->
+                <div class="card bg-base-100 shadow-lg border-l-4 border-l-success">
+                    <div class="card-body">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="text-4xl">💊➡️📊</div>
+                            <h3 class="text-xl font-bold">Medication Patterns</h3>
+                        </div>
+                        <p class="text-sm opacity-70">Track how medication timing, dosage changes, and adherence correlate with seizure frequency and severity.</p>
+                        <div class="mt-4">
+                            <div class="badge badge-success badge-sm">Dosage Analysis</div>
+                            <div class="badge badge-success badge-sm ml-2">Timing Correlation</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vitals Connection -->
+                <div class="card bg-base-100 shadow-lg border-l-4 border-l-info">
+                    <div class="card-body">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="text-4xl">💗➡️📊</div>
+                            <h3 class="text-xl font-bold">Health Metrics</h3>
+                        </div>
+                        <p class="text-sm opacity-70">Monitor how blood pressure, heart rate, sleep patterns, and stress levels relate to seizure activity.</p>
+                        <div class="mt-4">
+                            <div class="badge badge-info badge-sm">Pattern Recognition</div>
+                            <div class="badge badge-info badge-sm ml-2">Early Warning</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Combined Insights -->
+                <div class="card bg-base-100 shadow-lg border-l-4 border-l-warning">
+                    <div class="card-body">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="text-4xl">🧠💡</div>
+                            <h3 class="text-xl font-bold">Smart Insights</h3>
+                        </div>
+                        <p class="text-sm opacity-70">Get comprehensive reports showing connections between all your health data to identify triggers and optimize care.</p>
+                        <div class="mt-4">
+                            <div class="badge badge-warning badge-sm">Data Integration</div>
+                            <div class="badge badge-warning badge-sm ml-2">Trigger Reports</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center bg-base-100 p-8 rounded-2xl shadow-lg mt-8">
+                <h3 class="text-2xl font-bold mb-4">Take Control of Your Epilepsy</h3>
+                <p class="text-lg opacity-80 mb-6 max-w-2xl mx-auto">Understanding your triggers is the first step to better seizure management. Our connected tracking system helps you and your healthcare team make informed decisions.</p>
+                <div class="flex flex-wrap justify-center gap-4 text-sm">
+                    <div class="flex items-center gap-2">
+                        <span class="text-success">✓</span>
+                        <span>Identify medication effectiveness</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-success">✓</span>
+                        <span>Spot health pattern triggers</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-success">✓</span>
+                        <span>Share insights with doctors</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-success">✓</span>
+                        <span>Optimize treatment plans</span>
                     </div>
                 </div>
             </div>
