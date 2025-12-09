@@ -11,8 +11,8 @@
         @php
             $status = $vital->getStatus();
             $cardClass = match($status) {
-                'too_low' => 'bg-error bg-opacity-5 border-2 border-error',
-                'too_high' => 'bg-error bg-opacity-5 border-2 border-error',
+                'too_low' => 'bg-error/10 bg-opacity-5 border-2 border-error',
+                'too_high' => 'bg-error/10 bg-opacity-5 border-2 border-error',
                 default => 'bg-base-100'
             };
         @endphp
