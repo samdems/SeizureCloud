@@ -8,6 +8,16 @@ Route::get("/", function () {
     return view("welcome");
 })->name("home");
 
+// Legal pages
+Route::get("privacy", [
+    \App\Http\Controllers\LegalController::class,
+    "privacy",
+])->name("legal.privacy");
+Route::get("terms", [
+    \App\Http\Controllers\LegalController::class,
+    "terms",
+])->name("legal.terms");
+
 Route::view("dashboard", "dashboard")
     ->middleware(["auth", "verified"])
     ->name("dashboard");

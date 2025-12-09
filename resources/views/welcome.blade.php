@@ -424,8 +424,14 @@
                     </div>
                 </div>
 
-                <!-- Emergency section -->
-
+                <!-- Legal section -->
+                <div class="text-center">
+                    <h4 class="font-semibold text-lg mb-4">Legal</h4>
+                    <div class="space-y-2">
+                        <a href="{{ route('legal.privacy') }}" class="block link link-hover text-base-content/80 hover:text-primary transition-colors" wire:navigate>Privacy Policy</a>
+                        <a href="{{ route('legal.terms') }}" class="block link link-hover text-base-content/80 hover:text-primary transition-colors" wire:navigate>Terms of Service</a>
+                    </div>
+                </div>
             </div>
 
             <!-- Copyright -->
