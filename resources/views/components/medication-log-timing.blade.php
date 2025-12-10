@@ -5,8 +5,11 @@
         @if($log->intended_time)
             @php
                 $timeDifference = $log->getTimeDifference();
-                $isLate = $log->taken_at > $log->intended_time->addMinutes(5);
-                $isEarly = $log->taken_at < $log->intended_time->subMinutes(5);
+                $lateThreshold = $log->intended_time->copy()->addMinutes(10);
+                $earlyThreshold = $log->intended_time->copy()->subMinutes(10);
+
+                $isLate = $log->taken_at->gt($lateThreshold);
+                $isEarly = $log->taken_at->lt($earlyThreshold);
             @endphp
 
             @if($compact)

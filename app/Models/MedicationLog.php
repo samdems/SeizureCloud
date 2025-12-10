@@ -87,13 +87,12 @@ class MedicationLog extends Model
         }
 
         $minutes = $this->taken_at->diffInMinutes($this->intended_time, false);
-
-        if (abs($minutes) <= 5) {
+        if (abs($minutes) <= 10) {
             return "On time";
         }
 
-        if ($minutes > 0) {
-            return "+" . $minutes . " minutes late";
+        if ($minutes < 0) {
+            return abs($minutes) . " minutes late";
         }
 
         return abs($minutes) . " minutes early";
