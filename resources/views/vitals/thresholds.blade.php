@@ -16,51 +16,6 @@
             </div>
         @endif
 
-        <div class="alert alert-info">
-            <x-heroicon-o-information-circle class="stroke-current shrink-0 w-6 h-6" />
-            <div>
-                <h3 class="font-bold">How Thresholds Work</h3>
-                <div class="text-sm">
-                    <p>• <strong>Low Threshold:</strong> Values below this will be marked as "Too Low" (shown in red)</p>
-                    <p>• <strong>High Threshold:</strong> Values above this will be marked as "Too High" (shown in orange)</p>
-                    <p>• <strong>Normal Range:</strong> Values between your thresholds will be marked as "Normal" (shown in green)</p>
-                    <p>• Leave thresholds empty if you don't want alerts for that direction</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Status Examples -->
-        <div class="card bg-base-100 shadow-xl">
-            <div class="card-body">
-                <h3 class="card-title">Visual Status Examples</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-error bg-opacity-10 border-l-4 border-error p-3 rounded">
-                        <div class="flex items-center gap-2">
-                            <x-heroicon-o-arrow-down class="h-4 w-4 text-error" />
-                            <span class="badge badge-error">Too Low</span>
-                        </div>
-                        <p class="text-sm text-error mt-1">Values below your low threshold</p>
-                    </div>
-
-                    <div class="bg-success bg-opacity-10 border-l-4 border-success p-3 rounded">
-                        <div class="flex items-center gap-2">
-                            <x-heroicon-o-check-circle class="h-4 w-4 text-success" />
-                            <span class="badge badge-success">Normal</span>
-                        </div>
-                        <p class="text-sm text-success mt-1">Values within your normal range</p>
-                    </div>
-
-                    <div class="bg-error bg-opacity-10 border-l-4 border-error p-3 rounded">
-                        <div class="flex items-center gap-2">
-                            <x-heroicon-o-arrow-up class="h-4 w-4 text-error" />
-                            <span class="badge badge-error">Too High</span>
-                        </div>
-                        <p class="text-sm text-error mt-1">Values above your high threshold</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <form method="POST" action="{{ route('vitals.thresholds.update') }}">
             @csrf
             @method('PUT')
@@ -152,7 +107,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="alert alert-info">
+                                        <div class="alert">
                                             <x-heroicon-o-light-bulb class="stroke-current shrink-0 w-4 h-4" />
                                             <div class="text-sm">
                                                 <strong>Recommended BP ranges:</strong><br>
@@ -192,7 +147,7 @@
                                     </div>
 
                                     @if($defaultThreshold['low'] !== null || $defaultThreshold['high'] !== null)
-                                        <div class="alert alert-info mt-2">
+                                        <div class="alert  mt-2">
                                             <x-heroicon-o-light-bulb class="stroke-current shrink-0 w-4 h-4" />
                                             <div class="text-sm">
                                                 <strong>Recommended ranges:</strong>
@@ -206,23 +161,6 @@
                                             </div>
                                         </div>
                                     @endif
-
-                                    <div class="mt-3">
-                                        <div class="text-xs text-base-content/60">
-                                            <span class="badge badge-success badge-xs">Normal</span>
-                                            @if($threshold?->low_threshold || $defaultThreshold['low'])
-                                                {{ $threshold?->low_threshold ?? $defaultThreshold['low'] ?? '?' }}
-                                            @else
-                                                No min
-                                            @endif
-                                            -
-                                            @if($threshold?->high_threshold || $defaultThreshold['high'])
-                                                {{ $threshold?->high_threshold ?? $defaultThreshold['high'] ?? '?' }}
-                                            @else
-                                                No max
-                                            @endif
-                                        </div>
-                                    </div>
                                 @endif
                             </div>
 
@@ -251,9 +189,6 @@
                             <p class="text-sm text-base-content/60">These settings will be applied to all new vital readings</p>
                         </div>
                         <div class="flex gap-2">
-                            <button type="button" onclick="resetToDefaults()" class="btn btn-outline">
-                                Reset to Defaults
-                            </button>
                             <button type="submit" class="btn btn-primary">
                                 <x-heroicon-o-check class="h-5 w-5" />
                                 Save Thresholds
@@ -264,57 +199,4 @@
             </div>
         </form>
     </div>
-
-    <script>
-        function resetToDefaults() {
-            if (confirm('Reset all thresholds to recommended default values? This will overwrite your current settings.')) {
-                const defaults = @json(App\Models\VitalTypeThreshold::getDefaultThresholds());
-
-                @foreach($vitalTypes as $index => $vitalType)
-                    const vitalDefaults = defaults['{{ $vitalType }}'] || {};
-
-                    @if($vitalType === 'Blood Pressure')
-                        // Reset blood pressure specific fields
-                        const systolicLowInput = document.querySelector('input[name="thresholds[{{ $index }}][systolic_low_threshold]"]');
-                        if (systolicLowInput) {
-                            systolicLowInput.value = vitalDefaults.systolic_low || '';
-                        }
-
-                        const systolicHighInput = document.querySelector('input[name="thresholds[{{ $index }}][systolic_high_threshold]"]');
-                        if (systolicHighInput) {
-                            systolicHighInput.value = vitalDefaults.systolic_high || '';
-                        }
-
-                        const diastolicLowInput = document.querySelector('input[name="thresholds[{{ $index }}][diastolic_low_threshold]"]');
-                        if (diastolicLowInput) {
-                            diastolicLowInput.value = vitalDefaults.diastolic_low || '';
-                        }
-
-                        const diastolicHighInput = document.querySelector('input[name="thresholds[{{ $index }}][diastolic_high_threshold]"]');
-                        if (diastolicHighInput) {
-                            diastolicHighInput.value = vitalDefaults.diastolic_high || '';
-                        }
-                    @else
-                        // Reset regular vital fields
-                        const lowInput = document.querySelector('input[name="thresholds[{{ $index }}][low_threshold]"]');
-                        if (lowInput) {
-                            lowInput.value = vitalDefaults.low || '';
-                        }
-
-                        const highInput = document.querySelector('input[name="thresholds[{{ $index }}][high_threshold]"]');
-                        if (highInput) {
-                            highInput.value = vitalDefaults.high || '';
-                        }
-                    @endif
-
-                    // Enable monitoring
-                    const activeCheckbox = document.querySelector('input[name="thresholds[{{ $index }}][is_active]"][type="checkbox"]');
-                    if (activeCheckbox) {
-                        activeCheckbox.checked = true;
-                        toggleThresholdInputs{{ $index }}();
-                    }
-                @endforeach
-            }
-        }
-    </script>
 </x-layouts.app>
