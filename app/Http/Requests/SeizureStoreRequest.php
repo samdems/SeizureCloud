@@ -94,8 +94,7 @@ class SeizureStoreRequest extends FormRequest
             "wellbeing_notes" => "nullable|string|max:1000",
 
             // NHS contact and emergency
-            "nhs_contacted" => "boolean",
-            "nhs_contact_type" => "nullable|in:gp,hospital,111,999",
+            "nhs_contact_type" => "nullable|in:GP,Epileptic Specialist,111,999",
             "postictal_state_end" => "nullable|date",
             "ambulance_called" => "boolean",
             "slept_after" => "boolean",
@@ -164,7 +163,6 @@ class SeizureStoreRequest extends FormRequest
             "start_time" => "start time",
             "end_time" => "end time",
             "duration_minutes" => "duration",
-            "nhs_contacted" => "NHS contacted",
             "nhs_contact_type" => "NHS contact type",
             "postictal_state_end" => "postictal state end time",
             "ambulance_called" => "ambulance called",
@@ -185,7 +183,6 @@ class SeizureStoreRequest extends FormRequest
         // Ensure boolean fields are properly formatted
         $this->merge([
             "on_period" => $this->boolean("on_period"),
-            "nhs_contacted" => $this->boolean("nhs_contacted"),
             "ambulance_called" => $this->boolean("ambulance_called"),
             "slept_after" => $this->boolean("slept_after"),
             "has_video_evidence" => $this->boolean("has_video_evidence"),

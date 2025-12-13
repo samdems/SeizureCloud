@@ -33,7 +33,6 @@ return new class extends Migration {
                     "111",
                     "999",
                     "Epileptic Specialist",
-                    "None",
                 ])
                 ->nullable();
 

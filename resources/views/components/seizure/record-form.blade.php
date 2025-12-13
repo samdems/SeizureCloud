@@ -19,7 +19,7 @@
     $selectedUserId = old('user_id', $seizure?->user_id ?? auth()->id());
 @endphp
 
-<form id="{{ $formId }}" action="{{ $action }}" method="{{ $method }}" class="space-y-6">
+<form id="{{ $formId }}" action="{{ $action }}" method="post" class="space-y-6">
     @csrf
     @if($method !== 'POST')
         @method($method)
@@ -364,8 +364,8 @@
                 :value="old('nhs_contact_type', $seizure?->nhs_contact_type)"
                 placeholder="No contact"
                 :options="[
-                    'gp' => 'GP',
-                    'hospital' => 'Hospital',
+                    'GP' => 'GP',
+                    'Epileptic Specialist' => 'Epileptic Specialist',
                     '111' => 'NHS 111',
                     '999' => 'Emergency (999)'
                 ]"

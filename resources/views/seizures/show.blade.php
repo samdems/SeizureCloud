@@ -121,11 +121,6 @@
                                         @endif
                                     </div>
 
-                                    @if($eventSeizure->nhs_contacted)
-                                        <div class="mt-2 text-xs {{ $eventSeizure->id === $seizure->id ? 'text-primary-content/70' : 'text-success' }}">
-                                            NHS: {{ $eventSeizure->nhs_contact_type }}
-                                        </div>
-                                    @endif
                                 </div>
                             </div>
                         @endforeach
@@ -194,6 +189,43 @@
                         <h3 class="text-sm font-medium text-base-content/60 mb-1">Postictal State End</h3>
                         <p class="text-lg">{{ $seizure->postictal_state_end ? $seizure->postictal_state_end->format('M d, Y H:i') : 'Not recorded' }}</p>
                     </div>
+
+                    <div>
+                        <h3 class="text-sm font-medium text-base-content/60 mb-1">Seizure Type</h3>
+                        <p class="text-lg">{{ $seizure->seizure_type ?  Str::headline($seizure->seizure_type) : 'Not recorded' }}</p>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <h3 class="text-lg font-semibold mb-4">Triggers</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @foreach($seizure->triggers as $trigger)
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">-</span>
+                        <span>{{$trigger}}</span>
+                    </div>
+                @endforeach
+                </div>
+
+                <h3 class="text-lg font-semibold mb-4">Pre-Ictal Symptoms</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    @if(!empty($seizure->pre_ictal_symptoms) && is_array($seizure->pre_ictal_symptoms))
+                        @foreach($seizure->pre_ictal_symptoms as $symptom)
+                            <div class="flex items-center gap-2">
+                                <span class="text-2xl">-</span>
+                                <span>{{$symptom}}</span>
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="text-base-content/60">No pre-ictal symptoms recorded.</div>
+                    @endif
+                </div>
+
+                <h3 class="text-lg font-semibold mb-4">Other Triggers</h3>
+                <div class="alert">
+                    <p class="whitespace-pre-wrap">{{ $seizure->other_triggers }}</p>
                 </div>
 
                 <div class="divider"></div>
@@ -203,7 +235,12 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="flex items-center gap-2">
                         <span class="text-2xl">{{ $seizure->on_period ? '✓' : '✗' }}</span>
-                        <span class="{{ $seizure->on_period ? 'text-success' : 'text-base-content/40' }}">On Period</span>
+                        <span class="{{ $seizure->on_period ? 'text-success' : 'text-base-content/40' }}">
+                            On Period
+                            @if($seizure->days_since_period)
+                                 ({{$seizure->days_since_period}} days since last period)
+                            @endif
+                        </span>
                     </div>
 
                     <div class="flex items-center gap-2">
@@ -215,27 +252,30 @@
                         <span class="text-2xl">{{ $seizure->slept_after ? '✓' : '✗' }}</span>
                         <span class="{{ $seizure->slept_after ? 'text-success' : 'text-base-content/40' }}">Slept After</span>
                     </div>
-                </div>
 
-                <div class="divider"></div>
-
-                <h3 class="text-lg font-semibold mb-4">NHS Contact</h3>
-
-                <div class="space-y-2">
                     <div class="flex items-center gap-2">
-                        <span class="text-2xl">{{ $seizure->nhs_contacted ? '✓' : '✗' }}</span>
-                        <span class="{{ $seizure->nhs_contacted ? 'text-success' : 'text-base-content/40' }}">
+                        <span class="text-2xl">{{ $seizure->nhs_contact_type ? '✓' : '✗' }}</span>
+                        <span class="{{ $seizure->nhs_contact_type ? 'text-success' : 'text-base-content/40' }}">
                             NHS Contacted
+                            @if($seizure->nhs_contact_type)
+                                ({{ $seizure->nhs_contact_type }})
+                            @endif
                         </span>
                     </div>
 
-                    @if($seizure->nhs_contacted && $seizure->nhs_contact_type)
-                        <div class="ml-8">
-                            <h4 class="text-sm font-medium text-base-content/60 mb-1">Contact Type</h4>
-                            <p class="text-lg badge badge-info badge-lg">{{ $seizure->nhs_contact_type }}</p>
-                        </div>
-                    @endif
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">{{ $seizure->has_video_evidence ? '✓' : '✗' }}</span>
+                        <span class="{{ $seizure->has_video_evidence ? 'text-success' : 'text-base-content/40' }}">video evidence</span>
+                    </div>
                 </div>
+                @if($seizure->has_video_evidence)
+                    <div class="divider"></div>
+
+                    <h3 class="text-lg font-semibold mb-4">Video Notes</h3>
+                    <div class="alert">
+                        <p class="whitespace-pre-wrap">{{ $seizure->video_notes }}</p>
+                    </div>
+                @endif
 
                 @if($seizure->notes)
                     <div class="divider"></div>
@@ -245,6 +285,20 @@
                         <p class="whitespace-pre-wrap">{{ $seizure->notes }}</p>
                     </div>
                 @endif
+
+                <div class="divider"></div>
+
+                <h3 class="text-lg font-semibold mb-4">Wellbeing Rating</h3>
+                        @if($seizure->wellbeing_rating)
+                            {{ Str::headline($seizure->wellbeing_rating) }}
+                        @else
+                            <span>No wellbeing rating recorded.</span>
+                        @endif
+
+                <h3 class="text-lg font-semibold mb-4">Wellbeing Notes</h3>
+                <div class="alert">
+                        {{ $seizure->wellbeing_notes ?: 'No wellbeing notes recorded.' }}
+                </div>
 
                 <div class="divider"></div>
 
@@ -332,6 +386,8 @@
                 @endif
 
                 <div class="divider"></div>
+
+
 
                 <h3 class="text-lg font-semibold mb-4">Vitals on Day of Seizure</h3>
                 @if($vitals->isEmpty())
@@ -504,4 +560,5 @@
             </form>
         </div>
     </div>
+    @dump($seizure->toarray())
 </x-layouts.app>

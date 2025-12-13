@@ -121,7 +121,7 @@
                                 @endif
                             </td>
                             <td>
-                                @if($seizure->nhs_contacted)
+                                @if($seizure->nhs_contact_type)
                                     <span class="text-success">✓ {{ $seizure->nhs_contact_type }}</span>
                                 @else
                                     <span class="text-base-content/50">No</span>
@@ -235,7 +235,7 @@
                             <div>
                                 <div class="text-xs text-base-content/60 uppercase tracking-wider">NHS Contact</div>
                                 <div class="text-sm">
-                                    @if($seizure->nhs_contacted)
+                                    @if($seizure->nhs_contact_type)
                                         <span class="text-success">✓ {{ $seizure->nhs_contact_type }}</span>
                                     @else
                                         <span class="text-base-content/50">No</span>
