@@ -15,8 +15,7 @@ use App\Http\Requests\MedicationLogSkippedRequest;
 use App\Http\Requests\MedicationLogBulkTakenRequest;
 use App\Http\Requests\MedicationLogUpdateRequest;
 use App\Http\Requests\MedicationScheduleStoreRequest;
-use App\Notifications\MedicationTakenNotification;
-use App\Notifications\BulkMedicationTakenNotification;
+use App\Notifications\MedicationNotifcation;
 
 class MedicationController extends Controller
 {
@@ -371,9 +370,7 @@ class MedicationController extends Controller
 
         // Send notification to the user themselves
         if ($user->notify_medication_taken) {
-            $user->notify(
-                new MedicationTakenNotification($medicationLog, $user),
-            );
+            $user->notify(new MedicationNotifcation($medicationLog, $user));
         }
 
         // Send notifications to trusted contacts
@@ -381,7 +378,7 @@ class MedicationController extends Controller
             $trustedUsers = $user->trustedUsers;
             foreach ($trustedUsers as $trustedUser) {
                 $trustedUser->notify(
-                    new MedicationTakenNotification($medicationLog, $user),
+                    new MedicationNotifcation($medicationLog, $user),
                 );
             }
         }
@@ -396,6 +393,8 @@ class MedicationController extends Controller
         $medication = Medication::findOrFail($validated["medication_id"]);
         $this->authorize("view", $medication);
 
+        $user = Auth::user();
+
         // Use intended_time from request, or set based on schedule if available
         $intendedTime = $validated["intended_time"] ?? null;
         if (!$intendedTime && isset($validated["medication_schedule_id"])) {
@@ -405,7 +404,7 @@ class MedicationController extends Controller
             $intendedTime = now()->setTimeFrom($schedule->scheduled_time);
         }
 
-        MedicationLog::create([
+        $medicationLog = MedicationLog::create([
             "medication_id" => $validated["medication_id"],
             "medication_schedule_id" =>
                 $validated["medication_schedule_id"] ?? null,
@@ -415,6 +414,22 @@ class MedicationController extends Controller
             "skip_reason" => $validated["skip_reason"] ?? null,
             "notes" => $validated["notes"] ?? null,
         ]);
+
+        // Send notifications for skipped medication
+        // Send notification to the user themselves
+        if ($user->notify_medication_taken) {
+            $user->notify(new MedicationNotifcation($medicationLog, $user));
+        }
+
+        // Send notifications to trusted contacts
+        if ($user->notify_trusted_contacts_medication) {
+            $trustedUsers = $user->trustedUsers;
+            foreach ($trustedUsers as $trustedUser) {
+                $trustedUser->notify(
+                    new MedicationNotifcation($medicationLog, $user),
+                );
+            }
+        }
 
         return back()->with("success", "Skipped dose logged.");
     }
@@ -517,11 +532,11 @@ class MedicationController extends Controller
             // Send notification to the user themselves
             if ($user->notify_medication_taken) {
                 $user->notify(
-                    new BulkMedicationTakenNotification(
+                    new MedicationNotifcation(
                         $loggedMedications,
                         $user,
+                        "bulk",
                         $validated["period"],
-                        $takenAt,
                         $validated["notes"] ?? null,
                         $loggedCount,
                     ),
@@ -533,11 +548,11 @@ class MedicationController extends Controller
                 $trustedUsers = $user->trustedUsers;
                 foreach ($trustedUsers as $trustedUser) {
                     $trustedUser->notify(
-                        new BulkMedicationTakenNotification(
+                        new MedicationNotifcation(
                             $loggedMedications,
                             $user,
+                            "bulk",
                             $validated["period"],
-                            $takenAt,
                             $validated["notes"] ?? null,
                             $loggedCount,
                         ),
