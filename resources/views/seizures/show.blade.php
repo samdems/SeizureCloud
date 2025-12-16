@@ -519,5 +519,4 @@
             </form>
         </div>
     </div>
-    @dump($seizure->toarray())
 </x-layouts.app>
