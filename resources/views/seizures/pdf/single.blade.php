@@ -350,13 +350,13 @@
         </div>
     @endif
 
-    @if($seizure->nhs_contacted || $seizure->nhs_contact_type)
+    @if($seizure->nhs_contact_type)
         <div class="section">
             <h3>Medical Contact</h3>
             <table class="detail-table">
                 <tr>
                     <th>NHS Contacted:</th>
-                    <td>{{ $seizure->nhs_contacted ? 'Yes' : 'No' }}</td>
+                    <td>{{ $seizure->nhs_contact_type ? 'Yes' : 'No' }}</td>
                     <th>Contact Type:</th>
                     <td>{{ $seizure->nhs_contact_type ?? 'N/A' }}</td>
                 </tr>

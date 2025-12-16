@@ -15,6 +15,7 @@ use App\Http\Requests\MedicationLogSkippedRequest;
 use App\Http\Requests\MedicationLogBulkTakenRequest;
 use App\Http\Requests\MedicationLogUpdateRequest;
 use App\Http\Requests\MedicationScheduleStoreRequest;
+use App\Notifications\MedicationNotifcation;
 
 class MedicationController extends Controller
 {
@@ -362,7 +363,25 @@ class MedicationController extends Controller
             );
         }
 
-        MedicationLog::create($validated);
+        $medicationLog = MedicationLog::create($validated);
+
+        // Send notifications if enabled
+        $user = Auth::user();
+
+        // Send notification to the user themselves
+        if ($user->notify_medication_taken) {
+            $user->notify(new MedicationNotifcation($medicationLog, $user));
+        }
+
+        // Send notifications to trusted contacts
+        if ($user->notify_trusted_contacts_medication) {
+            $trustedUsers = $user->trustedUsers;
+            foreach ($trustedUsers as $trustedUser) {
+                $trustedUser->notify(
+                    new MedicationNotifcation($medicationLog, $user),
+                );
+            }
+        }
 
         return back()->with("success", "Medication logged successfully.");
     }
@@ -374,6 +393,8 @@ class MedicationController extends Controller
         $medication = Medication::findOrFail($validated["medication_id"]);
         $this->authorize("view", $medication);
 
+        $user = Auth::user();
+
         // Use intended_time from request, or set based on schedule if available
         $intendedTime = $validated["intended_time"] ?? null;
         if (!$intendedTime && isset($validated["medication_schedule_id"])) {
@@ -383,7 +404,7 @@ class MedicationController extends Controller
             $intendedTime = now()->setTimeFrom($schedule->scheduled_time);
         }
 
-        MedicationLog::create([
+        $medicationLog = MedicationLog::create([
             "medication_id" => $validated["medication_id"],
             "medication_schedule_id" =>
                 $validated["medication_schedule_id"] ?? null,
@@ -393,6 +414,22 @@ class MedicationController extends Controller
             "skip_reason" => $validated["skip_reason"] ?? null,
             "notes" => $validated["notes"] ?? null,
         ]);
+
+        // Send notifications for skipped medication
+        // Send notification to the user themselves
+        if ($user->notify_medication_taken) {
+            $user->notify(new MedicationNotifcation($medicationLog, $user));
+        }
+
+        // Send notifications to trusted contacts
+        if ($user->notify_trusted_contacts_medication) {
+            $trustedUsers = $user->trustedUsers;
+            foreach ($trustedUsers as $trustedUser) {
+                $trustedUser->notify(
+                    new MedicationNotifcation($medicationLog, $user),
+                );
+            }
+        }
 
         return back()->with("success", "Skipped dose logged.");
     }
@@ -428,6 +465,7 @@ class MedicationController extends Controller
         // Get all medications scheduled for the specified period
         $medications = $user->medications()->with("schedules")->get();
         $loggedCount = 0;
+        $loggedMedications = [];
 
         foreach ($medications as $medication) {
             foreach ($medication->schedules as $schedule) {
@@ -451,22 +489,74 @@ class MedicationController extends Controller
                                 $validated["taken_at"],
                             )->setTimeFrom($schedule->scheduled_time);
 
-                            MedicationLog::create([
+                            $dosageTaken =
+                                $schedule->getCalculatedDosageWithUnit() ??
+                                $medication->dosage . " " . $medication->unit;
+
+                            $medicationLog = MedicationLog::create([
                                 "medication_id" => $medication->id,
                                 "medication_schedule_id" => $schedule->id,
                                 "taken_at" => $validated["taken_at"],
                                 "intended_time" => $intendedTime,
-                                "dosage_taken" =>
-                                    $schedule->getCalculatedDosageWithUnit() ??
-                                    $medication->dosage .
-                                        " " .
-                                        $medication->unit,
+                                "dosage_taken" => $dosageTaken,
                                 "notes" => $validated["notes"],
                                 "skipped" => false,
                             ]);
+
+                            // Collect medication info for bulk notification including timing
+                            $timingInfo = $medicationLog->getTimeDifference();
+                            $loggedMedications[] = [
+                                "name" => $medication->name,
+                                "dosage" => $dosageTaken,
+                                "timing_info" => $timingInfo,
+                                "is_late" => $medicationLog->isTakenLate(),
+                                "taken_time" => $medicationLog->taken_at->format(
+                                    "g:i A",
+                                ),
+                                "intended_time" => $intendedTime->format(
+                                    "g:i A",
+                                ),
+                            ];
+
                             $loggedCount++;
                         }
                     }
+                }
+            }
+        }
+
+        // Send single bulk notification if any medications were logged
+        if ($loggedCount > 0) {
+            $takenAt = \Carbon\Carbon::parse($validated["taken_at"]);
+
+            // Send notification to the user themselves
+            if ($user->notify_medication_taken) {
+                $user->notify(
+                    new MedicationNotifcation(
+                        $loggedMedications,
+                        $user,
+                        "bulk",
+                        $validated["period"],
+                        $validated["notes"] ?? null,
+                        $loggedCount,
+                    ),
+                );
+            }
+
+            // Send notifications to trusted contacts
+            if ($user->notify_trusted_contacts_medication) {
+                $trustedUsers = $user->trustedUsers;
+                foreach ($trustedUsers as $trustedUser) {
+                    $trustedUser->notify(
+                        new MedicationNotifcation(
+                            $loggedMedications,
+                            $user,
+                            "bulk",
+                            $validated["period"],
+                            $validated["notes"] ?? null,
+                            $loggedCount,
+                        ),
+                    );
                 }
             }
         }

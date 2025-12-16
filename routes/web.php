@@ -96,6 +96,16 @@ Route::middleware(["auth"])->group(function () {
         "updateEmergencySettings",
     ])->name("settings.emergency-settings.update");
 
+    // Notification settings
+    Route::get("settings/notifications", [
+        \App\Http\Controllers\NotificationController::class,
+        "settings",
+    ])->name("settings.notifications");
+    Route::put("settings/notifications", [
+        \App\Http\Controllers\NotificationController::class,
+        "updateSettings",
+    ])->name("settings.notifications.update");
+
     // Trusted contacts
     Route::get("settings/trusted-contacts", [
         \App\Http\Controllers\TrustedContactController::class,

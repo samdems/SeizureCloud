@@ -28,125 +28,7 @@
             </div>
         </div>
 
-        @if($emergencyStatus['is_emergency'])
-            <div class="card bg-base-100 shadow-xl border-2 border-error">
-                <div class="card-body p-4">
-                    <div class="flex items-center gap-2 mb-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-error">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                        </svg>
-                        <h2 class="text-lg font-semibold text-error">⚠️ MEDICAL EMERGENCY DETECTED</h2>
-                    </div>
-
-                    <div class="space-y-2 mb-4">
-                        @if($emergencyStatus['status_epilepticus'])
-                            <div class="alert alert-error">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <div>
-                                    <h4 class="font-semibold">Status Epilepticus</h4>
-                                    <p class="text-sm">Seizure duration ({{ $seizure->calculated_duration }} min) exceeds emergency threshold ({{ $emergencyStatus['duration_threshold'] }} min)</p>
-                                </div>
-                            </div>
-                        @endif
-
-                        @if($emergencyStatus['cluster_emergency'])
-                            <div class="alert alert-error">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.601a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" />
-                                </svg>
-                                <div>
-                                    <h4 class="font-semibold">Seizure Cluster Emergency</h4>
-                                    <p class="text-sm">{{ $emergencyStatus['cluster_count'] }} seizures detected within {{ $emergencyStatus['timeframe_hours'] }} hours, exceeding emergency threshold ({{ $emergencyStatus['count_threshold'] }} seizures)</p>
-                                </div>
-                            </div>
-                        @endif
-                    </div>
-
-                    <div class="bg-error/10 border border-error/20 rounded-lg p-3 text-sm">
-                        <p class="font-semibold text-error mb-2">⚠️ Emergency Event Recorded</p>
-                        <p class="text-error/80 mb-2">This seizure met emergency criteria. Review with your healthcare provider.</p>
-
-                        @if(auth()->user()->emergency_contact_info)
-                            <div class="mt-3 pt-2 border-t border-error/20">
-                                <p class="font-semibold text-error">Emergency Contact Information:</p>
-                                <div class="text-error/80">{!! auth()->user()->getFormattedEmergencyContact() !!}</div>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        @endif
-
-        @if($seizureEvent->count() > 1)
-            <div class="card bg-base-100 shadow-xl border-2 {{ $emergencyStatus['is_emergency'] ? 'border-error' : 'border-warning' }}">
-                <div class="card-body p-4">
-                    <div class="flex items-center gap-2 mb-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 {{ $emergencyStatus['is_emergency'] ? 'text-error' : 'text-warning' }}">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                        </svg>
-                        <h2 class="text-lg font-semibold {{ $emergencyStatus['is_emergency'] ? 'text-error' : 'text-warning' }}">Seizure Event - {{ $seizureEvent->count() }} seizures within {{ $emergencyStatus['timeframe_hours'] ?? 24 }} hours</h2>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        @foreach($seizureEvent as $eventSeizure)
-                            <div class="card {{ $eventSeizure->id === $seizure->id ? 'bg-primary text-primary-content' : 'bg-base-200' }} transition-all hover:shadow-md">
-                                <div class="card-body p-3">
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            <div class="font-medium">
-                                                {{ $eventSeizure->start_time->format('H:i') }}
-                                                @if($eventSeizure->id === $seizure->id)
-                                                    <span class="badge badge-sm badge-secondary ml-1">Current</span>
-                                                @endif
-                                            </div>
-                                            <div class="text-sm {{ $eventSeizure->id === $seizure->id ? 'text-primary-content/80' : 'text-base-content/60' }}">
-                                                {{ $eventSeizure->start_time->format('M j, Y') }}
-                                            </div>
-                                            <div class="text-sm {{ $eventSeizure->id === $seizure->id ? 'text-primary-content/80' : 'text-base-content/60' }}">
-                                                Severity: {{ $eventSeizure->severity }}/10
-                                            </div>
-                                            @if($eventSeizure->calculated_duration)
-                                                <div class="text-sm {{ $eventSeizure->id === $seizure->id ? 'text-primary-content/80' : 'text-base-content/60' }}">
-                                                    Duration: {{ $eventSeizure->calculated_duration }}min
-                                                </div>
-                                            @endif
-                                        </div>
-
-                                        @if($eventSeizure->id !== $seizure->id)
-                                            <a href="{{ route('seizures.show', $eventSeizure) }}" class="btn btn-sm btn-ghost">
-                                                View
-                                            </a>
-                                        @endif
-                                    </div>
-
-                                    @if($eventSeizure->nhs_contacted)
-                                        <div class="mt-2 text-xs {{ $eventSeizure->id === $seizure->id ? 'text-primary-content/70' : 'text-success' }}">
-                                            NHS: {{ $eventSeizure->nhs_contact_type }}
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-
-                    <div class="mt-3 text-sm {{ $emergencyStatus['is_emergency'] ? 'text-error' : ($seizureEvent->count() > 2 ? 'text-warning' : 'text-base-content/60') }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline mr-1">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-                        </svg>
-
-                        @if($emergencyStatus['is_emergency'])
-                            <strong>EMERGENCY CLUSTER:</strong> This seizure event meets emergency criteria and requires immediate medical attention.
-                        @elseif($seizureEvent->count() > 2)
-                            <strong>Cluster event:</strong> Multiple seizures in close succession may require medical attention.
-                        @else
-                            Timeline span: {{ $seizureEvent->first()->start_time->diffForHumans($seizureEvent->last()->start_time, true) }}
-                        @endif
-                    </div>
-                </div>
-            </div>
-        @endif
+        @include('seizures.partials.emergency-status', ['emergencyStatus' => $emergencyStatus])
 
         <div class="card bg-base-100 shadow-xl">
             <div class="card-body space-y-6">
@@ -194,6 +76,43 @@
                         <h3 class="text-sm font-medium text-base-content/60 mb-1">Postictal State End</h3>
                         <p class="text-lg">{{ $seizure->postictal_state_end ? $seizure->postictal_state_end->format('M d, Y H:i') : 'Not recorded' }}</p>
                     </div>
+
+                    <div>
+                        <h3 class="text-sm font-medium text-base-content/60 mb-1">Seizure Type</h3>
+                        <p class="text-lg">{{ $seizure->seizure_type ?  Str::headline($seizure->seizure_type) : 'Not recorded' }}</p>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <h3 class="text-lg font-semibold mb-4">Triggers</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @foreach($seizure->triggers as $trigger)
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">-</span>
+                        <span>{{$trigger}}</span>
+                    </div>
+                @endforeach
+                </div>
+
+                <h3 class="text-lg font-semibold mb-4">Pre-Ictal Symptoms</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    @if(!empty($seizure->pre_ictal_symptoms) && is_array($seizure->pre_ictal_symptoms))
+                        @foreach($seizure->pre_ictal_symptoms as $symptom)
+                            <div class="flex items-center gap-2">
+                                <span class="text-2xl">-</span>
+                                <span>{{$symptom}}</span>
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="text-base-content/60">No pre-ictal symptoms recorded.</div>
+                    @endif
+                </div>
+
+                <h3 class="text-lg font-semibold mb-4">Other Triggers</h3>
+                <div class="alert">
+                    <p class="whitespace-pre-wrap">{{ $seizure->other_triggers }}</p>
                 </div>
 
                 <div class="divider"></div>
@@ -203,7 +122,12 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="flex items-center gap-2">
                         <span class="text-2xl">{{ $seizure->on_period ? '✓' : '✗' }}</span>
-                        <span class="{{ $seizure->on_period ? 'text-success' : 'text-base-content/40' }}">On Period</span>
+                        <span class="{{ $seizure->on_period ? 'text-success' : 'text-base-content/40' }}">
+                            On Period
+                            @if($seizure->days_since_period)
+                                 ({{$seizure->days_since_period}} days since last period)
+                            @endif
+                        </span>
                     </div>
 
                     <div class="flex items-center gap-2">
@@ -215,27 +139,30 @@
                         <span class="text-2xl">{{ $seizure->slept_after ? '✓' : '✗' }}</span>
                         <span class="{{ $seizure->slept_after ? 'text-success' : 'text-base-content/40' }}">Slept After</span>
                     </div>
-                </div>
 
-                <div class="divider"></div>
-
-                <h3 class="text-lg font-semibold mb-4">NHS Contact</h3>
-
-                <div class="space-y-2">
                     <div class="flex items-center gap-2">
-                        <span class="text-2xl">{{ $seizure->nhs_contacted ? '✓' : '✗' }}</span>
-                        <span class="{{ $seizure->nhs_contacted ? 'text-success' : 'text-base-content/40' }}">
+                        <span class="text-2xl">{{ $seizure->nhs_contact_type ? '✓' : '✗' }}</span>
+                        <span class="{{ $seizure->nhs_contact_type ? 'text-success' : 'text-base-content/40' }}">
                             NHS Contacted
+                            @if($seizure->nhs_contact_type)
+                                ({{ $seizure->nhs_contact_type }})
+                            @endif
                         </span>
                     </div>
 
-                    @if($seizure->nhs_contacted && $seizure->nhs_contact_type)
-                        <div class="ml-8">
-                            <h4 class="text-sm font-medium text-base-content/60 mb-1">Contact Type</h4>
-                            <p class="text-lg badge badge-info badge-lg">{{ $seizure->nhs_contact_type }}</p>
-                        </div>
-                    @endif
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">{{ $seizure->has_video_evidence ? '✓' : '✗' }}</span>
+                        <span class="{{ $seizure->has_video_evidence ? 'text-success' : 'text-base-content/40' }}">video evidence</span>
+                    </div>
                 </div>
+                @if($seizure->has_video_evidence)
+                    <div class="divider"></div>
+
+                    <h3 class="text-lg font-semibold mb-4">Video Notes</h3>
+                    <div class="alert">
+                        <p class="whitespace-pre-wrap">{{ $seizure->video_notes }}</p>
+                    </div>
+                @endif
 
                 @if($seizure->notes)
                     <div class="divider"></div>
@@ -245,6 +172,20 @@
                         <p class="whitespace-pre-wrap">{{ $seizure->notes }}</p>
                     </div>
                 @endif
+
+                <div class="divider"></div>
+
+                <h3 class="text-lg font-semibold mb-4">Wellbeing Rating</h3>
+                        @if($seizure->wellbeing_rating)
+                            {{ Str::headline($seizure->wellbeing_rating) }}
+                        @else
+                            <span>No wellbeing rating recorded.</span>
+                        @endif
+
+                <h3 class="text-lg font-semibold mb-4">Wellbeing Notes</h3>
+                <div class="alert">
+                        {{ $seizure->wellbeing_notes ?: 'No wellbeing notes recorded.' }}
+                </div>
 
                 <div class="divider"></div>
 
@@ -332,6 +273,8 @@
                 @endif
 
                 <div class="divider"></div>
+
+
 
                 <h3 class="text-lg font-semibold mb-4">Vitals on Day of Seizure</h3>
                 @if($vitals->isEmpty())
@@ -504,4 +447,5 @@
             </form>
         </div>
     </div>
+    @dump($seizure->toarray())
 </x-layouts.app>

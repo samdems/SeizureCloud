@@ -10,6 +10,7 @@ use App\Http\Requests\SeizureStoreRequest;
 use App\Http\Requests\SeizureUpdateRequest;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use App\Notifications\SeizureAddedNotification;
 
 class SeizureController extends Controller
 {
@@ -60,7 +61,25 @@ class SeizureController extends Controller
     {
         $validated = $request->validated();
 
-        Seizure::create($validated);
+        $seizure = Seizure::create($validated);
+
+        // Send notifications if enabled
+        $user = Auth::user();
+
+        // Send notification to the user themselves
+        if ($user->notify_seizure_added) {
+            $user->notify(new SeizureAddedNotification($seizure, $user));
+        }
+
+        // Send notifications to trusted contacts
+        if ($user->notify_trusted_contacts_seizures) {
+            $trustedUsers = $user->trustedUsers;
+            foreach ($trustedUsers as $trustedUser) {
+                $trustedUser->notify(
+                    new SeizureAddedNotification($seizure, $user),
+                );
+            }
+        }
 
         return redirect()
             ->route("seizures.index")

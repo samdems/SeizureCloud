@@ -29,7 +29,6 @@ class SeizureFactory extends Factory
             "duration_minutes" => $durationMinutes,
             "severity" => fake()->numberBetween(1, 10),
             "on_period" => fake()->boolean(50),
-            "nhs_contacted" => $nhsContacted,
             "nhs_contact_type" => $nhsContacted
                 ? fake()->randomElement([
                     "111",
@@ -75,7 +74,6 @@ class SeizureFactory extends Factory
         return $this->state(
             fn(array $attributes) => [
                 "severity" => fake()->numberBetween(7, 10),
-                "nhs_contacted" => fake()->boolean(80), // More likely to contact NHS for severe seizures
                 "ambulance_called" => fake()->boolean(40),
                 "duration_minutes" => fake()->numberBetween(3, 8), // Slightly longer but not excessive
             ],
@@ -90,7 +88,6 @@ class SeizureFactory extends Factory
         return $this->state(
             fn(array $attributes) => [
                 "severity" => fake()->numberBetween(1, 4),
-                "nhs_contacted" => fake()->boolean(10), // Less likely to contact NHS
                 "ambulance_called" => false,
                 "duration_minutes" => fake()->numberBetween(1, 3), // Very short duration
             ],
