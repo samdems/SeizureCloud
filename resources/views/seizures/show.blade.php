@@ -88,12 +88,22 @@
                 <h3 class="text-lg font-semibold mb-4">Triggers</h3>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                @foreach($seizure->triggers as $trigger)
-                    <div class="flex items-center gap-2">
-                        <span class="text-2xl">-</span>
-                        <span>{{$trigger}}</span>
-                    </div>
-                @endforeach
+                @if ($seizure->triggers)
+                    @foreach($seizure->triggers as $trigger)
+                        <div class="flex items-center gap-2">
+                            <span class="text-2xl">-</span>
+                            <span>{{$trigger}}</span>
+                        </div>
+                    @endforeach
+                @else
+                <div class="flex items-center gap-2">
+                    <div class="text-base-content/60">No triggers recorded.</div>
+                </div>
+                @endif
+                <div class="alert">
+                    <p class="whitespace-pre-wrap">{{ $seizure->other_triggers }}</p>
+                </div>
+
                 </div>
 
                 <h3 class="text-lg font-semibold mb-4">Pre-Ictal Symptoms</h3>
@@ -110,10 +120,7 @@
                     @endif
                 </div>
 
-                <h3 class="text-lg font-semibold mb-4">Other Triggers</h3>
-                <div class="alert">
-                    <p class="whitespace-pre-wrap">{{ $seizure->other_triggers }}</p>
-                </div>
+
 
                 <div class="divider"></div>
 
@@ -193,7 +200,7 @@
                 @if($medications->isEmpty())
                     <p class="text-base-content/60">No active medications at the time of this seizure.</p>
                 @else
-                    <div class="space-y-3">
+                    <div class="space-y-6">
                         @foreach($medications as $medication)
                             @php
                                 $adherence = $medication->adherence;
@@ -201,76 +208,141 @@
                                 $allTaken = $adherence['all_taken'];
                             @endphp
 
-                            <div class="card bg-base-200 {{ !$wasNeeded ? 'opacity-50' : '' }}">
-                                <div class="card-body p-4">
-                                    <div class="flex items-start justify-between">
-                                        <div class="flex-1">
-                                            <div class="flex items-center gap-3 flex-wrap">
-                                                <h4 class="font-semibold text-lg {{ !$wasNeeded ? 'text-base-content/50' : '' }}">
-                                                    {{ $medication->name }}
-                                                </h4>
-                                                @if($wasNeeded)
-                                                    @if($allTaken)
-                                                        <span class="badge badge-success badge-lg gap-2 px-3 py-3">
-                                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                                            </svg>
-                                                            All Taken
-                                                        </span>
-                                                    @else
-                                                        <span class="badge badge-error badge-lg gap-2 px-3 py-3">
-                                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                                            </svg>
-                                                            Missed Doses
-                                                        </span>
-                                                    @endif
-                                                @else
-                                                    <span class="badge badge-ghost badge-lg px-3 py-3">Not Scheduled</span>
-                                                @endif
-                                            </div>
-
-                                            <p class="text-sm {{ !$wasNeeded ? 'text-base-content/40' : 'text-base-content/60' }} mt-1">
+                            <div class="card bg-base-100 border {{ !$wasNeeded ? 'opacity-60' : '' }}">
+                                <div class="card-header bg-base-200 px-6 py-4 border-b">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4 class="font-semibold text-lg {{ !$wasNeeded ? 'text-base-content/50' : '' }}">
+                                                {{ $medication->name }}
+                                            </h4>
+                                            <p class="text-sm text-base-content/60">
                                                 {{ $medication->dosage }} {{ $medication->unit }}
                                             </p>
+                                        </div>
 
-                                            @if($wasNeeded && count($adherence['scheduled_doses']) > 0)
-                                                <div class="mt-3 space-y-2">
-                                                    @foreach($adherence['scheduled_doses'] as $dose)
-                                                        <div class="flex items-center gap-2 text-sm">
-                                                            @if($dose['taken'])
-                                                                <svg class="w-5 h-5 text-success" fill="currentColor" viewBox="0 0 20 20">
-                                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                                                </svg>
-                                                                <span class="text-success">
-                                                                    Taken at {{ $dose['schedule']->scheduled_time->format('g:i A') }}
-                                                                </span>
-                                                            @else
-                                                                <svg class="w-5 h-5 text-error" fill="currentColor" viewBox="0 0 20 20">
-                                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-                                                                </svg>
-                                                                <span class="text-error">
-                                                                    Missed at {{ $dose['schedule']->scheduled_time->format('g:i A') }}
-                                                                    @if($dose['log'] && $dose['log']->skip_reason)
-                                                                        <span class="text-base-content/60">({{ $dose['log']->skip_reason }})</span>
-                                                                    @endif
-                                                                </span>
-                                                            @endif
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-                                            @elseif(!$wasNeeded)
-                                                <p class="text-sm text-base-content/40 mt-2">
-                                                    No doses were scheduled before the seizure occurred.
-                                                </p>
+                                        <div class="flex items-center gap-2">
+                                            @if(!$wasNeeded)
+                                                <span class="badge badge-ghost badge-lg">Not Scheduled</span>
+                                            @elseif($allTaken)
+                                                <span class="badge badge-success badge-lg gap-2">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                    </svg>
+                                                    All Taken
+                                                </span>
+                                            @else
+                                                <span class="badge badge-error badge-lg gap-2">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                    </svg>
+                                                    Missed Doses
+                                                </span>
                                             @endif
                                         </div>
                                     </div>
+                                </div>
+
+                                <div class="card-body p-0">
+                                    @if($wasNeeded && count($adherence['scheduled_doses']) > 0)
+                                        <div class="overflow-x-auto">
+                                            <table class="table table-zebra w-full">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="w-16">Status</th>
+                                                        <th class="w-32">Scheduled Time</th>
+                                                        <th class="w-32">Actual Time</th>
+                                                        <th>Notes</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach($adherence['scheduled_doses'] as $dose)
+                                                        @php
+                                                            $wasTaken = $dose['log'] && $dose['log']->taken_at;
+                                                            $wasLate = false;
+                                                            if($wasTaken) {
+                                                                $scheduledTime = $dose['schedule']->scheduled_time;
+                                                                $actualTime = $dose['log']->taken_at;
+                                                                $diffMinutes = $scheduledTime->diffInMinutes($actualTime, false);
+                                                                $wasLate = $diffMinutes > 30;
+                                                            }
+                                                        @endphp
+                                                        <tr class="{{ $wasTaken ? '' : 'bg-error/5' }}">
+                                                            <td>
+                                                                @if($wasTaken)
+                                                                    <div class="flex items-center gap-2">
+                                                                        <svg class="w-5 h-5 {{ $wasLate ? 'text-warning' : 'text-success' }}" fill="currentColor" viewBox="0 0 20 20">
+                                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                                        </svg>
+                                                                        @if($wasLate)
+                                                                            <span class="text-warning font-medium">Taken Late</span>
+                                                                        @else
+                                                                            <span class="text-success font-medium">Taken</span>
+                                                                        @endif
+                                                                    </div>
+                                                                @else
+                                                                    <div class="flex items-center gap-2">
+                                                                        <svg class="w-5 h-5 text-error" fill="currentColor" viewBox="0 0 20 20">
+                                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                                                                        </svg>
+                                                                        <span class="text-error font-medium">Missed</span>
+                                                                    </div>
+                                                                @endif
+                                                            </td>
+                                                            <td class="font-medium">
+                                                                {{ $dose['schedule']->scheduled_time->format('g:i A') }}
+                                                            </td>
+                                                            <td>
+                                                                @if($wasTaken)
+                                                                    <span class="{{ $wasLate ? 'text-warning' : 'text-success' }}">
+                                                                        {{ $dose['log']->taken_at->format('g:i A') }}
+                                                                    </span>
+                                                                    @if(abs($diffMinutes) > 30)
+                                                                        <div class="text-xs text-warning mt-1">
+                                                                            @if($diffMinutes > 0)
+                                                                                {{ $diffMinutes }}min late
+                                                                            @else
+                                                                                {{ abs($diffMinutes) }}min early
+                                                                            @endif
+                                                                        </div>
+                                                                    @endif
+                                                                @else
+                                                                    <span class="text-error">-</span>
+                                                                @endif
+                                                            </td>
+                                                            <td>
+                                                                @if($dose['log'] && $dose['log']->notes)
+                                                                    <span class="text-sm">{{ $dose['log']->notes }}</span>
+                                                                @elseif(!$dose['taken'] && $dose['log'] && $dose['log']->skip_reason)
+                                                                    <span class="text-sm text-error">{{ $dose['log']->skip_reason }}</span>
+                                                                @else
+                                                                    <span class="text-base-content/40">-</span>
+                                                                @endif
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    @elseif(!$wasNeeded)
+                                        <div class="p-6 text-center text-base-content/60">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 mx-auto mb-2 opacity-50">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <p>No doses were scheduled before the seizure occurred</p>
+                                            <p class="text-sm mt-1">Seizure happened at {{ $seizure->start_time->format('g:i A') }}</p>
+                                        </div>
+                                    @else
+                                        <div class="p-6 text-center text-base-content/60">
+                                            <p>Medication was needed but no dose information available</p>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
                     </div>
                 @endif
+
+
 
                 <div class="divider"></div>
 

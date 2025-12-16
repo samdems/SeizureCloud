@@ -353,12 +353,13 @@ class SeizureController extends Controller
 
         $user = Auth::user();
 
-        // Get medications active at time of seizure
+        // Get medications active at time of seizure with adherence data
         $medications = Auth::user()
             ->medications()
             ->with("schedules")
             ->get()
             ->map(function ($medication) use ($seizure) {
+                // Check if medication was active at time of seizure
                 $wasActive =
                     $medication->active ||
                     ($medication->start_date &&
@@ -366,9 +367,60 @@ class SeizureController extends Controller
                         (!$medication->end_date ||
                             $medication->end_date >= $seizure->start_time));
 
-                return $wasActive ? $medication : null;
+                if (!$wasActive) {
+                    return null;
+                }
+
+                // Get the seizure date
+                $seizureDate = $seizure->start_time->startOfDay();
+
+                // Check adherence for scheduled medications on the seizure day
+                $scheduledDoses = [];
+                $takenCount = 0;
+                $totalCount = 0;
+
+                foreach ($medication->schedules as $schedule) {
+                    // Only count schedules before the seizure time
+                    $scheduledTime = $seizure->start_time
+                        ->copy()
+                        ->setTimeFromTimeString(
+                            $schedule->scheduled_time->format("H:i"),
+                        );
+
+                    if ($scheduledTime <= $seizure->start_time) {
+                        $totalCount++;
+
+                        // Check if this dose was logged as taken
+                        $log = $medication
+                            ->logs()
+                            ->where("medication_schedule_id", $schedule->id)
+                            ->whereDate("taken_at", $seizureDate)
+                            ->first();
+
+                        if ($log && !$log->skipped) {
+                            $takenCount++;
+                        }
+
+                        $scheduledDoses[] = [
+                            "schedule" => $schedule,
+                            "taken" => $log && !$log->skipped,
+                            "log" => $log,
+                        ];
+                    }
+                }
+
+                $medication->adherence = [
+                    "scheduled_doses" => $scheduledDoses,
+                    "taken_count" => $takenCount,
+                    "total_count" => $totalCount,
+                    "all_taken" =>
+                        $totalCount > 0 && $takenCount === $totalCount,
+                    "was_needed" => $totalCount > 0, // Medication had doses scheduled before seizure
+                ];
+
+                return $medication;
             })
-            ->filter();
+            ->filter(); // Remove null entries
 
         // Get vitals from seizure day
         $seizureDate = $seizure->start_time->startOfDay();
@@ -379,9 +431,18 @@ class SeizureController extends Controller
             ->get()
             ->groupBy("type");
 
+        // Get emergency status for this seizure
+        $emergencyStatus = Auth::user()->getEmergencyStatus($seizure);
+
         $pdf = Pdf::loadView(
             "seizures.pdf.single",
-            compact("seizure", "user", "medications", "vitals"),
+            compact(
+                "seizure",
+                "user",
+                "medications",
+                "vitals",
+                "emergencyStatus",
+            ),
         );
 
         $filename = "seizure_{$seizure->id}_{$seizure->start_time->format(

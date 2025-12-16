@@ -305,7 +305,7 @@
                 @endphp
                 @if($emergencySeizures->count() > 0)
                     <li style="color: #e53e3e; font-weight: bold;">
-                        ⚠️ {{ $emergencySeizures->count() }} seizure(s) met emergency duration criteria
+                        WARNING: {{ $emergencySeizures->count() }} seizure(s) met emergency duration criteria
                     </li>
                 @endif
             </ul>
