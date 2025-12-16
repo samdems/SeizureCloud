@@ -17,12 +17,42 @@ Hello {{ $recipient->name }},
 <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 2px solid #dc2626;">
 @foreach($overdueMedications as $schedule)
     <tr style="border-bottom: 1px solid #fca5a5; background-color: #fef2f2;">
-        <td style="padding: 12px 8px; font-weight: bold; width: 40%;">{{ $schedule->medication->name }}</td>
-        <td style="padding: 12px 8px;">{{ $schedule->getCalculatedDosageWithUnit() ?: $schedule->medication->dosage . ' ' . $schedule->medication->unit }}</td>
+        <td style="padding: 12px 8px; font-weight: bold; width: 40%;">
+            @if(isset($schedule->medication) && $schedule->medication)
+                {{ $schedule->medication->name }}
+            @else
+                Unknown Medication
+            @endif
+        </td>
+        <td style="padding: 12px 8px;">
+            @if(isset($schedule->medication) && $schedule->medication)
+                @php
+                    $dosage = 'N/A';
+                    try {
+                        if(method_exists($schedule, 'getCalculatedDosageWithUnit')) {
+                            $dosage = $schedule->getCalculatedDosageWithUnit() ?: ($schedule->medication->dosage . ' ' . $schedule->medication->unit);
+                        } else {
+                            $dosage = $schedule->medication->dosage . ' ' . $schedule->medication->unit;
+                        }
+                    } catch(Exception $e) {
+                        $dosage = ($schedule->medication->dosage ?? 'N/A') . ' ' . ($schedule->medication->unit ?? '');
+                    }
+                @endphp
+                {{ $dosage }}
+            @else
+                N/A
+            @endif
+        </td>
     </tr>
     <tr style="border-bottom: 1px solid #fca5a5; background-color: #fef2f2;">
         <td style="padding: 8px; color: #991b1b;">Was due at</td>
-        <td style="padding: 8px; color: #991b1b; font-weight: bold;">{{ $schedule->scheduled_time->format('g:i A') }}</td>
+        <td style="padding: 8px; color: #991b1b; font-weight: bold;">
+            @if(isset($schedule->scheduled_time) && $schedule->scheduled_time)
+                {{ $schedule->scheduled_time->format('g:i A') }}
+            @else
+                Unknown time
+            @endif
+        </td>
     </tr>
     @if(!$loop->last)
     <tr><td colspan="2" style="padding: 5px;"></td></tr>
@@ -35,12 +65,42 @@ Hello {{ $recipient->name }},
 <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 2px solid #f59e0b;">
 @foreach($dueMedications as $schedule)
     <tr style="border-bottom: 1px solid #fcd34d; background-color: #fffbeb;">
-        <td style="padding: 12px 8px; font-weight: bold; width: 40%;">{{ $schedule->medication->name }}</td>
-        <td style="padding: 12px 8px;">{{ $schedule->getCalculatedDosageWithUnit() ?: $schedule->medication->dosage . ' ' . $schedule->medication->unit }}</td>
+        <td style="padding: 12px 8px; font-weight: bold; width: 40%;">
+            @if(isset($schedule->medication) && $schedule->medication)
+                {{ $schedule->medication->name }}
+            @else
+                Unknown Medication
+            @endif
+        </td>
+        <td style="padding: 12px 8px;">
+            @if(isset($schedule->medication) && $schedule->medication)
+                @php
+                    $dosage = 'N/A';
+                    try {
+                        if(method_exists($schedule, 'getCalculatedDosageWithUnit')) {
+                            $dosage = $schedule->getCalculatedDosageWithUnit() ?: ($schedule->medication->dosage . ' ' . $schedule->medication->unit);
+                        } else {
+                            $dosage = $schedule->medication->dosage . ' ' . $schedule->medication->unit;
+                        }
+                    } catch(Exception $e) {
+                        $dosage = ($schedule->medication->dosage ?? 'N/A') . ' ' . ($schedule->medication->unit ?? '');
+                    }
+                @endphp
+                {{ $dosage }}
+            @else
+                N/A
+            @endif
+        </td>
     </tr>
     <tr style="border-bottom: 1px solid #fcd34d; background-color: #fffbeb;">
         <td style="padding: 8px; color: #92400e;">Due at</td>
-        <td style="padding: 8px; color: #92400e; font-weight: bold;">{{ $schedule->scheduled_time->format('g:i A') }}</td>
+        <td style="padding: 8px; color: #92400e; font-weight: bold;">
+            @if(isset($schedule->scheduled_time) && $schedule->scheduled_time)
+                {{ $schedule->scheduled_time->format('g:i A') }}
+            @else
+                Unknown time
+            @endif
+        </td>
     </tr>
     @if(!$loop->last)
     <tr><td colspan="2" style="padding: 5px;"></td></tr>
@@ -64,12 +124,42 @@ Hello {{ $recipient->name }},
 <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 2px solid #dc2626;">
 @foreach($overdueMedications as $schedule)
     <tr style="border-bottom: 1px solid #fca5a5; background-color: #fef2f2;">
-        <td style="padding: 12px 8px; font-weight: bold; width: 40%;">{{ $schedule->medication->name }}</td>
-        <td style="padding: 12px 8px;">{{ $schedule->getCalculatedDosageWithUnit() ?: $schedule->medication->dosage . ' ' . $schedule->medication->unit }}</td>
+        <td style="padding: 12px 8px; font-weight: bold; width: 40%;">
+            @if(isset($schedule->medication) && $schedule->medication)
+                {{ $schedule->medication->name }}
+            @else
+                Unknown Medication
+            @endif
+        </td>
+        <td style="padding: 12px 8px;">
+            @if(isset($schedule->medication) && $schedule->medication)
+                @php
+                    $dosage = 'N/A';
+                    try {
+                        if(method_exists($schedule, 'getCalculatedDosageWithUnit')) {
+                            $dosage = $schedule->getCalculatedDosageWithUnit() ?: ($schedule->medication->dosage . ' ' . $schedule->medication->unit);
+                        } else {
+                            $dosage = $schedule->medication->dosage . ' ' . $schedule->medication->unit;
+                        }
+                    } catch(Exception $e) {
+                        $dosage = ($schedule->medication->dosage ?? 'N/A') . ' ' . ($schedule->medication->unit ?? '');
+                    }
+                @endphp
+                {{ $dosage }}
+            @else
+                N/A
+            @endif
+        </td>
     </tr>
     <tr style="border-bottom: 1px solid #fca5a5; background-color: #fef2f2;">
         <td style="padding: 8px; color: #991b1b;">Was due at</td>
-        <td style="padding: 8px; color: #991b1b; font-weight: bold;">{{ $schedule->scheduled_time->format('g:i A') }}</td>
+        <td style="padding: 8px; color: #991b1b; font-weight: bold;">
+            @if(isset($schedule->scheduled_time) && $schedule->scheduled_time)
+                {{ $schedule->scheduled_time->format('g:i A') }}
+            @else
+                Unknown time
+            @endif
+        </td>
     </tr>
     @if(!$loop->last)
     <tr><td colspan="2" style="padding: 10px;"></td></tr>
@@ -93,12 +183,42 @@ Hello {{ $recipient->name }},
 <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 2px solid #f59e0b;">
 @foreach($dueMedications as $schedule)
     <tr style="border-bottom: 1px solid #fcd34d; background-color: #fffbeb;">
-        <td style="padding: 12px 8px; font-weight: bold; width: 40%;">{{ $schedule->medication->name }}</td>
-        <td style="padding: 12px 8px;">{{ $schedule->getCalculatedDosageWithUnit() ?: $schedule->medication->dosage . ' ' . $schedule->medication->unit }}</td>
+        <td style="padding: 12px 8px; font-weight: bold; width: 40%;">
+            @if(isset($schedule->medication) && $schedule->medication)
+                {{ $schedule->medication->name }}
+            @else
+                Unknown Medication
+            @endif
+        </td>
+        <td style="padding: 12px 8px;">
+            @if(isset($schedule->medication) && $schedule->medication)
+                @php
+                    $dosage = 'N/A';
+                    try {
+                        if(method_exists($schedule, 'getCalculatedDosageWithUnit')) {
+                            $dosage = $schedule->getCalculatedDosageWithUnit() ?: ($schedule->medication->dosage . ' ' . $schedule->medication->unit);
+                        } else {
+                            $dosage = $schedule->medication->dosage . ' ' . $schedule->medication->unit;
+                        }
+                    } catch(Exception $e) {
+                        $dosage = ($schedule->medication->dosage ?? 'N/A') . ' ' . ($schedule->medication->unit ?? '');
+                    }
+                @endphp
+                {{ $dosage }}
+            @else
+                N/A
+            @endif
+        </td>
     </tr>
     <tr style="border-bottom: 1px solid #fcd34d; background-color: #fffbeb;">
         <td style="padding: 8px; color: #92400e;">Due at</td>
-        <td style="padding: 8px; color: #92400e; font-weight: bold;">{{ $schedule->scheduled_time->format('g:i A') }}</td>
+        <td style="padding: 8px; color: #92400e; font-weight: bold;">
+            @if(isset($schedule->scheduled_time) && $schedule->scheduled_time)
+                {{ $schedule->scheduled_time->format('g:i A') }}
+            @else
+                Unknown time
+            @endif
+        </td>
     </tr>
     @if(!$loop->last)
     <tr><td colspan="2" style="padding: 10px;"></td></tr>

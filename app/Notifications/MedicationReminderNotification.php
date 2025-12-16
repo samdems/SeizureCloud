@@ -9,7 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class MedicationReminderNotification extends Notification implements ShouldQueue
+class MedicationReminderNotification extends Notification
 {
     use Queueable;
 
@@ -139,17 +139,41 @@ class MedicationReminderNotification extends Notification implements ShouldQueue
     private function formatMedicationsForArray(array $schedules): array
     {
         return array_map(function ($schedule) {
-            $medication = $schedule->medication;
+            $medication = $schedule->medication ?? null;
+
+            // Safe handling of dosage calculation
+            $dosage = "N/A";
+            if ($medication) {
+                try {
+                    $calculatedDosage = method_exists(
+                        $schedule,
+                        "getCalculatedDosageWithUnit",
+                    )
+                        ? $schedule->getCalculatedDosageWithUnit()
+                        : null;
+                    $dosage =
+                        $calculatedDosage ?:
+                        ($medication->dosage ?? "N/A") .
+                            " " .
+                            ($medication->unit ?? "");
+                } catch (\Exception $e) {
+                    $dosage =
+                        ($medication->dosage ?? "N/A") .
+                        " " .
+                        ($medication->unit ?? "");
+                }
+            }
+
             return [
-                "id" => $medication->id,
-                "name" => $medication->name,
-                "dosage" =>
-                    $schedule->getCalculatedDosageWithUnit() ?:
-                    $medication->dosage . " " . $medication->unit,
-                "scheduled_time" => $schedule->scheduled_time->format("H:i"),
-                "scheduled_time_formatted" => $schedule->scheduled_time->format(
-                    "g:i A",
-                ),
+                "id" => $medication->id ?? 0,
+                "name" => $medication->name ?? "Unknown Medication",
+                "dosage" => $dosage,
+                "scheduled_time" => $schedule->scheduled_time
+                    ? $schedule->scheduled_time->format("H:i")
+                    : "00:00",
+                "scheduled_time_formatted" => $schedule->scheduled_time
+                    ? $schedule->scheduled_time->format("g:i A")
+                    : "Unknown time",
             ];
         }, $schedules);
     }
