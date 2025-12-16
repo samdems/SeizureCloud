@@ -334,7 +334,7 @@ class SeizuresSeeder extends Seeder
             "nhs_contact_type" => "999",
             "ambulance_called" => true,
             "notes" =>
-                "Status epilepticus - emergency duration exceeded " .
+                "Possible Status Epilepticus - emergency duration exceeded " .
                 $emergencyDuration .
                 " minutes",
         ]);
@@ -357,7 +357,7 @@ class SeizuresSeeder extends Seeder
             "severity" => fake()->numberBetween(5, 6),
             "nhs_contact_type" => fake()->boolean(50) ? "111" : "None",
             "notes" =>
-                "Close to status epilepticus threshold - " .
+                "Close to possible status epilepticus threshold - " .
                 $nearEmergencyDuration .
                 " minutes (threshold: " .
                 $user->status_epilepticus_duration_minutes .

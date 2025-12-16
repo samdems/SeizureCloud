@@ -49,7 +49,7 @@
                             @if($seizure->calculated_duration)
                                 {{ $seizure->calculated_duration }} minutes
                                 @if($emergencyStatus['status_epilepticus'])
-                                    <span class="badge badge-error badge-sm">Status Epilepticus</span>
+                                    <span class="badge badge-error badge-sm">Possible Status Epilepticus</span>
                                 @endif
                             @else
                                 Not recorded

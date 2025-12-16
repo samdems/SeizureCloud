@@ -116,7 +116,7 @@ class SeizureAddedNotification extends Notification
             "is_emergency" => $emergencyStatus["is_emergency"],
             "emergency_reason" => $emergencyStatus["is_emergency"]
                 ? ($emergencyStatus["status_epilepticus"]
-                    ? "Status Epilepticus"
+                    ? "Possible Status Epilepticus"
                     : "Seizure Cluster")
                 : null,
             "notes" => $this->seizure->notes,

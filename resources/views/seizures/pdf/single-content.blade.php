@@ -28,7 +28,7 @@
     <div class="emergency-alert">
         <h3>WARNING: MEDICAL EMERGENCY DETECTED</h3>
         @if($emergencyStatus['status_epilepticus'])
-            <p><strong>Status Epilepticus:</strong> Seizure duration ({{ $seizure->calculated_duration }} min) exceeds emergency threshold ({{ $emergencyStatus['duration_threshold'] }} min)</p>
+            <p><strong>Possible Status Epilepticus:</strong> Seizure duration ({{ $seizure->calculated_duration }} min) exceeds emergency threshold ({{ $emergencyStatus['duration_threshold'] }} min)</p>
         @endif
         @if($emergencyStatus['cluster_emergency'])
             <p><strong>Seizure Cluster:</strong> {{ $emergencyStatus['cluster_count'] }} seizures detected within {{ $emergencyStatus['timeframe_hours'] }} hours</p>
