@@ -134,6 +134,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Vital::class);
     }
 
+    public function observations(): HasMany
+    {
+        return $this->hasMany(Observation::class);
+    }
+
     public function vitalTypeThresholds(): HasMany
     {
         return $this->hasMany(VitalTypeThreshold::class);

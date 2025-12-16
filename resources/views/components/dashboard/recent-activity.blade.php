@@ -12,7 +12,7 @@
     }
 @endphp
 
-<div class="grid gap-6 lg:grid-cols-2">
+<div class="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
     <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
             <div class="flex items-center justify-between mb-4">
@@ -72,6 +72,35 @@
                 <div class="text-center py-8 text-base-content/70">
                     <p class="mb-2">No vitals recorded yet</p>
                     <a href="{{ route('vitals.create') }}" class="link link-primary">Add your first vital</a>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="card-title text-xl">Recent Observations</h2>
+                <a href="{{ route('observations.index') }}" class="btn btn-ghost btn-sm">View All</a>
+            </div>
+            @php
+                $recentObservations = $user->observations()->latest('observed_at')->take(3)->get();
+            @endphp
+            @if($recentObservations->count() > 0)
+                <div class="space-y-3">
+                    @foreach($recentObservations as $observation)
+                        <a href="{{ route('observations.show', $observation) }}" class="block p-3 bg-base-200 rounded-lg hover:bg-base-300 transition-colors duration-200" wire:navigate>
+                            <div class="flex-1 min-w-0">
+                                <div class="font-medium truncate">{{ $observation->title }}</div>
+                                <div class="text-sm text-base-content/70">{{ $observation->observed_at->format('M j, Y g:i A') }}</div>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            @else
+                <div class="text-center py-8 text-base-content/70">
+                    <p class="mb-2">No observations recorded yet</p>
+                    <a href="{{ route('observations.create') }}" class="link link-primary">Add your first observation</a>
                 </div>
             @endif
         </div>
