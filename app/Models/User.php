@@ -134,6 +134,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Vital::class);
     }
 
+    public function observations(): HasMany
+    {
+        return $this->hasMany(Observation::class);
+    }
+
     public function vitalTypeThresholds(): HasMany
     {
         return $this->hasMany(VitalTypeThreshold::class);
@@ -276,7 +281,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Check if a seizure qualifies as status epilepticus (emergency duration)
+     * Check if a seizure qualifies as possible status epilepticus (emergency duration)
      */
     public function isStatusEpilepticus(Seizure $seizure): bool
     {

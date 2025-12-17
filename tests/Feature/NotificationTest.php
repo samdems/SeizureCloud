@@ -334,7 +334,7 @@ it("includes emergency status in seizure notifications", function () {
         function ($notification) {
             $array = $notification->toArray($this->trustedContact);
             return $array["is_emergency"] === true &&
-                $array["emergency_reason"] === "Status Epilepticus";
+                $array["emergency_reason"] === "Possible Status Epilepticus";
         },
     );
 });

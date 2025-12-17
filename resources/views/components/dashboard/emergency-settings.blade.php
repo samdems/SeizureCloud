@@ -39,7 +39,7 @@
                 <div class="stat-figure text-error">
                     <x-heroicon-o-clock class="w-8 h-8" />
                 </div>
-                <div class="stat-title">Status Epilepticus</div>
+                <div class="stat-title">Possible Status Epilepticus</div>
                 <div class="stat-value text-2xl">{{ $user->status_epilepticus_duration_minutes }}min</div>
                 <div class="stat-desc">Duration threshold</div>
             </div>

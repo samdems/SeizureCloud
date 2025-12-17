@@ -32,5 +32,9 @@ class AppServiceProvider extends ServiceProvider
             \App\Models\VitalTypeThreshold::class,
             \App\Policies\VitalTypeThresholdPolicy::class,
         );
+        Gate::policy(
+            \App\Models\Observation::class,
+            \App\Policies\ObservationPolicy::class,
+        );
     }
 }

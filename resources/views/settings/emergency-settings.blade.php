@@ -28,7 +28,7 @@
                             <!-- Status Epilepticus Duration -->
                             <div class="form-control w-full">
                                 <label class="label">
-                                    <span class="label-text font-semibold text-sm">Status Epilepticus Duration</span>
+                                    <span class="label-text font-semibold text-sm">Possible Status Epilepticus Duration</span>
                                     <span class="label-text-alt text-xs">Minutes</span>
                                 </label>
                                 <input
@@ -110,7 +110,7 @@
                         <div class="text-xs text-base-content/60 mt-6 p-4 bg-base-200 rounded">
                             <p class="mb-2 font-semibold">Medical Guidelines:</p>
                             <div class="space-y-1">
-                                <p>• Status epilepticus: 5+ minute seizures require immediate medical attention</p>
+                                <p>• Possible status epilepticus: 5+ minute seizures require immediate medical attention</p>
                                 <p>• Seizure clusters: 3+ seizures in 2 hours often require medical intervention</p>
                                 <p>• Review these settings with your healthcare provider</p>
                             </div>
@@ -157,7 +157,7 @@ Medical ID: 12345"
                         <h3 class="card-title text-lg mb-4">Current Settings</h3>
                         <div class="space-y-4 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-4 text-sm">
                             <div class="stat">
-                                <div class="stat-title text-primary-content/70">Status Epilepticus</div>
+                                <div class="stat-title text-primary-content/70">Possible Status Epilepticus</div>
                                 <div class="stat-value text-lg">{{ $user->status_epilepticus_duration_minutes }}min</div>
                                 <div class="stat-desc text-primary-content/70">Duration threshold</div>
                             </div>

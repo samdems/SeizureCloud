@@ -151,6 +151,12 @@
                                 Vitals Tracker
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('observations.index') }}" class="{{ request()->routeIs('observations.*') ? 'active' : '' }}" wire:navigate>
+                                <x-heroicon-o-document-text class="w-5 h-5" />
+                                Observations
+                            </a>
+                        </li>
 
                         <li class="menu-title mt-4">
                             <span class="flex items-center gap-2">
@@ -226,6 +232,39 @@
         <form id="sidebar-logout-form" method="POST" action="{{ route('logout') }}" style="display: none;">
             @csrf
         </form>
+
+        <!-- Floating Action Button for Quick Add (only on dashboard and list pages) -->
+        @if(auth()->check() && auth()->user()->canTrackSeizures())
+            @if(request()->routeIs('dashboard') || request()->routeIs('observations.index'))
+                <x-floating-action-button
+                    href="{{ route('observations.create') }}"
+                    icon="heroicon-o-document-text"
+                    text="Add Observation"
+                    color="accent"
+                />
+            @elseif(request()->routeIs('seizures.index'))
+                <x-floating-action-button
+                    href="{{ route('seizures.create') }}"
+                    icon="heroicon-o-chart-bar"
+                    text="Add Seizure"
+                    color="primary"
+                />
+            @elseif(request()->routeIs('vitals.index'))
+                <x-floating-action-button
+                    href="{{ route('vitals.create') }}"
+                    icon="heroicon-o-heart"
+                    text="Add Vital"
+                    color="secondary"
+                />
+            @elseif(request()->routeIs('medications.index') || request()->routeIs('medications.schedule'))
+                <x-floating-action-button
+                    href="{{ route('medications.create') }}"
+                    icon="heroicon-o-beaker"
+                    text="Add Medication"
+                    color="info"
+                />
+            @endif
+        @endif
 
         @livewireScripts
     </body>

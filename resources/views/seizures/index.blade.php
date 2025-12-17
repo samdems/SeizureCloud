@@ -92,7 +92,7 @@
                                 <div>
                                     {{ $seizure->calculated_duration ?? 'N/A' }} min
                                     @if($seizure->emergency_status['status_epilepticus'])
-                                        <div class="badge badge-error badge-xs mt-1">Status Epilepticus</div>
+                                        <div class="badge badge-error badge-xs mt-1">Possible Status Epilepticus</div>
                                     @endif
                                 </div>
                             </td>
@@ -196,7 +196,7 @@
                                 <div class="text-xs text-base-content/60 uppercase tracking-wider">Duration</div>
                                 <div class="font-medium">{{ $seizure->calculated_duration ?? 'N/A' }} min</div>
                                 @if($seizure->emergency_status['status_epilepticus'])
-                                    <div class="badge badge-error badge-xs mt-1">Status Epilepticus</div>
+                                    <div class="badge badge-error badge-xs mt-1">Possible Status Epilepticus</div>
                                 @endif
                             </div>
                             <div>

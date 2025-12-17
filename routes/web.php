@@ -209,6 +209,11 @@ Route::middleware(["auth"])->group(function () {
         ->name("vitals.thresholds.update")
         ->middleware("account.type:patient");
 
+    Route::resource(
+        "observations",
+        \App\Http\Controllers\ObservationController::class,
+    )->middleware("account.type:patient");
+
     // Medication routes - Patient accounts only
     Route::middleware("account.type:patient")->group(function () {
         Route::resource(
