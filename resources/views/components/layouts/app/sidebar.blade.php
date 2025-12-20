@@ -235,6 +235,12 @@
                                 System Logs
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('admin.email-logs') }}" class="{{ request()->routeIs('admin.email-logs') ? 'active' : '' }}" wire:navigate>
+                                <x-heroicon-o-envelope class="w-5 h-5" />
+                                Email Logs
+                            </a>
+                        </li>
                         @endif
                     </ul>
 

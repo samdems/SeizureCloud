@@ -369,7 +369,198 @@
             </div>
         </div>
         @endif
+
+        <!-- Email Logs -->
+        <div class="card bg-base-100 shadow">
+            <div class="card-body">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="card-title flex items-center gap-2">
+                        <x-heroicon-o-envelope class="w-5 h-5" />
+                        Email Logs
+                        <span class="badge badge-outline badge-sm">{{ $user->emailLogs()->count() }}</span>
+                    </h3>
+                    <div class="flex gap-2">
+                        <a href="{{ route('admin.users.email-logs', $user) }}" class="btn btn-outline btn-sm">
+                            <x-heroicon-o-eye class="w-4 h-4" />
+                            View All
+                        </a>
+                    </div>
+                </div>
+
+                @php
+                    $recentEmails = $user->emailLogs()->latest()->take(5)->get();
+                    $emailStats = [
+                        'total' => $user->emailLogs()->count(),
+                        'sent' => $user->emailLogs()->where('status', 'sent')->count(),
+                        'failed' => $user->emailLogs()->where('status', 'failed')->count(),
+                        'pending' => $user->emailLogs()->where('status', 'pending')->count(),
+                    ];
+                @endphp
+
+                @if($recentEmails->count() > 0)
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="stat bg-base-200 rounded-lg p-3">
+                        <div class="stat-title text-xs">Total Emails</div>
+                        <div class="stat-value text-lg">{{ $emailStats['total'] }}</div>
+                    </div>
+                    <div class="stat bg-base-200 rounded-lg p-3">
+                        <div class="stat-title text-xs">Sent</div>
+                        <div class="stat-value text-lg text-success">{{ $emailStats['sent'] }}</div>
+                    </div>
+                    <div class="stat bg-base-200 rounded-lg p-3">
+                        <div class="stat-title text-xs">Failed</div>
+                        <div class="stat-value text-lg text-error">{{ $emailStats['failed'] }}</div>
+                    </div>
+                    <div class="stat bg-base-200 rounded-lg p-3">
+                        <div class="stat-title text-xs">Pending</div>
+                        <div class="stat-value text-lg text-warning">{{ $emailStats['pending'] }}</div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Subject</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($recentEmails as $email)
+                            <tr>
+                                <td>
+                                    <div>{{ $email->created_at->format('M j, Y') }}</div>
+                                    <div class="text-xs opacity-70">{{ $email->created_at->format('g:i A') }}</div>
+                                </td>
+                                <td>
+                                    <span class="badge {{ $email->getTypeBadgeClass() }} badge-sm">
+                                        {{ $email->getFormattedEmailType() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="max-w-xs truncate font-medium">{{ $email->subject }}</div>
+                                    @if($email->error_message)
+                                        <div class="text-xs text-error truncate">{{ $email->error_message }}</div>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div class="flex flex-col gap-1">
+                                        <span class="badge {{ $email->getStatusBadgeClass() }} badge-sm">
+                                            {{ ucfirst($email->status) }}
+                                        </span>
+                                        @if($email->sent_at)
+                                            <span class="text-xs opacity-70">{{ $email->sent_at->diffForHumans() }}</span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dropdown dropdown-end">
+                                        <label tabindex="0" class="btn btn-ghost btn-xs">
+                                            <x-heroicon-o-ellipsis-horizontal class="w-4 h-4" />
+                                        </label>
+                                        <ul tabindex="0" class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-box w-52 z-10">
+                                            <li>
+                                                <a href="#" onclick="showEmailDetails('{{ $email->id }}')">
+                                                    <x-heroicon-o-eye class="w-4 h-4" />
+                                                    View Details
+                                                </a>
+                                            </li>
+                                            @if($email->body)
+                                            <li>
+                                                <a href="#" onclick="showEmailBody('{{ $email->id }}')">
+                                                    <x-heroicon-o-document-text class="w-4 h-4" />
+                                                    View Content
+                                                </a>
+                                            </li>
+                                            @endif
+                                            @if($email->failed())
+                                            <li>
+                                                <a href="#" onclick="resendEmail('{{ $email->id }}')" class="text-warning">
+                                                    <x-heroicon-o-arrow-path class="w-4 h-4" />
+                                                    Retry Send
+                                                </a>
+                                            </li>
+                                            @endif
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @else
+                <div class="text-center py-12">
+                    <div class="flex flex-col items-center gap-4 text-base-content/50">
+                        <x-heroicon-o-envelope class="w-16 h-16" />
+                        <div>
+                            <h3 class="text-lg font-medium">No email logs</h3>
+                            <p class="text-sm">No emails have been sent to this user yet.</p>
+                        </div>
+                    </div>
+                </div>
+                @endif
+            </div>
+        </div>
     </div>
+
+    <!-- Email Detail Modals -->
+    <div id="emailDetailModal" class="modal">
+        <div class="modal-box max-w-2xl">
+            <h3 class="font-bold text-lg mb-4">Email Details</h3>
+            <div id="emailDetailContent">
+                <!-- Content will be loaded here -->
+            </div>
+            <div class="modal-action">
+                <label for="emailDetailModal" class="btn">Close</label>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showEmailDetails(emailId) {
+            // This would fetch email details via AJAX
+            fetch(`/admin/email-logs/${emailId}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('emailDetailContent').innerHTML = `
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><strong>To:</strong> ${data.recipient_email}</div>
+                                <div><strong>Type:</strong> ${data.email_type}</div>
+                                <div><strong>Status:</strong> ${data.status}</div>
+                                <div><strong>Provider:</strong> ${data.provider || 'N/A'}</div>
+                            </div>
+                            <div><strong>Subject:</strong> ${data.subject}</div>
+                            ${data.error_message ? `<div class="text-error"><strong>Error:</strong> ${data.error_message}</div>` : ''}
+                            <div class="text-sm opacity-70">
+                                Created: ${new Date(data.created_at).toLocaleString()}
+                                ${data.sent_at ? ` | Sent: ${new Date(data.sent_at).toLocaleString()}` : ''}
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('emailDetailModal').checked = true;
+                })
+                .catch(error => {
+                    console.error('Error fetching email details:', error);
+                });
+        }
+
+        function showEmailBody(emailId) {
+            // Similar function to show email body content
+            console.log('Show email body for:', emailId);
+        }
+
+        function resendEmail(emailId) {
+            if (confirm('Are you sure you want to retry sending this email?')) {
+                // This would trigger a resend via AJAX
+                console.log('Resend email:', emailId);
+            }
+        }
+    </script>
 
     <!-- Success/Error Messages -->
     @if(session('success'))

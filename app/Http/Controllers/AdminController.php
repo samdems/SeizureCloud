@@ -7,6 +7,7 @@ use App\Models\Seizure;
 use App\Models\Medication;
 use App\Models\TrustedContact;
 use App\Models\UserInvitation;
+use App\Models\EmailLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -110,6 +111,9 @@ class AdminController extends Controller
             },
             "trustedAccounts" => function ($query) {
                 $query->where("is_active", true);
+            },
+            "emailLogs" => function ($query) {
+                $query->latest()->take(10);
             },
         ]);
 
@@ -315,5 +319,91 @@ class AdminController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Show email logs for a specific user
+     */
+    public function userEmailLogs(User $user)
+    {
+        $emailLogs = $user->emailLogs()->latest()->paginate(20);
+
+        return view("admin.users.email-logs", compact("user", "emailLogs"));
+    }
+
+    /**
+     * Get email log details (AJAX endpoint)
+     */
+    public function getEmailLog(EmailLog $emailLog)
+    {
+        return response()->json([
+            "id" => $emailLog->id,
+            "recipient_email" => $emailLog->recipient_email,
+            "recipient_name" => $emailLog->recipient_name,
+            "subject" => $emailLog->subject,
+            "body" => $emailLog->body,
+            "email_type" => $emailLog->email_type,
+            "status" => $emailLog->status,
+            "provider" => $emailLog->provider,
+            "error_message" => $emailLog->error_message,
+            "sent_at" => $emailLog->sent_at,
+            "created_at" => $emailLog->created_at,
+            "metadata" => $emailLog->metadata,
+        ]);
+    }
+
+    /**
+     * Show system-wide email logs
+     */
+    public function emailLogs(Request $request)
+    {
+        $query = EmailLog::with("user");
+
+        // Filter by status
+        if ($request->filled("status")) {
+            $query->where("status", $request->status);
+        }
+
+        // Filter by email type
+        if ($request->filled("email_type")) {
+            $query->where("email_type", $request->email_type);
+        }
+
+        // Filter by date range
+        if ($request->filled("date_from")) {
+            $query->whereDate("created_at", ">=", $request->date_from);
+        }
+
+        if ($request->filled("date_to")) {
+            $query->whereDate("created_at", "<=", $request->date_to);
+        }
+
+        // Search by recipient email
+        if ($request->filled("search")) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where("recipient_email", "like", "%{$search}%")->orWhere(
+                    "subject",
+                    "like",
+                    "%{$search}%",
+                );
+            });
+        }
+
+        $emailLogs = $query->orderBy("created_at", "desc")->paginate(20);
+
+        // Get statistics
+        $stats = [
+            "total_emails" => EmailLog::count(),
+            "sent_emails" => EmailLog::where("status", "sent")->count(),
+            "failed_emails" => EmailLog::where("status", "failed")->count(),
+            "pending_emails" => EmailLog::where("status", "pending")->count(),
+            "today_emails" => EmailLog::whereDate(
+                "created_at",
+                today(),
+            )->count(),
+        ];
+
+        return view("admin.email-logs", compact("emailLogs", "stats"));
     }
 }

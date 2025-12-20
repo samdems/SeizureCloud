@@ -369,5 +369,19 @@ Route::middleware(["auth"])->group(function () {
                 \App\Http\Controllers\AdminController::class,
                 "exportUsers",
             ])->name("export.users");
+
+            // Email logs
+            Route::get("email-logs", [
+                \App\Http\Controllers\AdminController::class,
+                "emailLogs",
+            ])->name("email-logs");
+            Route::get("users/{user}/email-logs", [
+                \App\Http\Controllers\AdminController::class,
+                "userEmailLogs",
+            ])->name("users.email-logs");
+            Route::get("email-logs/{emailLog}", [
+                \App\Http\Controllers\AdminController::class,
+                "getEmailLog",
+            ])->name("email-logs.show");
         });
 });
