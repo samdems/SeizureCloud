@@ -36,5 +36,9 @@ class AppServiceProvider extends ServiceProvider
             \App\Models\Observation::class,
             \App\Policies\ObservationPolicy::class,
         );
+        Gate::policy(
+            \App\Models\UserInvitation::class,
+            \App\Policies\UserInvitationPolicy::class,
+        );
     }
 }

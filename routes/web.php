@@ -18,11 +18,45 @@ Route::get("terms", [
     "terms",
 ])->name("legal.terms");
 
+// Public invitation routes (accessible without authentication)
+Route::get("invitations/{token}", [
+    \App\Http\Controllers\InvitationController::class,
+    "show",
+])->name("invitation.show");
+Route::post("invitations/{token}/accept", [
+    \App\Http\Controllers\InvitationController::class,
+    "accept",
+])->name("invitation.accept");
+Route::post("invitations/{token}/decline", [
+    \App\Http\Controllers\InvitationController::class,
+    "decline",
+])->name("invitation.decline");
+Route::post("invitations/{token}/accept-after-registration", [
+    \App\Http\Controllers\InvitationController::class,
+    "acceptAfterRegistration",
+])->name("invitation.accept-after-registration");
+
 Route::view("dashboard", "dashboard")
-    ->middleware(["auth", "verified"])
+    ->middleware(["auth", "custom.verified"])
     ->name("dashboard");
 
 Route::middleware(["auth"])->group(function () {
+    // Email verification routes for debugging and fallback
+    Route::post("verify-invited-user", [
+        \App\Http\Controllers\EmailVerificationController::class,
+        "verifyInvitedUser",
+    ])->name("verify-invited-user");
+
+    Route::get("verification-status", [
+        \App\Http\Controllers\EmailVerificationController::class,
+        "status",
+    ])->name("verification.status");
+
+    Route::post("force-verify", [
+        \App\Http\Controllers\EmailVerificationController::class,
+        "forceVerify",
+    ])->name("verification.force");
+
     Route::redirect("settings", "settings/profile");
 
     // Profile settings
@@ -150,6 +184,26 @@ Route::middleware(["auth"])->group(function () {
         "switchBackToOwnAccount",
     ])->name("trusted-access.switch-back");
 
+    // Invitation management
+    Route::get("invitations/manage", [
+        \App\Http\Controllers\InvitationController::class,
+        "manage",
+    ])->name("invitations.manage");
+    Route::post("invitations/{invitation}/resend", [
+        \App\Http\Controllers\InvitationController::class,
+        "resend",
+    ])->name("invitations.resend");
+    Route::post("invitations/{invitation}/cancel", [
+        \App\Http\Controllers\InvitationController::class,
+        "cancel",
+    ])->name("invitations.cancel");
+
+    // Email preview for testing (local only)
+    Route::get("invitations/{token}/preview", [
+        \App\Http\Controllers\InvitationController::class,
+        "preview",
+    ])->name("invitations.preview");
+
     Volt::route("settings/two-factor", "settings.two-factor")
         ->middleware(
             when(
@@ -257,4 +311,100 @@ Route::middleware(["auth"])->group(function () {
             "destroySchedule",
         ])->name("medications.schedules.destroy");
     });
+
+    // Admin routes - only accessible to admin users
+    Route::middleware("admin")
+        ->prefix("admin")
+        ->name("admin.")
+        ->group(function () {
+            Route::get("/", [
+                \App\Http\Controllers\AdminController::class,
+                "index",
+            ])->name("dashboard");
+
+            // User management
+            Route::get("users", [
+                \App\Http\Controllers\AdminController::class,
+                "users",
+            ])->name("users.index");
+            Route::get("users/{user}", [
+                \App\Http\Controllers\AdminController::class,
+                "showUser",
+            ])->name("users.show");
+            Route::get("users/{user}/edit", [
+                \App\Http\Controllers\AdminController::class,
+                "editUser",
+            ])->name("users.edit");
+            Route::put("users/{user}", [
+                \App\Http\Controllers\AdminController::class,
+                "updateUser",
+            ])->name("users.update");
+            Route::post("users/{user}/toggle-admin", [
+                \App\Http\Controllers\AdminController::class,
+                "toggleAdmin",
+            ])->name("users.toggle-admin");
+            Route::post("users/{user}/deactivate", [
+                \App\Http\Controllers\AdminController::class,
+                "deactivateUser",
+            ])->name("users.deactivate");
+            Route::post("users/{user}/activate", [
+                \App\Http\Controllers\AdminController::class,
+                "activateUser",
+            ])->name("users.activate");
+            Route::delete("users/{user}", [
+                \App\Http\Controllers\AdminController::class,
+                "deleteUser",
+            ])->name("users.delete");
+
+            // System management
+            Route::get("settings", [
+                \App\Http\Controllers\AdminController::class,
+                "settings",
+            ])->name("settings");
+            Route::get("logs", [
+                \App\Http\Controllers\AdminController::class,
+                "logs",
+            ])->name("logs");
+            Route::get("export/users", [
+                \App\Http\Controllers\AdminController::class,
+                "exportUsers",
+            ])->name("export.users");
+
+            // Email logs
+            Route::get("email-logs", [
+                \App\Http\Controllers\AdminController::class,
+                "emailLogs",
+            ])->name("email-logs");
+            Route::get("users/{user}/email-logs", [
+                \App\Http\Controllers\AdminController::class,
+                "userEmailLogs",
+            ])->name("users.email-logs");
+            Route::get("email-logs/{emailLog}", [
+                \App\Http\Controllers\AdminController::class,
+                "getEmailLog",
+            ])->name("email-logs.show");
+
+            // System status
+            Route::get("status", [
+                \App\Http\Controllers\AdminController::class,
+                "status",
+            ])->name("status");
+
+            // Minimal status page (backup)
+            Route::get("status-minimal", function () {
+                return view("admin.status-minimal");
+            })->name("status-minimal");
+
+            // API endpoint for system status (JSON response)
+            Route::get("api/status", [
+                \App\Http\Controllers\AdminController::class,
+                "statusApi",
+            ])->name("api.status");
+
+            // Debug route for troubleshooting status page
+            Route::get("debug/status", [
+                \App\Http\Controllers\AdminController::class,
+                "statusDebug",
+            ])->name("debug.status");
+        });
 });

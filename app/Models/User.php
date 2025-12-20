@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
@@ -27,6 +28,8 @@ class User extends Authenticatable implements MustVerifyEmail
         "password",
         "account_type",
         "avatar_style",
+        "created_via_invitation",
+        "is_admin",
         "morning_time",
         "afternoon_time",
         "evening_time",
@@ -74,6 +77,8 @@ class User extends Authenticatable implements MustVerifyEmail
             "notify_seizure_added" => "boolean",
             "notify_trusted_contacts_medication" => "boolean",
             "notify_trusted_contacts_seizures" => "boolean",
+            "created_via_invitation" => "boolean",
+            "is_admin" => "boolean",
         ];
     }
 
@@ -139,6 +144,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Observation::class);
     }
 
+    public function emailLogs(): HasMany
+    {
+        return $this->hasMany(EmailLog::class);
+    }
+
     public function vitalTypeThresholds(): HasMany
     {
         return $this->hasMany(VitalTypeThreshold::class);
@@ -155,6 +165,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function trustedContacts(): HasMany
     {
         return $this->hasMany(TrustedContact::class);
+    }
+
+    /**
+     * Get invitations sent by this user
+     */
+    public function sentInvitations(): HasMany
+    {
+        return $this->hasMany(UserInvitation::class, "inviter_id");
     }
 
     /**
@@ -377,6 +395,23 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Check if this user is an admin
+     */
+    public function isAdmin(): bool
+    {
+        return $this->is_admin === true;
+    }
+
+    /**
+     * Set admin status for this user
+     */
+    public function setAdminStatus(bool $isAdmin): void
+    {
+        $this->is_admin = $isAdmin;
+        $this->save();
+    }
+
+    /**
      * Check if this user can track their own seizures
      */
     public function canTrackSeizures(): bool
@@ -394,5 +429,45 @@ class User extends Authenticatable implements MustVerifyEmail
             "carer" => "Carer - Trusted access to patient accounts only",
             "medical" => "Medical Professional - Healthcare provider access",
         ];
+    }
+
+    /**
+     * Check if this user was created through an invitation
+     */
+    public function wasCreatedThroughInvitation(): bool
+    {
+        return $this->created_via_invitation;
+    }
+
+    /**
+     * Override sendEmailVerificationNotification to prevent sending
+     * verification emails to users who were auto-verified through invitations
+     */
+    public function sendEmailVerificationNotification()
+    {
+        // Don't send verification emails to users who were created through invitations
+        // since their email was already verified during the invitation acceptance process
+        if ($this->wasCreatedThroughInvitation()) {
+            Log::info("Skipping email verification for invited user", [
+                "user_id" => $this->id,
+                "email" => $this->email,
+                "reason" => "User was created through invitation",
+                "already_verified" => $this->hasVerifiedEmail(),
+            ]);
+            return;
+        }
+
+        // Also skip if user is already verified (regardless of how they were created)
+        if ($this->hasVerifiedEmail()) {
+            Log::info("Skipping email verification for already verified user", [
+                "user_id" => $this->id,
+                "email" => $this->email,
+                "reason" => "User email is already verified",
+            ]);
+            return;
+        }
+
+        // Send normal verification email for other users
+        parent::sendEmailVerificationNotification();
     }
 }

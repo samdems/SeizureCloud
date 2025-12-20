@@ -69,3 +69,15 @@ Schedule::call(function () {
 })
     ->dailyAt("02:00")
     ->name("cleanup-medication-reminder-logs");
+
+// System health check (runs every minute)
+Schedule::job(new \App\Jobs\SystemHealthCheck())
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name("system-health-check");
+
+// Track scheduler runs for health monitoring
+Schedule::command("scheduler:heartbeat")
+    ->everyMinute()
+    ->name("scheduler-heartbeat");
