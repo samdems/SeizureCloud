@@ -4,6 +4,8 @@
 
         <x-dashboard.trusted-access />
 
+        <x-dashboard.admin-access />
+
         <x-dashboard.quick-stats />
 
 

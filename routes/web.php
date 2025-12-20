@@ -311,4 +311,63 @@ Route::middleware(["auth"])->group(function () {
             "destroySchedule",
         ])->name("medications.schedules.destroy");
     });
+
+    // Admin routes - only accessible to admin users
+    Route::middleware("admin")
+        ->prefix("admin")
+        ->name("admin.")
+        ->group(function () {
+            Route::get("/", [
+                \App\Http\Controllers\AdminController::class,
+                "index",
+            ])->name("dashboard");
+
+            // User management
+            Route::get("users", [
+                \App\Http\Controllers\AdminController::class,
+                "users",
+            ])->name("users.index");
+            Route::get("users/{user}", [
+                \App\Http\Controllers\AdminController::class,
+                "showUser",
+            ])->name("users.show");
+            Route::get("users/{user}/edit", [
+                \App\Http\Controllers\AdminController::class,
+                "editUser",
+            ])->name("users.edit");
+            Route::put("users/{user}", [
+                \App\Http\Controllers\AdminController::class,
+                "updateUser",
+            ])->name("users.update");
+            Route::post("users/{user}/toggle-admin", [
+                \App\Http\Controllers\AdminController::class,
+                "toggleAdmin",
+            ])->name("users.toggle-admin");
+            Route::post("users/{user}/deactivate", [
+                \App\Http\Controllers\AdminController::class,
+                "deactivateUser",
+            ])->name("users.deactivate");
+            Route::post("users/{user}/activate", [
+                \App\Http\Controllers\AdminController::class,
+                "activateUser",
+            ])->name("users.activate");
+            Route::delete("users/{user}", [
+                \App\Http\Controllers\AdminController::class,
+                "deleteUser",
+            ])->name("users.delete");
+
+            // System management
+            Route::get("settings", [
+                \App\Http\Controllers\AdminController::class,
+                "settings",
+            ])->name("settings");
+            Route::get("logs", [
+                \App\Http\Controllers\AdminController::class,
+                "logs",
+            ])->name("logs");
+            Route::get("export/users", [
+                \App\Http\Controllers\AdminController::class,
+                "exportUsers",
+            ])->name("export.users");
+        });
 });

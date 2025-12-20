@@ -29,6 +29,7 @@ class User extends Authenticatable implements MustVerifyEmail
         "account_type",
         "avatar_style",
         "created_via_invitation",
+        "is_admin",
         "morning_time",
         "afternoon_time",
         "evening_time",
@@ -77,6 +78,7 @@ class User extends Authenticatable implements MustVerifyEmail
             "notify_trusted_contacts_medication" => "boolean",
             "notify_trusted_contacts_seizures" => "boolean",
             "created_via_invitation" => "boolean",
+            "is_admin" => "boolean",
         ];
     }
 
@@ -385,6 +387,23 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isMedical(): bool
     {
         return $this->account_type === "medical";
+    }
+
+    /**
+     * Check if this user is an admin
+     */
+    public function isAdmin(): bool
+    {
+        return $this->is_admin === true;
+    }
+
+    /**
+     * Set admin status for this user
+     */
+    public function setAdminStatus(bool $isAdmin): void
+    {
+        $this->is_admin = $isAdmin;
+        $this->save();
     }
 
     /**

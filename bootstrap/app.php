@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             "account.type" =>
                 \App\Http\Middleware\CheckAccountTypeMiddleware::class,
             "custom.verified" => \App\Http\Middleware\CustomVerifyEmail::class,
+            "admin" => \App\Http\Middleware\EnsureUserIsAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

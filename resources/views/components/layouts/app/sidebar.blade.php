@@ -32,7 +32,12 @@
                                     <div class="flex items-center gap-3">
                                         <x-avatar size="md" />
                                         <div class="flex flex-col">
-                                            <span class="font-semibold text-base">{{ auth()->user()->name }}</span>
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-semibold text-base">{{ auth()->user()->name }}</span>
+                                                @if(auth()->user()->isAdmin())
+                                                    <x-admin-status-indicator :user="auth()->user()" size="xs" />
+                                                @endif
+                                            </div>
                                             <span class="text-xs opacity-70">{{ auth()->user()->email }}</span>
                                         </div>
                                     </div>
@@ -45,6 +50,15 @@
                                         Settings
                                     </a>
                                 </li>
+                                @if(auth()->user()->isAdmin())
+                                <div class="divider my-0"></div>
+                                <li>
+                                    <a href="{{ route('admin.dashboard') }}" wire:navigate class="text-error">
+                                        <x-heroicon-o-shield-check class="w-5 h-5" />
+                                        Admin Panel
+                                    </a>
+                                </li>
+                                @endif
                                 <div class="divider my-0"></div>
                                 <li>
                                     <a href="#" onclick="document.getElementById('sidebar-logout-form').submit(); return false;" class="text-error" data-test="logout-button">
@@ -189,6 +203,39 @@
                             </a>
                         </li>
                         @endif
+
+                        @if(auth()->user()->isAdmin())
+                        <li class="menu-title mt-4">
+                            <span class="flex items-center gap-2">
+                                <x-heroicon-o-shield-check class="w-4 h-4" />
+                                Administration
+                            </span>
+                        </li>
+                        <li>
+                            <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.*') ? 'active' : '' }}" wire:navigate>
+                                <x-heroicon-o-cog-6-tooth class="w-5 h-5" />
+                                Admin Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}" wire:navigate>
+                                <x-heroicon-o-users class="w-5 h-5" />
+                                User Management
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('admin.settings') }}" class="{{ request()->routeIs('admin.settings') ? 'active' : '' }}" wire:navigate>
+                                <x-heroicon-o-wrench-screwdriver class="w-5 h-5" />
+                                System Settings
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('admin.logs') }}" class="{{ request()->routeIs('admin.logs') ? 'active' : '' }}" wire:navigate>
+                                <x-heroicon-o-document-text class="w-5 h-5" />
+                                System Logs
+                            </a>
+                        </li>
+                        @endif
                     </ul>
 
                     <!-- User Profile Section -->
@@ -197,7 +244,12 @@
                             <label tabindex="0" class="btn btn-ghost w-full justify-start gap-3 h-auto py-3" data-test="sidebar-menu-button">
                                 <x-avatar size="md" />
                                 <div class="flex flex-col items-start flex-1 min-w-0">
-                                    <span class="font-semibold text-sm truncate w-full">{{ auth()->user()->name }}</span>
+                                    <div class="flex items-center gap-2 w-full">
+                                        <span class="font-semibold text-sm truncate">{{ auth()->user()->name }}</span>
+                                        @if(auth()->user()->isAdmin())
+                                            <x-admin-status-indicator :user="auth()->user()" size="xs" />
+                                        @endif
+                                    </div>
                                     <span class="text-xs opacity-70 truncate w-full">{{ auth()->user()->email }}</span>
                                 </div>
                                 <x-heroicon-o-chevron-up-down class="w-5 h-5" />
@@ -209,6 +261,15 @@
                                         Settings
                                     </a>
                                 </li>
+                                @if(auth()->user()->isAdmin())
+                                <div class="divider my-0"></div>
+                                <li>
+                                    <a href="{{ route('admin.dashboard') }}" wire:navigate class="text-error">
+                                        <x-heroicon-o-shield-check class="w-5 h-5" />
+                                        Admin Panel
+                                    </a>
+                                </li>
+                                @endif
                                 <div class="divider my-0"></div>
                                 <li>
                                     <a href="#" onclick="document.getElementById('sidebar-logout-form').submit(); return false;" class="text-error" data-test="logout-button">
@@ -228,6 +289,8 @@
             @csrf
         </form>
 
+        <!-- Floating Admin Button -->
+        <x-floating-admin-button />
 
         @livewireScripts
     </body>
