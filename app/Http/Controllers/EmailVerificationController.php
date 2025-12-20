@@ -8,103 +8,101 @@ use Illuminate\Support\Facades\Log;
 
 class EmailVerificationController extends Controller
 {
-    /**
-     * Handle manual email verification for invited users
-     */
     public function verifyInvitedUser(Request $request)
     {
         $user = Auth::user();
 
         if (!$user) {
-            return redirect()->route('login')->with('error', 'Please log in first.');
-        }
-
-        // Check if user was created through invitation
-        if ($user->created_via_invitation ?? false) {
-            if (!$user->hasVerifiedEmail()) {
-                $user->markEmailAsVerified();
-
-                Log::info('Manually verified email for invited user', [
-                    'user_id' => $user->id,
-                    'email' => $user->email,
-                    'ip' => $request->ip(),
-                    'user_agent' => $request->userAgent(),
-                ]);
-
-                return redirect()
-                    ->route('dashboard')
-                    ->with('success', 'Your email has been verified successfully. Welcome!');
-            }
-
             return redirect()
-                ->route('dashboard')
-                ->with('info', 'Your email was already verified.');
+                ->route("login")
+                ->with("error", "Please log in first.");
         }
 
-        // For non-invited users, redirect to normal verification flow
+        if (!($user->created_via_invitation ?? false)) {
+            return redirect()
+                ->route("verification.notice")
+                ->with(
+                    "error",
+                    "Please complete the normal email verification process.",
+                );
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return redirect()
+                ->route("dashboard")
+                ->with("info", "Your email was already verified.");
+        }
+
+        $user->markEmailAsVerified();
+
+        Log::info("Manually verified email for invited user", [
+            "user_id" => $user->id,
+            "email" => $user->email,
+            "ip" => $request->ip(),
+            "user_agent" => $request->userAgent(),
+        ]);
+
         return redirect()
-            ->route('verification.notice')
-            ->with('error', 'Please complete the normal email verification process.');
+            ->route("dashboard")
+            ->with(
+                "success",
+                "Your email has been verified successfully. Welcome!",
+            );
     }
 
-    /**
-     * Show verification status for debugging
-     */
     public function status(Request $request)
     {
-        if (!config('app.debug')) {
+        if (!config("app.debug")) {
             abort(404);
         }
 
         $user = Auth::user();
 
         if (!$user) {
-            return response()->json(['error' => 'No authenticated user'], 401);
+            return response()->json(["error" => "No authenticated user"], 401);
         }
 
         return response()->json([
-            'user_id' => $user->id,
-            'email' => $user->email,
-            'email_verified_at' => $user->email_verified_at,
-            'has_verified_email' => $user->hasVerifiedEmail(),
-            'created_via_invitation' => $user->created_via_invitation ?? false,
-            'account_type' => $user->account_type,
+            "user_id" => $user->id,
+            "email" => $user->email,
+            "email_verified_at" => $user->email_verified_at,
+            "has_verified_email" => $user->hasVerifiedEmail(),
+            "created_via_invitation" => $user->created_via_invitation ?? false,
+            "account_type" => $user->account_type,
         ]);
     }
 
-    /**
-     * Force verify an invited user (debug only)
-     */
     public function forceVerify(Request $request)
     {
-        if (!config('app.debug')) {
+        if (!config("app.debug")) {
             abort(404);
         }
 
         $user = Auth::user();
 
         if (!$user) {
-            return response()->json(['error' => 'No authenticated user'], 401);
+            return response()->json(["error" => "No authenticated user"], 401);
         }
 
         if (!$user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
 
-            Log::info('Force verified email for user', [
-                'user_id' => $user->id,
-                'email' => $user->email,
-                'created_via_invitation' => $user->created_via_invitation ?? false,
-                'ip' => $request->ip(),
+            Log::info("Force verified email for user", [
+                "user_id" => $user->id,
+                "email" => $user->email,
+                "created_via_invitation" =>
+                    $user->created_via_invitation ?? false,
+                "ip" => $request->ip(),
             ]);
         }
 
         return response()->json([
-            'message' => 'Email verification status updated',
-            'user_id' => $user->id,
-            'email' => $user->email,
-            'email_verified_at' => $user->email_verified_at,
-            'has_verified_email' => $user->hasVerifiedEmail(),
-            'created_via_invitation' => $user->created_via_invitation ?? false,
+            "message" => "Email verification status updated",
+            "user_id" => $user->id,
+            "email" => $user->email,
+            "email_verified_at" => $user->email_verified_at,
+            "has_verified_email" => $user->hasVerifiedEmail(),
+            "created_via_invitation" => $user->created_via_invitation ?? false,
         ]);
     }
 }
