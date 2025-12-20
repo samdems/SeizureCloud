@@ -14,6 +14,10 @@
                     <x-heroicon-o-users class="w-4 h-4" />
                     Manage Users
                 </a>
+                <a href="{{ route('admin.status') }}" class="btn btn-secondary">
+                    <x-heroicon-o-signal class="w-4 h-4" />
+                    System Status
+                </a>
                 <a href="{{ route('admin.settings') }}" class="btn btn-outline">
                     <x-heroicon-o-cog-6-tooth class="w-4 h-4" />
                     Settings
@@ -147,6 +151,10 @@
                         <a href="{{ route('admin.logs') }}" class="btn btn-outline btn-block justify-start">
                             <x-heroicon-o-document-text class="w-4 h-4" />
                             View System Logs
+                        </a>
+                        <a href="{{ route('admin.status') }}" class="btn btn-outline btn-block justify-start">
+                            <x-heroicon-o-signal class="w-4 h-4" />
+                            System Status
                         </a>
                     </div>
                 </div>

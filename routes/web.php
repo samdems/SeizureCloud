@@ -383,5 +383,28 @@ Route::middleware(["auth"])->group(function () {
                 \App\Http\Controllers\AdminController::class,
                 "getEmailLog",
             ])->name("email-logs.show");
+
+            // System status
+            Route::get("status", [
+                \App\Http\Controllers\AdminController::class,
+                "status",
+            ])->name("status");
+
+            // Minimal status page (backup)
+            Route::get("status-minimal", function () {
+                return view("admin.status-minimal");
+            })->name("status-minimal");
+
+            // API endpoint for system status (JSON response)
+            Route::get("api/status", [
+                \App\Http\Controllers\AdminController::class,
+                "statusApi",
+            ])->name("api.status");
+
+            // Debug route for troubleshooting status page
+            Route::get("debug/status", [
+                \App\Http\Controllers\AdminController::class,
+                "statusDebug",
+            ])->name("debug.status");
         });
 });
