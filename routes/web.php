@@ -18,11 +18,45 @@ Route::get("terms", [
     "terms",
 ])->name("legal.terms");
 
+// Public invitation routes (accessible without authentication)
+Route::get("invitations/{token}", [
+    \App\Http\Controllers\InvitationController::class,
+    "show",
+])->name("invitation.show");
+Route::post("invitations/{token}/accept", [
+    \App\Http\Controllers\InvitationController::class,
+    "accept",
+])->name("invitation.accept");
+Route::post("invitations/{token}/decline", [
+    \App\Http\Controllers\InvitationController::class,
+    "decline",
+])->name("invitation.decline");
+Route::post("invitations/{token}/accept-after-registration", [
+    \App\Http\Controllers\InvitationController::class,
+    "acceptAfterRegistration",
+])->name("invitation.accept-after-registration");
+
 Route::view("dashboard", "dashboard")
-    ->middleware(["auth", "verified"])
+    ->middleware(["auth", "custom.verified"])
     ->name("dashboard");
 
 Route::middleware(["auth"])->group(function () {
+    // Email verification routes for debugging and fallback
+    Route::post("verify-invited-user", [
+        \App\Http\Controllers\EmailVerificationController::class,
+        "verifyInvitedUser",
+    ])->name("verify-invited-user");
+
+    Route::get("verification-status", [
+        \App\Http\Controllers\EmailVerificationController::class,
+        "status",
+    ])->name("verification.status");
+
+    Route::post("force-verify", [
+        \App\Http\Controllers\EmailVerificationController::class,
+        "forceVerify",
+    ])->name("verification.force");
+
     Route::redirect("settings", "settings/profile");
 
     // Profile settings
@@ -149,6 +183,26 @@ Route::middleware(["auth"])->group(function () {
         \App\Http\Controllers\TrustedContactController::class,
         "switchBackToOwnAccount",
     ])->name("trusted-access.switch-back");
+
+    // Invitation management
+    Route::get("invitations/manage", [
+        \App\Http\Controllers\InvitationController::class,
+        "manage",
+    ])->name("invitations.manage");
+    Route::post("invitations/{invitation}/resend", [
+        \App\Http\Controllers\InvitationController::class,
+        "resend",
+    ])->name("invitations.resend");
+    Route::post("invitations/{invitation}/cancel", [
+        \App\Http\Controllers\InvitationController::class,
+        "cancel",
+    ])->name("invitations.cancel");
+
+    // Email preview for testing (local only)
+    Route::get("invitations/{token}/preview", [
+        \App\Http\Controllers\InvitationController::class,
+        "preview",
+    ])->name("invitations.preview");
 
     Volt::route("settings/two-factor", "settings.two-factor")
         ->middleware(

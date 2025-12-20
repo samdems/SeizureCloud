@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Http\Requests\TrustedContactStoreRequest;
 use App\Http\Requests\TrustedContactUpdateRequest;
+use App\Models\UserInvitation;
+use App\Notifications\TrustedContactInvitation;
+use Illuminate\Support\Facades\Notification;
 
 class TrustedContactController extends Controller
 {
@@ -33,9 +36,16 @@ class TrustedContactController extends Controller
             ->orderBy("created_at", "desc")
             ->get();
 
+        // Get pending invitations sent by this user
+        $sentInvitations = $user
+            ->sentInvitations()
+            ->pending()
+            ->orderBy("created_at", "desc")
+            ->get();
+
         return view(
             "settings.trusted-contacts.index",
-            compact("trustedContacts", "accessibleAccounts"),
+            compact("trustedContacts", "accessibleAccounts", "sentInvitations"),
         );
     }
 
@@ -56,36 +66,114 @@ class TrustedContactController extends Controller
 
         $validated = $request->validated();
 
-        // Find the trusted user
-        $trustedUser = User::where("email", $validated["email"])->first();
-
-        if (!$trustedUser) {
-            return back()->withErrors([
-                "email" => "User with this email not found.",
-            ]);
-        }
-
-        if ($trustedUser->id === $user->id) {
+        // Check if user is trying to add themselves
+        if ($validated["email"] === $user->email) {
             return back()->withErrors([
                 "email" => "You cannot add yourself as a trusted contact.",
             ]);
         }
 
-        $trustedContact = $user->trustedContacts()->create([
-            "trusted_user_id" => $trustedUser->id,
-            "nickname" => $validated["nickname"],
-            "access_note" => $validated["access_note"],
-            "expires_at" => $validated["expires_at"],
-            "granted_at" => now(),
-            "is_active" => true,
-        ]);
+        // Find the trusted user
+        $trustedUser = User::where("email", $validated["email"])->first();
 
-        return redirect()
-            ->route("settings.trusted-contacts.index")
-            ->with(
-                "success",
-                "Trusted access granted to {$trustedUser->name}.",
-            );
+        if ($trustedUser) {
+            // User exists - create trusted contact directly
+
+            // Check if relationship already exists
+            $existingContact = $user
+                ->trustedContacts()
+                ->where("trusted_user_id", $trustedUser->id)
+                ->first();
+
+            if ($existingContact) {
+                return back()->withErrors([
+                    "email" => "This user is already in your trusted contacts.",
+                ]);
+            }
+
+            $trustedContact = $user->trustedContacts()->create([
+                "trusted_user_id" => $trustedUser->id,
+                "nickname" => $validated["nickname"],
+                "access_note" => $validated["access_note"],
+                "expires_at" => $validated["expires_at"],
+                "granted_at" => now(),
+                "is_active" => true,
+            ]);
+
+            return redirect()
+                ->route("settings.trusted-contacts.index")
+                ->with(
+                    "success",
+                    "Trusted access granted to {$trustedUser->name}.",
+                );
+        } else {
+            // User doesn't exist - create invitation
+
+            // Check if pending invitation already exists
+            $existingInvitation = $user
+                ->sentInvitations()
+                ->where("email", $validated["email"])
+                ->pending()
+                ->first();
+
+            if ($existingInvitation) {
+                return back()->withErrors([
+                    "email" =>
+                        "You already have a pending invitation for this email address.",
+                ]);
+            }
+
+            // Create invitation
+            $invitation = $user->sentInvitations()->create([
+                "email" => $validated["email"],
+                "nickname" => $validated["nickname"],
+                "access_note" => $validated["access_note"],
+                "expires_at" => $validated["expires_at"],
+                "status" => "pending",
+            ]);
+
+            try {
+                // Log invitation creation
+                \Log::info("Sending invitation email", [
+                    "invitation_id" => $invitation->id,
+                    "inviter" => $user->email,
+                    "invitee" => $validated["email"],
+                    "token" => $invitation->token,
+                ]);
+
+                // Send invitation email
+                Notification::route("mail", $validated["email"])->notify(
+                    new TrustedContactInvitation($invitation, $user),
+                );
+
+                \Log::info("Invitation email sent successfully", [
+                    "invitation_id" => $invitation->id,
+                    "invitee" => $validated["email"],
+                ]);
+
+                return redirect()
+                    ->route("settings.trusted-contacts.index")
+                    ->with(
+                        "success",
+                        "Invitation sent to {$validated["email"]}. They'll receive an email with instructions to accept access.",
+                    );
+            } catch (\Exception $e) {
+                \Log::error("Failed to send invitation email", [
+                    "invitation_id" => $invitation->id,
+                    "invitee" => $validated["email"],
+                    "error" => $e->getMessage(),
+                    "trace" => $e->getTraceAsString(),
+                ]);
+
+                // If email fails, delete the invitation and show error
+                $invitation->delete();
+
+                return back()->withErrors([
+                    "email" =>
+                        "Failed to send invitation email: " . $e->getMessage(),
+                ]);
+            }
+        }
     }
 
     /**

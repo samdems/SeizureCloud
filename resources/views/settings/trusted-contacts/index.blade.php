@@ -48,6 +48,77 @@
         @endif
 
         <div class="grid gap-6 lg:grid-cols-2">
+            <!-- Pending Invitations -->
+            @if($sentInvitations->isNotEmpty())
+                <div class="lg:col-span-2">
+                    <div class="card bg-warning/10 border border-warning/20">
+                        <div class="card-body">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="card-title text-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Pending Invitations
+                                </h3>
+                                <div class="badge badge-warning">{{ $sentInvitations->count() }}</div>
+                            </div>
+
+                            <div class="space-y-3">
+                                @foreach($sentInvitations as $invitation)
+                                    <div class="card bg-base-200/50 border border-base-300/50">
+                                        <div class="card-body p-4">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="avatar placeholder">
+                                                        <div class="bg-warning/20 text-warning rounded-full w-10">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                            </svg>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <h4 class="font-semibold">{{ $invitation->email }}</h4>
+                                                        @if($invitation->nickname)
+                                                            <p class="text-sm text-base-content/70">{{ $invitation->nickname }}</p>
+                                                        @endif
+                                                        <p class="text-xs text-base-content/50">
+                                                            Sent {{ $invitation->created_at->diffForHumans() }}
+                                                            • Expires {{ $invitation->invitation_expires_at->diffForHumans() }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    @if($invitation->isExpired())
+                                                        <span class="badge badge-error badge-sm">Expired</span>
+                                                        <form action="{{ route('invitations.resend', $invitation) }}" method="POST" class="inline">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-xs btn-warning">
+                                                                Resend
+                                                            </button>
+                                                        </form>
+                                                    @else
+                                                        <span class="badge badge-warning badge-sm">Pending</span>
+                                                    @endif
+                                                    <form action="{{ route('invitations.cancel', $invitation) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to cancel this invitation?')">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-xs btn-error btn-outline">
+                                                            Cancel
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                            @if($invitation->access_note)
+                                                <p class="text-sm text-base-content/70 mt-2 pl-13">{{ $invitation->access_note }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <!-- Accounts You Have Access To -->
             <div class="card bg-base-100 border border-base-300">
                 <div class="card-body">

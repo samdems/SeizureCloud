@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             "account.type" =>
                 \App\Http\Middleware\CheckAccountTypeMiddleware::class,
+            "custom.verified" => \App\Http\Middleware\CustomVerifyEmail::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

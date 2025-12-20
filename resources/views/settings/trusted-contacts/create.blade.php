@@ -47,7 +47,7 @@
                         </label>
                     @else
                         <label class="label">
-                            <span class="label-text-alt">This person must have an account on this platform</span>
+                            <span class="label-text-alt">If they don't have an account, we'll send them an invitation to join</span>
                         </label>
                     @enderror
                 </div>
@@ -122,6 +122,23 @@
                 </div>
 
                 <div class="divider"></div>
+
+                <div class="alert alert-info mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                        <h3 class="font-bold">How It Works</h3>
+                        <div class="text-sm mt-1">
+                            <p class="mb-2">When you add a trusted contact:</p>
+                            <ul class="list-disc list-inside space-y-1 ml-4">
+                                <li><strong>If they have an account:</strong> Access is granted immediately</li>
+                                <li><strong>If they don't have an account:</strong> They'll receive an email invitation to join and accept access</li>
+                                <li><strong>Invitations expire in 7 days</strong> but can be resent if needed</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="alert alert-warning">
                     <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
