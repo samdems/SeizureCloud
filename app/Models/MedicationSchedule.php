@@ -15,6 +15,7 @@ class MedicationSchedule extends Model
         "medication_id",
         "scheduled_time",
         "dosage_multiplier",
+        "unit",
         "days_of_week",
         "frequency",
         "active",
@@ -52,14 +53,11 @@ class MedicationSchedule extends Model
 
     public function getCalculatedDosage(): ?string
     {
-        if (!$this->medication->dosage) {
+        if (!$this->dosage_multiplier) {
             return null;
         }
 
-        $calculated =
-            floatval($this->medication->dosage) *
-            floatval($this->dosage_multiplier);
-        return number_format($calculated, 2, ".", "");
+        return number_format(floatval($this->dosage_multiplier), 2, ".", "");
     }
 
     public function getCalculatedDosageWithUnit(): ?string
@@ -69,7 +67,8 @@ class MedicationSchedule extends Model
             return null;
         }
 
-        return $dosage . " " . $this->medication->unit;
+        $unit = $this->unit ?? $this->medication->unit;
+        return $dosage . " " . $unit;
     }
 
     /**

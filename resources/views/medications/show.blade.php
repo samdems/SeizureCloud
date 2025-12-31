@@ -157,13 +157,10 @@
                                         <tr>
                                             <td class="font-semibold">{{ Carbon\Carbon::parse($schedule->scheduled_time)->format('g:i A') }}</td>
                                             <td>
-                                                @if($schedule->getCalculatedDosageWithUnit())
-                                                    {{ $schedule->getCalculatedDosageWithUnit() }}
-                                                    @if($schedule->dosage_multiplier != 1)
-                                                        <span class="text-xs text-base-content/60">({{ $schedule->dosage_multiplier }}x)</span>
-                                                    @endif
+                                                @if($schedule->dosage_multiplier)
+                                                    {{ $schedule->dosage_multiplier }} {{ $schedule->unit ?? $medication->unit }}
                                                 @else
-                                                    <span class="text-base-content/50">-</span>
+                                                    <span class="text-base-content/50">Not specified</span>
                                                 @endif
                                             </td>
                                             <td>
@@ -499,27 +496,21 @@
 
                 <x-form-field
                     name="dosage_multiplier"
-                    label="Dosage Multiplier"
-                    type="select"
-                    value="1"
-                    :options="[
-                        '0.25' => '0.25x (¼ dose)',
-                        '0.5' => '0.5x (½ dose)',
-                        '0.75' => '0.75x (¾ dose)',
-                        '1' => '1x (Standard dose)',
-                        '1.5' => '1.5x (1½ doses)',
-                        '2' => '2x (Double dose)',
-                        '2.5' => '2.5x (2½ doses)',
-                        '3' => '3x (Triple dose)'
-                    ]"
+                    label="Dosage"
+                    type="number"
+                    :value="$medication->dosage ?? ''"
+                    step="0.01"
+                    min="0.01"
                 />
-                @if($medication->dosage)
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text-alt">Base dosage: {{ $medication->dosage }} {{ $medication->unit }}</span>
-                        </label>
-                    </div>
-                @endif
+
+                <x-form-field
+                    name="unit"
+                    label="Unit"
+                    type="text"
+                    :value="$medication->unit ?? ''"
+                    placeholder="e.g., mg, ml, tablets"
+                    maxlength="50"
+                />
 
                 <x-form-field
                     name="frequency"
