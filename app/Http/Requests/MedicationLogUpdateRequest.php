@@ -28,12 +28,12 @@ class MedicationLogUpdateRequest extends FormRequest
             "intended_time" => ["nullable", "date"],
             "dosage_taken" => ["nullable", "string", "max:255"],
             "notes" => ["nullable", "string", "max:1000"],
-            "skipped" => ["boolean"],
+            "skipped" => ["nullable", "boolean"],
             "skip_reason" => [
                 "nullable",
                 "string",
                 "max:255",
-                "required_if:skipped,true",
+                "required_if:skipped,1",
             ],
         ];
     }

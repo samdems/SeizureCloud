@@ -157,12 +157,13 @@ class SeizuresSeeder extends Seeder
                 "end_time" => $endTime,
                 "duration_minutes" => $durationMinutes,
                 "severity" => fake()->numberBetween(4, 7), // Moderate severity
+                "nhs_contact_type" => $nhsContacted
                     ? fake()->randomElement([
                         "111",
                         "GP",
                         "Epileptic Specialist",
                     ])
-                    : "None",
+                    : null,
                 "ambulance_called" => fake()->boolean(10), // Much less likely
                 "notes" =>
                     "Seizure #" .
@@ -224,7 +225,7 @@ class SeizuresSeeder extends Seeder
                 "nhs_contact_type" =>
                     $severity >= 6
                         ? fake()->randomElement(["111", "GP"])
-                        : "None",
+                        : null,
                 "notes" => "Seizure #" . ($i + 1) . " in event",
             ]);
 
@@ -355,7 +356,7 @@ class SeizuresSeeder extends Seeder
             "end_time" => $nearEndTime,
             "duration_minutes" => $nearEmergencyDuration,
             "severity" => fake()->numberBetween(5, 6),
-            "nhs_contact_type" => fake()->boolean(50) ? "111" : "None",
+            "nhs_contact_type" => fake()->boolean(50) ? "111" : null,
             "notes" =>
                 "Close to possible status epilepticus threshold - " .
                 $nearEmergencyDuration .
