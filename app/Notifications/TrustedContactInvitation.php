@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\UserInvitation;
 use App\Models\User;
+use App\Mail\LoggedMailMessage;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -41,10 +42,22 @@ class TrustedContactInvitation extends Notification
             'M j, Y \a\t g:i A',
         );
 
-        $mailMessage = new MailMessage();
-        $mailMessage->subject(
-            "You've been invited to access {$inviterName}'s health records",
-        );
+        $mailMessage = new LoggedMailMessage();
+        $mailMessage
+            ->subject(
+                "You've been invited to access {$inviterName}'s health records",
+            )
+            ->emailType("invitation")
+            ->forUser($this->inviter->id)
+            ->withMetadata([
+                "invitation_id" => $this->invitation->id,
+                "inviter_id" => $this->inviter->id,
+                "inviter_name" => $this->inviter->name,
+                "invitation_type" =>
+                    $this->invitation->invitation_type ?? "trusted_contact",
+                "nickname" => $this->invitation->nickname,
+                "expires_at" => $this->invitation->invitation_expires_at->toIso8601String(),
+            ]);
         $mailMessage->greeting("Hello!");
         $mailMessage->line(
             "{$inviterName} has invited you to become a trusted contact on {$appName}.",

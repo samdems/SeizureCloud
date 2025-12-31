@@ -8,6 +8,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use App\Models\Seizure;
 use App\Models\User;
+use App\Mail\LoggedMailMessage;
 
 class SeizureAddedNotification extends Notification
 {
@@ -52,8 +53,31 @@ class SeizureAddedNotification extends Notification
 
         $startTime = $this->seizure->start_time->format("M j, Y g:i A");
 
-        $mailMessage = new MailMessage();
-        $mailMessage->subject($subject);
+        $mailMessage = new LoggedMailMessage();
+        $mailMessage
+            ->subject($subject)
+            ->emailType(
+                $emergencyStatus["is_emergency"]
+                    ? "emergency"
+                    : "seizure_alert",
+            )
+            ->forUser($this->patient->id)
+            ->withMetadata([
+                "seizure_id" => $this->seizure->id,
+                "patient_id" => $this->patient->id,
+                "patient_name" => $this->patient->name,
+                "seizure_type" => $this->seizure->seizure_type,
+                "severity" => $this->seizure->severity,
+                "start_time" => $this->seizure->start_time->toIso8601String(),
+                "duration_minutes" => $this->seizure->calculated_duration,
+                "is_emergency" => $emergencyStatus["is_emergency"],
+                "emergency_reason" => $emergencyStatus["is_emergency"]
+                    ? ($emergencyStatus["status_epilepticus"]
+                        ? "Possible Status Epilepticus"
+                        : "Seizure Cluster")
+                    : null,
+                "is_for_patient" => $isPatient,
+            ]);
         $mailMessage->greeting($greeting);
         $mailMessage->line($mainMessage);
         $mailMessage->line("**Date & Time:** {$startTime}");
