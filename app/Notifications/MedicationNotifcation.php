@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\User;
 use App\Models\MedicationLog;
+use App\Mail\LoggedMailMessage;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -42,18 +43,53 @@ class MedicationNotifcation extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $mailMessage = new MailMessage();
-        return $mailMessage->markdown("mail.medication-notifcation", [
-            "medications" => $this->medications,
-            "patient" => $this->patient,
-            "type" => $this->type,
-            "period" => $this->period,
-            "notes" => $this->notes,
-            "count" => $this->count,
-            "isSkipped" =>
-                $this->type === "single" && $this->medications->skipped,
-            "recipient" => $notifiable,
-        ]);
+        $mailMessage = new LoggedMailMessage();
+
+        // Determine email type based on action
+        $emailType = "medication_taken";
+        if ($this->type === "single" && $this->medications->skipped) {
+            $emailType = "medication_skipped";
+        } elseif ($this->type === "bulk") {
+            $emailType = "medication_bulk_taken";
+        }
+
+        // Build metadata
+        $metadata = [
+            "patient_id" => $this->patient->id,
+            "patient_name" => $this->patient->name,
+            "notification_type" => $this->type,
+            "is_for_patient" => $notifiable->id === $this->patient->id,
+        ];
+
+        if ($this->type === "bulk") {
+            $metadata["period"] = $this->period;
+            $metadata["count"] = $this->count;
+            $metadata["notes"] = $this->notes;
+        } elseif ($this->type === "single") {
+            $metadata["medication_id"] = $this->medications->medication_id;
+            $metadata["medication_name"] =
+                $this->medications->medication->name ?? "Unknown";
+            $metadata["skipped"] = $this->medications->skipped;
+            if ($this->medications->skipped) {
+                $metadata["skip_reason"] = $this->medications->skip_reason;
+            }
+        }
+
+        return $mailMessage
+            ->emailType($emailType)
+            ->forUser($this->patient->id)
+            ->withMetadata($metadata)
+            ->markdown("mail.medication-notifcation", [
+                "medications" => $this->medications,
+                "patient" => $this->patient,
+                "type" => $this->type,
+                "period" => $this->period,
+                "notes" => $this->notes,
+                "count" => $this->count,
+                "isSkipped" =>
+                    $this->type === "single" && $this->medications->skipped,
+                "recipient" => $notifiable,
+            ]);
     }
 
     /**

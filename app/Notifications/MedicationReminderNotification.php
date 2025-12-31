@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\User;
 use App\Models\MedicationSchedule;
+use App\Mail\LoggedMailMessage;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -41,12 +42,22 @@ class MedicationReminderNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $mailMessage = new MailMessage();
+        $mailMessage = new LoggedMailMessage();
 
         $subject = $this->getSubject();
 
         return $mailMessage
             ->subject($subject)
+            ->emailType("medication_reminder")
+            ->forUser($this->patient->id)
+            ->withMetadata([
+                "reminder_type" => $this->reminderType,
+                "overdue_count" => count($this->overdueMedications),
+                "due_count" => count($this->dueMedications),
+                "patient_id" => $this->patient->id,
+                "patient_name" => $this->patient->name,
+                "is_for_patient" => $notifiable->id === $this->patient->id,
+            ])
             ->markdown("mail.medication-reminder", [
                 "overdueMedications" => $this->overdueMedications,
                 "dueMedications" => $this->dueMedications,
