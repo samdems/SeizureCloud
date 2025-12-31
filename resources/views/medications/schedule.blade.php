@@ -22,7 +22,7 @@
             </div>
             <div class="flex flex-row gap-2">
                 <a href="{{ route('medications.schedule.history') }}" class="btn btn-secondary">
-                    View Past Days
+                    View Weekly History
                 </a>
             </div>
         </div>

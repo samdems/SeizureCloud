@@ -199,7 +199,7 @@
                         <li>
                             <a href="{{ route('medications.schedule.history') }}" class="{{ request()->routeIs('medications.schedule.history') ? 'active' : '' }}" wire:navigate>
                                 <x-heroicon-o-clock class="w-5 h-5" />
-                                History
+                                Weekly History
                             </a>
                         </li>
                         @endif

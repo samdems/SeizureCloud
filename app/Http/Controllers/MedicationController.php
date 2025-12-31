@@ -217,9 +217,14 @@ class MedicationController extends Controller
     public function scheduleHistory(Request $request)
     {
         $user = Auth::user();
-        $date = $request->query("date")
+
+        // Get the end date (defaults to yesterday)
+        $endDate = $request->query("date")
             ? \Carbon\Carbon::parse($request->query("date"))
             : now()->subDay();
+
+        // Calculate start date (7 days before end date)
+        $startDate = $endDate->copy()->subDays(6);
 
         $medications = $user
             ->medications()
@@ -231,114 +236,132 @@ class MedicationController extends Controller
             ])
             ->get();
 
-        $daySchedule = [];
+        // Build schedule for each day in the week
+        $weekSchedule = [];
 
-        foreach ($medications as $medication) {
-            // If medication is marked as_needed, add it for each dose taken that day
-            if ($medication->as_needed) {
-                $logs = MedicationLog::where("medication_id", $medication->id)
-                    ->whereDate("taken_at", $date)
-                    ->orderBy("taken_at")
-                    ->get();
+        for (
+            $date = $startDate->copy();
+            $date->lte($endDate);
+            $date->addDay()
+        ) {
+            $daySchedule = [];
 
-                // Add entry for each dose taken that day
-                foreach ($logs as $log) {
-                    $daySchedule[] = [
-                        "medication" => $medication,
-                        "schedule" => null,
-                        "as_needed" => true,
-                        "taken" => true,
-                        "taken_late" => false, // As-needed meds can't be late
-                        "is_due" => false, // As-needed meds can't be due
-                        "is_overdue" => false, // As-needed meds can't be overdue
-                        "log" => $log,
-                    ];
-                }
-
-                // If no logs for that day, show one empty entry
-                if ($logs->isEmpty()) {
-                    $daySchedule[] = [
-                        "medication" => $medication,
-                        "schedule" => null,
-                        "as_needed" => true,
-                        "taken" => false,
-                        "taken_late" => false, // As-needed meds can't be late
-                        "is_due" => false, // As-needed meds can't be due
-                        "is_overdue" => false, // As-needed meds can't be overdue
-                        "log" => null,
-                    ];
-                }
-            }
-
-            // Add scheduled medications
-            foreach ($medication->schedules as $schedule) {
-                if ($schedule->isScheduledForToday()) {
-                    $log = MedicationLog::where(
+            foreach ($medications as $medication) {
+                // If medication is marked as_needed, add it for each dose taken that day
+                if ($medication->as_needed) {
+                    $logs = MedicationLog::where(
                         "medication_id",
                         $medication->id,
                     )
-                        ->where("medication_schedule_id", $schedule->id)
                         ->whereDate("taken_at", $date)
-                        ->first();
+                        ->orderBy("taken_at")
+                        ->get();
 
-                    $daySchedule[] = [
-                        "medication" => $medication,
-                        "schedule" => $schedule,
-                        "as_needed" => false,
-                        "taken" => $log ? true : false,
-                        "taken_late" => $log ? $log->isTakenLate() : false,
-                        "is_due" => !$log ? $schedule->isDue($date) : false,
-                        "is_overdue" => !$log
-                            ? $schedule->isOverdue($date)
-                            : false,
-                        "log" => $log,
-                    ];
+                    // Add entry for each dose taken that day
+                    foreach ($logs as $log) {
+                        $daySchedule[] = [
+                            "medication" => $medication,
+                            "schedule" => null,
+                            "as_needed" => true,
+                            "taken" => true,
+                            "taken_late" => false,
+                            "is_due" => false,
+                            "is_overdue" => false,
+                            "log" => $log,
+                        ];
+                    }
+
+                    // If no logs for that day, show one empty entry
+                    if ($logs->isEmpty()) {
+                        $daySchedule[] = [
+                            "medication" => $medication,
+                            "schedule" => null,
+                            "as_needed" => true,
+                            "taken" => false,
+                            "taken_late" => false,
+                            "is_due" => false,
+                            "is_overdue" => false,
+                            "log" => null,
+                        ];
+                    }
+                }
+
+                // Add scheduled medications
+                foreach ($medication->schedules as $schedule) {
+                    if ($schedule->isScheduledForToday()) {
+                        $log = MedicationLog::where(
+                            "medication_id",
+                            $medication->id,
+                        )
+                            ->where("medication_schedule_id", $schedule->id)
+                            ->whereDate("taken_at", $date)
+                            ->first();
+
+                        $daySchedule[] = [
+                            "medication" => $medication,
+                            "schedule" => $schedule,
+                            "as_needed" => false,
+                            "taken" => $log ? true : false,
+                            "taken_late" => $log ? $log->isTakenLate() : false,
+                            "is_due" => !$log ? $schedule->isDue($date) : false,
+                            "is_overdue" => !$log
+                                ? $schedule->isOverdue($date)
+                                : false,
+                            "log" => $log,
+                        ];
+                    }
                 }
             }
-        }
 
-        // Sort: as_needed items at the end, scheduled items by time
-        usort($daySchedule, function ($a, $b) {
-            if ($a["as_needed"] && !$b["as_needed"]) {
-                return 1;
-            }
-            if (!$a["as_needed"] && $b["as_needed"]) {
-                return -1;
-            }
-            if ($a["as_needed"] && $b["as_needed"]) {
-                return 0;
-            }
-            return $a["schedule"]->scheduled_time <=>
-                $b["schedule"]->scheduled_time;
-        });
+            // Sort: as_needed items at the end, scheduled items by time
+            usort($daySchedule, function ($a, $b) {
+                if ($a["as_needed"] && !$b["as_needed"]) {
+                    return 1;
+                }
+                if (!$a["as_needed"] && $b["as_needed"]) {
+                    return -1;
+                }
+                if ($a["as_needed"] && $b["as_needed"]) {
+                    return 0;
+                }
+                return $a["schedule"]->scheduled_time <=>
+                    $b["schedule"]->scheduled_time;
+            });
 
-        // Group by time period
-        $groupedSchedule = [
-            "morning" => [],
-            "afternoon" => [],
-            "evening" => [],
-            "bedtime" => [],
-            "as_needed" => [],
-        ];
+            // Group by time period
+            $groupedSchedule = [
+                "morning" => [],
+                "afternoon" => [],
+                "evening" => [],
+                "bedtime" => [],
+                "as_needed" => [],
+            ];
 
-        foreach ($daySchedule as $item) {
-            if ($item["as_needed"]) {
-                $groupedSchedule["as_needed"][] = $item;
-            } else {
-                $time = $item["schedule"]->scheduled_time->format("H:i");
-                $period = $user->getTimePeriod($time);
-                $groupedSchedule[$period][] = $item;
+            foreach ($daySchedule as $item) {
+                if ($item["as_needed"]) {
+                    $groupedSchedule["as_needed"][] = $item;
+                } else {
+                    $time = $item["schedule"]->scheduled_time->format("H:i");
+                    $period = $user->getTimePeriod($time);
+                    $groupedSchedule[$period][] = $item;
+                }
             }
+
+            $weekSchedule[$date->format("Y-m-d")] = [
+                "date" => $date->copy(),
+                "daySchedule" => $daySchedule,
+                "groupedSchedule" => $groupedSchedule,
+            ];
         }
 
         return view(
             "medications.schedule-history",
             compact(
                 "medications",
-                "daySchedule",
-                "groupedSchedule",
+                "weekSchedule",
                 "user",
-                "date",
+                "startDate",
+                "endDate",
             ),
         );
     }
