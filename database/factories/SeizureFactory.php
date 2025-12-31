@@ -36,7 +36,7 @@ class SeizureFactory extends Factory
                     "999",
                     "Epileptic Specialist",
                 ])
-                : "None",
+                : null,
             "postictal_state_end" => fake()
                 ->optional()
                 ->dateTimeBetween(
