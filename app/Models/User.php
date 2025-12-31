@@ -159,6 +159,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Medication::class);
     }
 
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class);
+    }
+
     /**
      * Get trusted contacts that this user has granted access to
      */

@@ -92,7 +92,7 @@ class MedicationLog extends Model
         }
 
         if ($minutes < 0) {
-            return abs($minutes) . " minutes late";
+            return "+" . abs($minutes) . " minutes late";
         }
 
         return abs($minutes) . " minutes early";

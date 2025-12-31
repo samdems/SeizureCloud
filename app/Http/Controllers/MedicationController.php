@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Medication;
 use App\Models\MedicationLog;
 use App\Models\MedicationSchedule;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -387,9 +388,11 @@ class MedicationController extends Controller
             $schedule = MedicationSchedule::findOrFail(
                 $validated["medication_schedule_id"],
             );
-            $validated["intended_time"] = now()->setTimeFrom(
-                $schedule->scheduled_time,
-            );
+            // Use the date from taken_at to avoid timezone/date issues
+            $takenAt = Carbon::parse($validated["taken_at"]);
+            $validated["intended_time"] = $takenAt
+                ->copy()
+                ->setTimeFrom($schedule->scheduled_time);
         }
 
         $medicationLog = MedicationLog::create($validated);

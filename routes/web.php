@@ -269,6 +269,20 @@ Route::middleware(["auth"])->group(function () {
     )->middleware("account.type:patient");
 
     // Medication routes - Patient accounts only
+    // Document routes
+    Route::get("documents", [
+        \App\Http\Controllers\DocumentController::class,
+        "index",
+    ])->name("documents.index");
+    Route::get("documents/{document}/download", [
+        \App\Http\Controllers\DocumentController::class,
+        "download",
+    ])->name("documents.download");
+    Route::get("documents/{document}/view", [
+        \App\Http\Controllers\DocumentController::class,
+        "view",
+    ])->name("documents.view");
+
     Route::middleware("account.type:patient")->group(function () {
         Route::resource(
             "medications",
