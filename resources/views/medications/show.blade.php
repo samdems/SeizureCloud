@@ -35,6 +35,17 @@
                 <div class="card-body">
                     <h2 class="card-title">Medication Information</h2>
 
+                    <div class="mb-4">
+                        <a href="https://bnf.nice.org.uk/drugs/{{ urlencode(strtolower($medication->name)) }}/"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="btn btn-sm btn-outline btn-primary">
+                            <x-heroicon-o-book-open class="h-4 w-4" />
+                            View in BNF
+                            <x-heroicon-o-arrow-top-right-on-square class="h-3 w-3" />
+                        </a>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <h3 class="text-sm font-medium text-base-content/60">Dosage</h3>
