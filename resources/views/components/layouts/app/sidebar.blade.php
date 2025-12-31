@@ -204,6 +204,19 @@
                         </li>
                         @endif
 
+
+                        <li class="menu-title mt-4">
+                            <span class="flex items-center gap-2">
+                                <x-heroicon-o-folder class="w-4 h-4" />
+                                Documents
+                            </span>
+                        </li>
+                        <li>
+                            <a href="{{ route('documents.index') }}" class="{{ request()->routeIs('documents.*') ? 'active' : '' }}" wire:navigate>
+                                <x-heroicon-o-document-text class="w-5 h-5" />
+                                My Documents
+                            </a>
+                        </li>
                         @if(auth()->user()->isAdmin())
                         <li class="menu-title mt-4">
                             <span class="flex items-center gap-2">
