@@ -271,9 +271,30 @@
                                     <dialog id="editLogModal{{ $log->id }}" class="modal">
                                         <div class="modal-box">
                                             <h3 class="font-bold text-lg">Edit Medication History</h3>
+
+                                            @if ($errors->any())
+                                                <div class="alert alert-error mt-4">
+                                                    <div>
+                                                        <x-heroicon-o-exclamation-triangle class="h-5 w-5" />
+                                                        <div>
+                                                            <h3 class="font-bold">There were some errors with your submission</h3>
+                                                            <ul class="list-disc list-inside text-sm">
+                                                                @foreach ($errors->all() as $error)
+                                                                    <li>{{ $error }}</li>
+                                                                @endforeach
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endif
+
                                             <form method="POST" action="{{ route('medications.log-update', $log) }}" class="space-y-4 mt-4">
                                                 @csrf
                                                 @method('PUT')
+
+                                                @if($log->intended_time)
+                                                    <input type="hidden" name="intended_time" value="{{ $log->intended_time->format('Y-m-d\TH:i:s') }}">
+                                                @endif
 
                                                 <x-form-field
                                                     name="taken_at"
@@ -367,6 +388,24 @@
                                                     toggleSkipReason{{ $log->id }}();
                                                 });
                                             });
+
+                                            // Add form submit event listener for debugging
+                                            const form = document.querySelector('#editLogModal{{ $log->id }} form');
+                                            if (form) {
+                                                form.addEventListener('submit', function(e) {
+                                                    console.log('Form submitting for log {{ $log->id }}');
+                                                    console.log('Form action:', this.action);
+                                                    console.log('Form method:', this.method);
+
+                                                    // Check if form is valid
+                                                    if (!this.checkValidity()) {
+                                                        console.log('Form validation failed');
+                                                        e.preventDefault();
+                                                        this.reportValidity();
+                                                        return false;
+                                                    }
+                                                });
+                                            }
                                         });
                                     </script>
                                 @endforeach

@@ -438,6 +438,8 @@ class MedicationController extends Controller
         MedicationLogUpdateRequest $request,
         MedicationLog $medicationLog,
     ) {
+        $this->authorize("update", $medicationLog);
+
         $validated = $request->validated();
 
         $medicationLog->update($validated);
