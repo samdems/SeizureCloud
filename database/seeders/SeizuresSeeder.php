@@ -157,6 +157,7 @@ class SeizuresSeeder extends Seeder
                 "end_time" => $endTime,
                 "duration_minutes" => $durationMinutes,
                 "severity" => fake()->numberBetween(4, 7), // Moderate severity
+                "nhs_contact_type" => $nhsContacted
                     ? fake()->randomElement([
                         "111",
                         "GP",

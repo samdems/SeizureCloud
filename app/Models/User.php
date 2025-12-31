@@ -436,7 +436,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function wasCreatedThroughInvitation(): bool
     {
-        return $this->created_via_invitation;
+        return (bool) $this->created_via_invitation;
     }
 
     /**
