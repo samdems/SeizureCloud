@@ -81,3 +81,11 @@ Schedule::job(new \App\Jobs\SystemHealthCheck())
 Schedule::command("scheduler:heartbeat")
     ->everyMinute()
     ->name("scheduler-heartbeat");
+
+// Mark missed medications as skipped (runs daily at midnight)
+Schedule::command("medication:mark-missed-skipped")
+    ->dailyAt("00:00")
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name("mark-missed-medications-skipped")
+    ->description("Automatically mark missed scheduled medications as skipped");
