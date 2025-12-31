@@ -6,7 +6,8 @@
                 <p class="text-base-content/60">{{ $startDate->format('M j') }} - {{ $endDate->format('M j, Y') }}</p>
             </div>
             <a href="{{ route('medications.schedule') }}" class="btn btn-ghost">
-                Back to Today
+                <x-heroicon-o-arrow-left class="w-4 h-4" />
+                Back to Schedule
             </a>
         </div>
 
@@ -19,7 +20,6 @@
                             label="Week Ending"
                             type="date"
                             value="{{ $endDate->format('Y-m-d') }}"
-                            max="{{ now()->format('Y-m-d') }}"
                             wrapperClass=""
                         />
                     </div>
@@ -29,12 +29,16 @@
                             <x-heroicon-o-chevron-left class="w-4 h-4" />
                             Previous Week
                         </a>
-                        @if($endDate->copy()->addDays(7)->lte(now()))
-                            <a href="{{ route('medications.schedule.history', ['date' => $endDate->copy()->addDays(7)->format('Y-m-d')]) }}" class="btn btn-outline btn-sm">
+                        @if(!$endDate->isToday())
+                            <a href="{{ route('medications.schedule.history') }}" class="btn btn-outline btn-sm btn-primary">
+                                <x-heroicon-o-calendar class="w-4 h-4" />
+                                This Week
+                            </a>
+                        @endif
+                        <a href="{{ route('medications.schedule.history', ['date' => $endDate->copy()->addDays(7)->format('Y-m-d')]) }}" class="btn btn-outline btn-sm">
                                 Next Week
                                 <x-heroicon-o-chevron-right class="w-4 h-4" />
                             </a>
-                        @endif
                     </div>
                 </form>
             </div>
@@ -112,6 +116,9 @@
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
                                     @foreach($groupedSchedule[$period] as $item)
+                                        @php
+                                            $uniqueId = 'edit_' . $dateKey . '_' . $item['medication']->id . '_' . ($item['schedule']->id ?? 'asneeded_' . ($item['log']->id ?? 'new'));
+                                        @endphp
                                         <div class="card bg-base-200 shadow {{ $item['taken'] ? 'opacity-70' : '' }} {{ $item['taken_late'] ? 'border-error border-2' : '' }} {{ $item['is_overdue'] && !$item['taken'] ? 'border-error border-2' : '' }}">
                                             <div class="card-body p-4">
                                                 <div class="flex items-start justify-between gap-2">
@@ -184,6 +191,28 @@
                                                         @endif
                                                     </div>
                                                 @endif
+
+                                                <!-- Action buttons -->
+                                                <div class="mt-3 flex gap-2">
+                                                    @if($item['taken'] && isset($item['log']))
+                                                        <button class="btn btn-xs btn-info flex-1" onclick="document.getElementById('{{ $uniqueId }}').showModal()">
+                                                            <x-heroicon-o-pencil class="w-3 h-3" />
+                                                            Edit
+                                                        </button>
+                                                        <form action="{{ route('medications.log-destroy', $item['log']) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this entry?')">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-xs btn-error">
+                                                                <x-heroicon-o-trash class="w-3 h-3" />
+                                                            </button>
+                                                        </form>
+                                                    @else
+                                                        <button class="btn btn-xs btn-success flex-1" onclick="document.getElementById('{{ $uniqueId }}').showModal()">
+                                                            <x-heroicon-o-plus class="w-3 h-3" />
+                                                            Log
+                                                        </button>
+                                                    @endif
+                                                </div>
                                             </div>
                                         </div>
                                     @endforeach
@@ -197,6 +226,143 @@
                     @endif
                 </div>
             </div>
+
+            <!-- Edit/Log Modals for this day -->
+            @foreach(['morning', 'afternoon', 'evening', 'bedtime', 'as_needed'] as $period)
+                @foreach($groupedSchedule[$period] as $item)
+                    @php
+                        $uniqueId = 'edit_' . $dateKey . '_' . $item['medication']->id . '_' . ($item['schedule']->id ?? 'asneeded_' . ($item['log']->id ?? 'new'));
+                    @endphp
+                    <dialog id="{{ $uniqueId }}" class="modal">
+                        <div class="modal-box">
+                            <h3 class="font-bold text-lg">
+                                @if($item['taken'] && isset($item['log']))
+                                    Edit Medication Log
+                                @else
+                                    Log Medication
+                                @endif
+                            </h3>
+
+                            <form action="{{ $item['taken'] && isset($item['log']) ? route('medications.log-update', $item['log']) : route('medications.log-taken') }}" method="POST" class="mt-4">
+                                @csrf
+                                @if($item['taken'] && isset($item['log']))
+                                    @method('PUT')
+                                @endif
+
+                                @if(!($item['taken'] && isset($item['log'])))
+                                    <input type="hidden" name="medication_id" value="{{ $item['medication']->id }}">
+                                    @if(!$item['as_needed'])
+                                        <input type="hidden" name="medication_schedule_id" value="{{ $item['schedule']->id }}">
+                                    @endif
+                                @endif
+
+                                <div class="space-y-4">
+                                    <div class="alert alert-info">
+                                        <x-heroicon-o-information-circle class="w-5 h-5" />
+                                        <div>
+                                            <div class="font-bold">{{ $item['medication']->name }}</div>
+                                            <div class="text-sm">
+                                                @if($item['as_needed'])
+                                                    As Needed Medication
+                                                @else
+                                                    Scheduled: {{ Carbon\Carbon::parse($item['schedule']->scheduled_time)->format('g:i A') }}
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @php
+                                        $takenAtValue = $item['taken'] && isset($item['log'])
+                                            ? $item['log']->taken_at->format('Y-m-d\TH:i')
+                                            : $date->format('Y-m-d\T') . ($item['as_needed'] ? '12:00' : $item['schedule']->scheduled_time->format('H:i'));
+                                    @endphp
+                                    <x-form-field
+                                        name="taken_at"
+                                        label="Date & Time Taken"
+                                        type="datetime-local"
+                                        :value="$takenAtValue"
+                                        required
+                                    />
+
+                                    @php
+                                        $dosageValue = $item['taken'] && isset($item['log'])
+                                            ? $item['log']->dosage_taken
+                                            : ($item['as_needed']
+                                                ? ($item['medication']->dosage . ' ' . $item['medication']->unit)
+                                                : $item['schedule']->getCalculatedDosageWithUnit());
+                                    @endphp
+                                    <x-form-field
+                                        name="dosage_taken"
+                                        label="Dosage Taken"
+                                        type="text"
+                                        :value="$dosageValue"
+                                        placeholder="e.g., 500 mg"
+                                    />
+
+                                    @php
+                                        $notesValue = $item['taken'] && isset($item['log']) ? $item['log']->notes : '';
+                                    @endphp
+                                    <x-form-field
+                                        name="notes"
+                                        label="Notes (Optional)"
+                                        type="textarea"
+                                        :value="$notesValue"
+                                        placeholder="Any notes about this dose..."
+                                        rows="3"
+                                    />
+
+                                    <div class="form-control">
+                                        <label class="label cursor-pointer justify-start gap-3">
+                                            <input type="checkbox" name="skipped" value="1" class="checkbox" {{ ($item['taken'] && isset($item['log']) && $item['log']->skipped) ? 'checked' : '' }}>
+                                            <span class="label-text">Mark as skipped (not taken)</span>
+                                        </label>
+                                    </div>
+
+                                    <div id="skip-reason-container-{{ $uniqueId }}" style="display: {{ ($item['taken'] && isset($item['log']) && $item['log']->skipped) ? 'block' : 'none' }}">
+                                        @php
+                                            $skipReasonValue = $item['taken'] && isset($item['log']) ? $item['log']->skip_reason : '';
+                                        @endphp
+                                        <x-form-field
+                                            name="skip_reason"
+                                            label="Reason for Skipping"
+                                            type="text"
+                                            :value="$skipReasonValue"
+                                            placeholder="e.g., Side effects, forgot, etc."
+                                        />
+                                    </div>
+                                </div>
+
+                                <div class="modal-action">
+                                    <button type="button" class="btn" onclick="document.getElementById('{{ $uniqueId }}').close()">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <x-heroicon-o-check class="w-4 h-4" />
+                                        @if($item['taken'] && isset($item['log']))
+                                            Update
+                                        @else
+                                            Save
+                                        @endif
+                                    </button>
+                                </div>
+                            </form>
+
+                            <script>
+                                (function() {
+                                    const modal = document.getElementById('{{ $uniqueId }}');
+                                    const checkbox = modal.querySelector('input[name="skipped"]');
+                                    const skipReasonContainer = document.getElementById('skip-reason-container-{{ $uniqueId }}');
+
+                                    checkbox.addEventListener('change', function() {
+                                        skipReasonContainer.style.display = this.checked ? 'block' : 'none';
+                                    });
+                                })();
+                            </script>
+                        </div>
+                        <form method="dialog" class="modal-backdrop">
+                            <button>close</button>
+                        </form>
+                    </dialog>
+                @endforeach
+            @endforeach
         @endforeach
 
         @if(count($weekSchedule) === 0)

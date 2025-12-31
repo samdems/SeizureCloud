@@ -218,12 +218,18 @@ class MedicationController extends Controller
     {
         $user = Auth::user();
 
-        // Get the end date (defaults to yesterday)
-        $endDate = $request->query("date")
-            ? \Carbon\Carbon::parse($request->query("date"))
-            : now()->subDay();
+        // Get the end date (defaults to upcoming/current Sunday for calendar week view)
+        if ($request->query("date")) {
+            $endDate = \Carbon\Carbon::parse($request->query("date"));
+        } else {
+            // Default to this Sunday (or today if today is Sunday)
+            $endDate = now();
+            if (!$endDate->isSunday()) {
+                $endDate = $endDate->next(\Carbon\Carbon::SUNDAY);
+            }
+        }
 
-        // Calculate start date (7 days before end date)
+        // Calculate start date (7 days before end date, giving us Monday-Sunday)
         $startDate = $endDate->copy()->subDays(6);
 
         $medications = $user
