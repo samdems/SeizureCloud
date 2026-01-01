@@ -16,8 +16,17 @@ class Index extends Component
     public $sortBy = "created_at";
     public $sortDirection = "desc";
     public $showUploadModal = false;
+    public $showEditModal = false;
+    public $editingDocument = null;
+    public $editTitle;
+    public $editDescription;
+    public $editCategory;
+    public $editDocumentDate;
 
-    protected $listeners = ["document-uploaded" => "refreshDocuments"];
+    protected $listeners = [
+        "document-uploaded" => "refreshDocuments",
+        "document-updated" => "refreshDocuments",
+    ];
 
     public function updatingSearch()
     {
@@ -81,14 +90,89 @@ class Index extends Component
         ]);
     }
 
+    public function editDocument($documentId)
+    {
+        $document = Document::where("user_id", auth()->id())->find($documentId);
+
+        if ($document) {
+            $this->authorize("update", $document);
+
+            $this->editingDocument = $document;
+            $this->editTitle = $document->title;
+            $this->editDescription = $document->description;
+            $this->editCategory = $document->category;
+            $this->editDocumentDate = $document->document_date
+                ? $document->document_date->format("Y-m-d")
+                : null;
+            $this->showEditModal = true;
+        }
+    }
+
+    public function updateDocument()
+    {
+        $this->validate([
+            "editTitle" => "required|string|max:255",
+            "editDescription" => "nullable|string|max:1000",
+            "editCategory" =>
+                "required|in:medical_report,prescription,test_result,scan,letter,insurance,other",
+            "editDocumentDate" => "nullable|date",
+        ]);
+
+        if ($this->editingDocument) {
+            try {
+                $this->editingDocument->update([
+                    "title" => $this->editTitle,
+                    "description" => $this->editDescription,
+                    "category" => $this->editCategory,
+                    "document_date" => $this->editDocumentDate,
+                ]);
+
+                $this->dispatch("notify", [
+                    "type" => "success",
+                    "message" => "Document updated successfully.",
+                ]);
+
+                $this->showEditModal = false;
+                $this->editingDocument = null;
+                $this->reset([
+                    "editTitle",
+                    "editDescription",
+                    "editCategory",
+                    "editDocumentDate",
+                ]);
+            } catch (\Exception $e) {
+                $this->dispatch("notify", [
+                    "type" => "error",
+                    "message" =>
+                        "Failed to update document: " . $e->getMessage(),
+                ]);
+            }
+        }
+    }
+
     public function toggleUploadModal()
     {
         $this->showUploadModal = !$this->showUploadModal;
     }
 
+    public function toggleEditModal()
+    {
+        $this->showEditModal = !$this->showEditModal;
+        if (!$this->showEditModal) {
+            $this->editingDocument = null;
+            $this->reset([
+                "editTitle",
+                "editDescription",
+                "editCategory",
+                "editDocumentDate",
+            ]);
+        }
+    }
+
     public function refreshDocuments()
     {
         $this->showUploadModal = false;
+        $this->showEditModal = false;
         $this->resetPage();
     }
 

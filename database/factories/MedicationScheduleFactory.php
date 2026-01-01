@@ -28,10 +28,20 @@ class MedicationScheduleFactory extends Factory
         $frequencies = ["daily", "weekly", "as_needed"];
         $frequency = fake()->randomElement($frequencies);
 
+        $medication = \App\Models\Medication::factory()->create();
+
         return [
-            "medication_id" => \App\Models\Medication::factory(),
+            "medication_id" => $medication->id,
             "scheduled_time" => fake()->randomElement($times),
-            "dosage_multiplier" => fake()->randomElement([0.5, 1, 1.5, 2]),
+            "dosage_multiplier" => $medication->dosage
+                ? fake()->randomElement([
+                    floatval($medication->dosage) * 0.5,
+                    floatval($medication->dosage),
+                    floatval($medication->dosage) * 1.5,
+                    floatval($medication->dosage) * 2,
+                ])
+                : fake()->randomElement([0.5, 1, 1.5, 2]),
+            "unit" => $medication->unit,
             "frequency" => $frequency,
             "days_of_week" =>
                 $frequency === "weekly"

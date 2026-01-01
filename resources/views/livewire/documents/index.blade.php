@@ -164,6 +164,17 @@
                                     <td class="text-right">
                                         <div class="flex justify-end gap-1">
                                             <a
+                                                href="{{ route('documents.view', $document->id) }}"
+                                                target="_blank"
+                                                class="btn btn-ghost btn-sm"
+                                                title="View in New Tab"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                            </a>
+                                            <a
                                                 href="{{ route('documents.download', $document->id) }}"
                                                 class="btn btn-ghost btn-sm"
                                                 title="Download"
@@ -172,6 +183,15 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                                 </svg>
                                             </a>
+                                            <button
+                                                wire:click="editDocument({{ $document->id }})"
+                                                class="btn btn-ghost btn-sm"
+                                                title="Edit"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                            </button>
                                             <button
                                                 wire:click="deleteDocument({{ $document->id }})"
                                                 wire:confirm="Are you sure you want to delete this document? This action cannot be undone."
@@ -232,6 +252,106 @@
                 </div>
             </div>
             <div class="modal-backdrop" wire:click="toggleUploadModal"></div>
+        </div>
+    @endif
+
+    <!-- Edit Modal -->
+    @if($showEditModal && $editingDocument)
+        <div class="modal modal-open">
+            <div class="modal-box max-w-2xl">
+                <h3 class="font-bold text-2xl mb-4">Edit Document</h3>
+                <form wire:submit.prevent="updateDocument">
+                    <div class="space-y-4">
+                        <!-- Title -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Title <span class="text-error">*</span></span>
+                            </label>
+                            <input
+                                type="text"
+                                wire:model="editTitle"
+                                class="input input-bordered w-full @error('editTitle') input-error @enderror"
+                                placeholder="Enter document title"
+                            />
+                            @error('editTitle')
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ $message }}</span>
+                                </label>
+                            @enderror
+                        </div>
+
+                        <!-- Description -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Description</span>
+                            </label>
+                            <textarea
+                                wire:model="editDescription"
+                                class="textarea textarea-bordered h-24 @error('editDescription') textarea-error @enderror"
+                                placeholder="Enter a description (optional)"
+                            ></textarea>
+                            @error('editDescription')
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ $message }}</span>
+                                </label>
+                            @enderror
+                        </div>
+
+                        <!-- Category -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Category <span class="text-error">*</span></span>
+                            </label>
+                            <select wire:model="editCategory" class="select select-bordered w-full @error('editCategory') select-error @enderror">
+                                <option value="">Select a category</option>
+                                @foreach($categories as $key => $label)
+                                    <option value="{{ $key }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            @error('editCategory')
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ $message }}</span>
+                                </label>
+                            @enderror
+                        </div>
+
+                        <!-- Document Date -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Document Date</span>
+                            </label>
+                            <input
+                                type="date"
+                                wire:model="editDocumentDate"
+                                class="input input-bordered w-full @error('editDocumentDate') input-error @enderror"
+                            />
+                            @error('editDocumentDate')
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ $message }}</span>
+                                </label>
+                            @enderror
+                        </div>
+
+                        <!-- File Info (Read-only) -->
+                        <div class="alert alert-info">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div>
+                                <div class="font-bold">Current File</div>
+                                <div class="text-xs">{{ $editingDocument->file_name }} ({{ $editingDocument->formatted_file_size }})</div>
+                                <div class="text-xs mt-1">Note: You cannot change the file itself. To replace it, delete this document and upload a new one.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-action">
+                        <button type="button" wire:click="toggleEditModal" class="btn btn-ghost">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Document</button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-backdrop" wire:click="toggleEditModal"></div>
         </div>
     @endif
 </div>

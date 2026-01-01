@@ -99,6 +99,14 @@ class Document extends Model
     }
 
     /**
+     * Get the view URL
+     */
+    public function getViewUrl(): string
+    {
+        return route("documents.view", $this->id);
+    }
+
+    /**
      * Check if the document is an image
      */
     public function isImage(): bool

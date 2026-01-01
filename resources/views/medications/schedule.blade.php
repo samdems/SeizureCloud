@@ -130,9 +130,10 @@
                                         <p class="text-lg">{{ $item['medication']->dosage }} {{ $item['medication']->unit }}</p>
                                     @elseif(!$item['as_needed'] && $item['schedule']->getCalculatedDosageWithUnit())
                                         <p class="text-lg">
-                                            {{ $item['schedule']->getCalculatedDosageWithUnit() }}
-                                            @if($item['schedule']->dosage_multiplier != 1)
-                                                <span class="text-sm text-base-content/60">({{ $item['schedule']->dosage_multiplier }}x)</span>
+                                            @if($item['schedule']->dosage_multiplier)
+                                                {{ $item['schedule']->dosage_multiplier }} {{ $item['schedule']->unit ?? $item['schedule']->medication->unit }}
+                                            @else
+                                                <span class="text-base-content/50">Not specified</span>
                                             @endif
                                         </p>
                                     @endif
