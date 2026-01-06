@@ -1,7 +1,53 @@
 import "./bootstrap";
 
-// Initialize any interactive components
+// Add CSS for ripple effect
+const style = document.createElement("style");
+style.textContent = `
+    .btn {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(0);
+        animation: rippleEffect 0.6s linear;
+        pointer-events: none;
+    }
+
+    @keyframes rippleEffect {
+        to {
+            transform: scale(2);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
+
+// Add CSS to prevent Livewire loading state from affecting non-Livewire forms
+const livewireFixStyle = document.createElement('style');
+livewireFixStyle.textContent = `
+    /* Prevent Livewire from disabling buttons in non-Livewire forms */
+    form:not([wire\\:submit]) button[type="submit"][data-submitting="true"],
+    form:not([wire\\:submit]) button[type="submit"][data-no-loading] {
+        pointer-events: auto !important;
+        opacity: 1 !important;
+    }
+    
+    /* Ensure buttons with data-no-loading are never affected */
+    [data-no-loading] {
+        pointer-events: auto !important;
+    }
+`;
+document.head.appendChild(livewireFixStyle);
+
+// Initialize all interactive components
 document.addEventListener("DOMContentLoaded", function () {
+    // Selector for non-Livewire forms
+    const NON_LIVEWIRE_FORM_SELECTOR = 'form:not([wire\\:submit])';
+
     // Add smooth scrolling for anchor links
     document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
         anchor.addEventListener("click", function (e) {
@@ -108,63 +154,34 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
-});
 
-// Add CSS for ripple effect
-const style = document.createElement("style");
-style.textContent = `
-    .btn {
-        position: relative;
-        overflow: hidden;
-    }
-
-    .ripple {
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.3);
-        transform: scale(0);
-        animation: rippleEffect 0.6s linear;
-        pointer-events: none;
-    }
-
-    @keyframes rippleEffect {
-        to {
-            transform: scale(2);
-            opacity: 0;
-        }
-    }
-`;
-document.head.appendChild(style);
-
-// Fix for Livewire interfering with regular form submissions
-// Livewire adds loading states to ALL buttons, even on non-Livewire forms
-// This script ensures regular forms can submit properly
-document.addEventListener('DOMContentLoaded', function() {
-    // Add CSS to prevent Livewire loading state from affecting non-Livewire forms
-    const livewireFixStyle = document.createElement('style');
-    livewireFixStyle.textContent = `
-        /* Prevent Livewire from disabling buttons in non-Livewire forms */
-        form:not([wire\\:submit]) button[type="submit"][data-submitting="true"],
-        form:not([wire\\:submit]) button[type="submit"][data-no-loading] {
-            pointer-events: auto !important;
-            opacity: 1 !important;
-        }
-        
-        /* Ensure buttons with data-no-loading are never affected */
-        [data-no-loading] {
-            pointer-events: auto !important;
-        }
-    `;
-    document.head.appendChild(livewireFixStyle);
-
-    // Find all forms that are NOT Livewire forms
-    document.querySelectorAll('form:not([wire\\:submit])').forEach(form => {
-        form.addEventListener('submit', function(e) {
+    // Fix for Livewire interfering with regular form submissions
+    // Livewire adds loading states to ALL buttons, even on non-Livewire forms
+    // This ensures regular forms can submit properly
+    document.querySelectorAll(NON_LIVEWIRE_FORM_SELECTOR).forEach(form => {
+        form.addEventListener('submit', function() {
             // Mark submit buttons to prevent Livewire interference
             const submitButtons = this.querySelectorAll('button[type="submit"]');
             submitButtons.forEach(button => {
                 button.setAttribute('data-submitting', 'true');
             });
         });
+
+        // Reset data-submitting attribute if form submission is cancelled or fails
+        form.addEventListener('reset', function() {
+            const submitButtons = this.querySelectorAll('button[type="submit"]');
+            submitButtons.forEach(button => {
+                button.removeAttribute('data-submitting');
+            });
+        });
+    });
+
+    // Reset data-submitting on page visibility change (e.g., user navigates away and back)
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') {
+            document.querySelectorAll('button[type="submit"][data-submitting]').forEach(button => {
+                button.removeAttribute('data-submitting');
+            });
+        }
     });
 });
