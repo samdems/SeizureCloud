@@ -1,5 +1,8 @@
 import "./bootstrap";
 
+// Selector for non-Livewire forms - used in both CSS and JS
+const NON_LIVEWIRE_FORM_SELECTOR = 'form:not([wire\\:submit])';
+
 // Add CSS for ripple effect
 const style = document.createElement("style");
 style.textContent = `
@@ -30,24 +33,26 @@ document.head.appendChild(style);
 const livewireFixStyle = document.createElement('style');
 livewireFixStyle.textContent = `
     /* Prevent Livewire from disabling buttons in non-Livewire forms */
-    form:not([wire\\:submit]) button[type="submit"][data-submitting="true"],
-    form:not([wire\\:submit]) button[type="submit"][data-no-loading] {
-        pointer-events: auto !important;
-        opacity: 1 !important;
-    }
-    
-    /* Ensure buttons with data-no-loading are never affected */
+    ${NON_LIVEWIRE_FORM_SELECTOR} button[type="submit"][data-submitting="true"],
+    ${NON_LIVEWIRE_FORM_SELECTOR} button[type="submit"][data-no-loading],
     [data-no-loading] {
         pointer-events: auto !important;
+        opacity: 1 !important;
     }
 `;
 document.head.appendChild(livewireFixStyle);
 
+// Reset data-submitting on page visibility change (e.g., user navigates away and back)
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+        document.querySelectorAll('button[type="submit"][data-submitting]').forEach(button => {
+            button.removeAttribute('data-submitting');
+        });
+    }
+});
+
 // Initialize all interactive components
 document.addEventListener("DOMContentLoaded", function () {
-    // Selector for non-Livewire forms
-    const NON_LIVEWIRE_FORM_SELECTOR = 'form:not([wire\\:submit])';
-
     // Add smooth scrolling for anchor links
     document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
         anchor.addEventListener("click", function (e) {
@@ -174,14 +179,5 @@ document.addEventListener("DOMContentLoaded", function () {
                 button.removeAttribute('data-submitting');
             });
         });
-    });
-
-    // Reset data-submitting on page visibility change (e.g., user navigates away and back)
-    document.addEventListener('visibilitychange', function() {
-        if (document.visibilityState === 'visible') {
-            document.querySelectorAll('button[type="submit"][data-submitting]').forEach(button => {
-                button.removeAttribute('data-submitting');
-            });
-        }
     });
 });
