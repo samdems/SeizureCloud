@@ -135,3 +135,36 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// Fix for Livewire interfering with regular form submissions
+// Livewire adds loading states to ALL buttons, even on non-Livewire forms
+// This script ensures regular forms can submit properly
+document.addEventListener('DOMContentLoaded', function() {
+    // Add CSS to prevent Livewire loading state from affecting non-Livewire forms
+    const livewireFixStyle = document.createElement('style');
+    livewireFixStyle.textContent = `
+        /* Prevent Livewire from disabling buttons in non-Livewire forms */
+        form:not([wire\\:submit]) button[type="submit"][data-submitting="true"],
+        form:not([wire\\:submit]) button[type="submit"][data-no-loading] {
+            pointer-events: auto !important;
+            opacity: 1 !important;
+        }
+        
+        /* Ensure buttons with data-no-loading are never affected */
+        [data-no-loading] {
+            pointer-events: auto !important;
+        }
+    `;
+    document.head.appendChild(livewireFixStyle);
+
+    // Find all forms that are NOT Livewire forms
+    document.querySelectorAll('form:not([wire\\:submit])').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            // Mark submit buttons to prevent Livewire interference
+            const submitButtons = this.querySelectorAll('button[type="submit"]');
+            submitButtons.forEach(button => {
+                button.setAttribute('data-submitting', 'true');
+            });
+        });
+    });
+});
