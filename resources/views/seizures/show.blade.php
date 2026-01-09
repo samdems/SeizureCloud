@@ -64,8 +64,7 @@
                             <svg class="w-8 h-8" viewBox="0 0 24 24" fill="{{ $i <= $seizure->severity ? ($seizure->severity <= 3 ? '#10b981' : ($seizure->severity <= 6 ? '#f59e0b' : ($seizure->severity <= 8 ? '#f97316' : '#ef4444'))) : 'none' }}"
                                  stroke="{{ $i <= $seizure->severity ? ($seizure->severity <= 3 ? '#10b981' : ($seizure->severity <= 6 ? '#f59e0b' : ($seizure->severity <= 8 ? '#f97316' : '#ef4444'))) : 'currentColor' }}"
                                  xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="12" cy="12" r="10" stroke-width="2" fill="{{ $i <= $seizure->severity ? ($seizure->severity <= 3 ? '#10b981' : ($seizure->severity <= 6 ? '#f59e0b' : ($seizure->severity <= 8 ? '#f97316' : '#ef4444'))) : 'none' }}"/>
                             </svg>
                             @endfor
                             <span class="ml-2 font-semibold">{{ $seizure->severity }}/10</span>
@@ -120,7 +119,48 @@
                     @endif
                 </div>
 
+                @if($seizure->pre_ictal_notes)
+                    <div class="mt-4">
+                        <h4 class="font-semibold mb-2">Pre-ictal Notes</h4>
+                        <div class="alert">
+                            <p class="whitespace-pre-wrap">{{ $seizure->pre_ictal_notes }}</p>
+                        </div>
+                    </div>
+                @endif
 
+                <div class="divider"></div>
+
+                <h3 class="text-lg font-semibold mb-4">Post-ictal Recovery</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-sm font-medium text-base-content/60 mb-1">Recovery Time</h4>
+                        <p class="text-lg">{{ $seizure->recovery_time ? Str::headline($seizure->recovery_time) : 'Not recorded' }}</p>
+                    </div>
+
+                    <div>
+                        <h4 class="text-sm font-medium text-base-content/60 mb-1">Post-ictal Symptoms</h4>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-lg">{{ $seizure->post_ictal_confusion ? '✓' : '✗' }}</span>
+                                <span class="{{ $seizure->post_ictal_confusion ? 'text-success' : 'text-base-content/40' }}">Post-ictal confusion</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-lg">{{ $seizure->post_ictal_headache ? '✓' : '✗' }}</span>
+                                <span class="{{ $seizure->post_ictal_headache ? 'text-success' : 'text-base-content/40' }}">Post-ictal headache</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if($seizure->recovery_notes)
+                    <div class="mt-4">
+                        <h4 class="font-semibold mb-2">Recovery Notes</h4>
+                        <div class="alert">
+                            <p class="whitespace-pre-wrap">{{ $seizure->recovery_notes }}</p>
+                        </div>
+                    </div>
+                @endif
 
                 <div class="divider"></div>
 
@@ -182,21 +222,68 @@
 
                 <div class="divider"></div>
 
-                <h3 class="text-lg font-semibold mb-4">Wellbeing Rating</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Wellbeing Rating</h3>
                         @if($seizure->wellbeing_rating)
-                            {{ Str::headline($seizure->wellbeing_rating) }}
+                            <p class="text-lg">{{ Str::headline($seizure->wellbeing_rating) }}</p>
                         @else
-                            <span>No wellbeing rating recorded.</span>
+                            <p class="text-lg text-base-content/60">No wellbeing rating recorded.</p>
                         @endif
+                    </div>
 
-                <h3 class="text-lg font-semibold mb-4">Wellbeing Notes</h3>
-                <div class="alert">
-                        {{ $seizure->wellbeing_notes ?: 'No wellbeing notes recorded.' }}
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Sleep Quality</h3>
+                        @if($seizure->sleep_quality)
+                            <p class="text-lg">{{ Str::headline($seizure->sleep_quality) }}</p>
+                        @else
+                            <p class="text-lg text-base-content/60">No sleep quality recorded.</p>
+                        @endif
+                    </div>
                 </div>
+
+                @if($seizure->wellbeing_notes)
+                    <h3 class="text-lg font-semibold mb-4">Wellbeing Notes</h3>
+                    <div class="alert">
+                        <p class="whitespace-pre-wrap">{{ $seizure->wellbeing_notes }}</p>
+                    </div>
+                @endif
 
                 <div class="divider"></div>
 
-                <h3 class="text-lg font-semibold mb-4">Medication Adherence Before Seizure</h3>
+                <h3 class="text-lg font-semibold mb-4">Medication Information</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <h4 class="text-sm font-medium text-base-content/60 mb-1">Medication Adherence</h4>
+                        <p class="text-lg">{{ $seizure->medication_adherence ? Str::headline($seizure->medication_adherence) : 'Not recorded' }}</p>
+                    </div>
+
+                    <div>
+                        <h4 class="text-sm font-medium text-base-content/60 mb-1">Recent Changes & Side Effects</h4>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-lg">{{ $seizure->recent_medication_change ? '✓' : '✗' }}</span>
+                                <span class="{{ $seizure->recent_medication_change ? 'text-warning' : 'text-base-content/40' }}">Recent medication change</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-lg">{{ $seizure->experiencing_side_effects ? '✓' : '✗' }}</span>
+                                <span class="{{ $seizure->experiencing_side_effects ? 'text-warning' : 'text-base-content/40' }}">Experiencing side effects</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if($seizure->medication_notes)
+                    <div class="mb-6">
+                        <h4 class="font-semibold mb-2">Medication Notes</h4>
+                        <div class="alert">
+                            <p class="whitespace-pre-wrap">{{ $seizure->medication_notes }}</p>
+                        </div>
+                    </div>
+                @endif
+
+                <h4 class="text-lg font-semibold mb-4">Detailed Medication Adherence</h4>
                 @if($medications->isEmpty())
                     <p class="text-base-content/60">No active medications at the time of this seizure.</p>
                 @else

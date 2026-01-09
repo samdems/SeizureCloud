@@ -434,24 +434,7 @@
                            class="checkbox checkbox-primary checkbox-sm">
                     <span class="label-text text-sm">Experiencing side effects</span>
                 </label>
-                <label class="cursor-pointer label justify-start gap-2">
-                    <input type="checkbox" name="forgot_doses" value="1"
-                           {{ old('forgot_doses', $seizure?->forgot_doses) ? 'checked' : '' }}
-                           class="checkbox checkbox-primary checkbox-sm">
-                    <span class="label-text text-sm">Forgot to take doses</span>
-                </label>
-                <label class="cursor-pointer label justify-start gap-2">
-                    <input type="checkbox" name="ran_out_of_medication" value="1"
-                           {{ old('ran_out_of_medication', $seizure?->ran_out_of_medication) ? 'checked' : '' }}
-                           class="checkbox checkbox-primary checkbox-sm">
-                    <span class="label-text text-sm">Ran out of medication</span>
-                </label>
-                <label class="cursor-pointer label justify-start gap-2">
-                    <input type="checkbox" name="intentionally_skipped" value="1"
-                           {{ old('intentionally_skipped', $seizure?->intentionally_skipped) ? 'checked' : '' }}
-                           class="checkbox checkbox-primary checkbox-sm">
-                    <span class="label-text text-sm">Intentionally skipped doses</span>
-                </label>
+
             </div>
         </div>
     </div>
