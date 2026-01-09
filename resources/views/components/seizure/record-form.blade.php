@@ -19,7 +19,7 @@
     $selectedUserId = old('user_id', $seizure?->user_id ?? auth()->id());
 @endphp
 
-<form id="{{ $formId }}" action="{{ $action }}" method="post" class="space-y-6" enctype="multipart/form-data">
+<form id="{{ $formId }}" action="{{ $action }}" method="post" class="space-y-6" enctype="multipart/form-data" onsubmit="return handleFormSubmit(event)">
     @csrf
     @if($method !== 'POST')
         @method($method)
@@ -259,16 +259,23 @@
                 <div class="space-y-2">
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text">Upload Video File</span>
+                            <span class="label-text">Video Evidence (Optional)</span>
                             <span class="label-text-alt">Max {{ App\Services\VideoUploadService::getMaxFileSizeMB() }}MB</span>
                         </label>
                         <input type="file"
                                name="video_upload"
+                               id="video_upload_input"
                                class="file-input file-input-bordered"
-                               accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm">
+                               accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm"
+                               onchange="handleVideoSelection(this)">
                         <div class="label">
                             <span class="label-text-alt text-base-content/60">
-                                Supported formats: {{ implode(', ', App\Services\VideoUploadService::getAllowedExtensions()) }}
+                                {{ implode(', ', App\Services\VideoUploadService::getAllowedExtensions()) }} files up to {{ App\Services\VideoUploadService::getMaxFileSizeMB() }}MB
+                            </span>
+                        </div>
+                        <div class="label">
+                            <span class="label-text-alt text-info text-xs">
+                                💡 Large files? Use <a href="https://handbrake.fr/" target="_blank" class="link text-info underline">HandBrake</a> or online compressors to reduce size
                             </span>
                         </div>
                         @error('video')
@@ -276,6 +283,43 @@
                                 <span class="label-text-alt text-error">{{ $message }}</span>
                             </label>
                         @enderror
+
+                        <!-- File Size Warning -->
+                        <div id="file-size-warning" class="hidden mt-3">
+                            <div class="alert alert-warning">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.864-.833-2.634 0L6.268 15.5c-.77.833.192 2.5 1.732 2.5z" />
+                                </svg>
+                                <div>
+                                    <h3 class="font-bold">Video too large!</h3>
+                                    <div class="text-xs mt-1">
+                                        <p id="file-size-details">Your file exceeds the 100MB limit.</p>
+                                        <p class="mt-2"><strong>Quick solutions:</strong></p>
+                                        <ul class="list-disc list-inside mt-1">
+                                            <li>Use <a href="https://handbrake.fr/" target="_blank" class="link">HandBrake</a> (free desktop app)</li>
+                                            <li>Try online compressors like <a href="https://www.freeconvert.com/video-compressor" target="_blank" class="link">FreeConvert</a></li>
+                                            <li>Record shorter clips or lower quality settings</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Video Upload Progress -->
+                        <div id="video-upload-progress" class="hidden mt-3">
+                            <div class="flex items-center gap-2 mb-2">
+                                <svg class="w-4 h-4 text-primary animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span class="text-sm text-base-content/70">Uploading video...</span>
+                                <span id="upload-percentage" class="text-sm font-semibold text-primary">0%</span>
+                            </div>
+                            <progress class="progress progress-primary w-full" value="0" max="100" id="upload-progress-bar"></progress>
+                            <div class="text-xs text-base-content/60 mt-1">
+                                <span id="upload-status">Preparing upload...</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             @endif
@@ -641,11 +685,14 @@
     <!-- Form Actions -->
     <div class="flex justify-between">
         @if($cancelUrl)
-            <a href="{{ $cancelUrl }}" class="btn btn-outline">Cancel</a>
+            <a href="{{ $cancelUrl }}" class="btn btn-outline" id="cancel-button">Cancel</a>
         @else
-            <button type="button" onclick="cancelForm()" class="btn btn-outline">Cancel</button>
+            <button type="button" onclick="cancelForm()" class="btn btn-outline" id="cancel-button">Cancel</button>
         @endif
-        <button type="submit" class="btn btn-primary" id="submit-button" style="{{ $hideSubmitInitially ? 'display: none;' : '' }}" {{ $hideSubmitInitially ? 'disabled' : '' }}>{{ $submitText }}</button>
+        <button type="submit" class="btn btn-primary" id="submit-button" style="{{ $hideSubmitInitially ? 'display: none;' : '' }}" {{ $hideSubmitInitially ? 'disabled' : '' }}>
+            <span id="submit-text">{{ $submitText }}</span>
+            <span id="submit-spinner" class="loading loading-spinner loading-sm hidden"></span>
+        </button>
     </div>
 </form>
 
@@ -882,4 +929,113 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize medication details visibility
     toggleMedicationDetails();
 });
+
+// Video upload handling
+let isUploading = false;
+let hasVideoSelected = false;
+
+function handleVideoSelection(input) {
+    hasVideoSelected = input.files.length > 0;
+    const warningDiv = document.getElementById('file-size-warning');
+
+    if (hasVideoSelected) {
+        const file = input.files[0];
+        const fileSize = file.size;
+        const maxSize = {{ App\Services\VideoUploadService::getMaxFileSizeMB() }} * 1024 * 1024;
+        const fileSizeMB = Math.round(fileSize / 1024 / 1024);
+
+        console.log(`Video selected: ${file.name} (${fileSizeMB}MB)`);
+
+        if (fileSize > maxSize) {
+            // Show warning and clear input
+            document.getElementById('file-size-details').textContent =
+                `Your file "${file.name}" is ${fileSizeMB}MB, which exceeds the 100MB limit.`;
+            warningDiv.classList.remove('hidden');
+            input.value = '';
+            hasVideoSelected = false;
+        } else {
+            // Hide warning and accept file
+            warningDiv.classList.add('hidden');
+            console.log(`Video accepted: ${file.name} (${fileSizeMB}MB)`);
+        }
+    } else {
+        warningDiv.classList.add('hidden');
+    }
+}
+
+
+
+function handleFormSubmit(event) {
+    if (isUploading) {
+        event.preventDefault();
+        return false;
+    }
+
+    // Check if user is trying to submit with oversized file
+    const input = document.getElementById('video_upload_input');
+    if (input && input.files.length > 0) {
+        const file = input.files[0];
+        const maxSize = {{ App\Services\VideoUploadService::getMaxFileSizeMB() }} * 1024 * 1024;
+        if (file.size > maxSize) {
+            event.preventDefault();
+            alert('Please remove the large video file or compress it before submitting.');
+            return false;
+        }
+
+        // Video upload detected, show progress
+        isUploading = true;
+        showUploadProgress();
+    }
+
+    return true;
+}
+
+function showUploadProgress() {
+    const progressDiv = document.getElementById('video-upload-progress');
+    const submitButton = document.getElementById('submit-button');
+    const cancelButton = document.getElementById('cancel-button');
+    const submitText = document.getElementById('submit-text');
+    const submitSpinner = document.getElementById('submit-spinner');
+
+    // Show progress UI
+    progressDiv.classList.remove('hidden');
+
+    // Update submit button
+    submitText.textContent = 'Uploading...';
+    submitSpinner.classList.remove('hidden');
+    submitButton.disabled = true;
+
+    // Disable cancel button
+    cancelButton.style.pointerEvents = 'none';
+    cancelButton.classList.add('opacity-50');
+
+    // Simulate upload progress (since we can't track real progress in form submission)
+    simulateUploadProgress();
+}
+
+function simulateUploadProgress() {
+    const progressBar = document.getElementById('upload-progress-bar');
+    const percentage = document.getElementById('upload-percentage');
+    const status = document.getElementById('upload-status');
+
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += Math.random() * 15;
+
+        if (progress >= 100) {
+            progress = 100;
+            clearInterval(interval);
+            status.textContent = 'Processing video...';
+        } else if (progress >= 80) {
+            status.textContent = 'Finalizing upload...';
+        } else if (progress >= 50) {
+            status.textContent = 'Uploading video data...';
+        } else if (progress >= 20) {
+            status.textContent = 'Transferring file...';
+        }
+
+        progressBar.value = progress;
+        percentage.textContent = Math.round(progress) + '%';
+    }, 500);
+}
 </script>

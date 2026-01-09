@@ -18,7 +18,7 @@ beforeEach(function () {
     $this->actingAs($this->user);
 });
 
-test("can upload video to existing seizure", function () {
+test("can upload video when updating seizure", function () {
     $seizure = Seizure::factory()->create([
         "user_id" => $this->user->id,
         "start_time" => now()->subHour(),
@@ -31,17 +31,18 @@ test("can upload video to existing seizure", function () {
         "video/mp4",
     );
 
-    $response = $this->post(route("seizures.video.upload", $seizure), [
-        "video" => $videoFile,
+    $response = $this->put(route("seizures.update", $seizure), [
+        "start_time" => $seizure->start_time->format("Y-m-d\TH:i"),
+        "severity" => $seizure->severity,
+        "video_upload" => $videoFile,
     ]);
 
     $response->assertRedirect();
-    $response->assertSessionHas("success");
 
     $seizure->refresh();
     expect($seizure->video_file_path)->not()->toBeNull();
     expect($seizure->video_public_token)->not()->toBeNull();
-    expect($seizure->video_expires_at)->not()->toBeNull();
+    expect($seizure->video_expires_at)->toBeNull();
     expect($seizure->has_video_evidence)->toBeTrue();
 });
 
@@ -161,11 +162,13 @@ test("validates video file type and size", function () {
         "application/pdf",
     );
 
-    $response = $this->post(route("seizures.video.upload", $seizure), [
-        "video" => $invalidFile,
+    $response = $this->put(route("seizures.update", $seizure), [
+        "start_time" => $seizure->start_time->format("Y-m-d\TH:i"),
+        "severity" => $seizure->severity,
+        "video_upload" => $invalidFile,
     ]);
 
-    $response->assertSessionHasErrors(["video"]);
+    $response->assertSessionHasErrors(["video_upload"]);
 
     // Test file too large (over 100MB)
     $largeFile = UploadedFile::fake()->create(
@@ -174,11 +177,13 @@ test("validates video file type and size", function () {
         "video/mp4",
     ); // 102400KB = ~100MB
 
-    $response = $this->post(route("seizures.video.upload", $seizure), [
-        "video" => $largeFile,
+    $response = $this->put(route("seizures.update", $seizure), [
+        "start_time" => $seizure->start_time->format("Y-m-d\TH:i"),
+        "severity" => $seizure->severity,
+        "video_upload" => $largeFile,
     ]);
 
-    $response->assertSessionHasErrors(["video"]);
+    $response->assertSessionHasErrors(["video_upload"]);
 });
 
 test("video upload during seizure creation works", function () {

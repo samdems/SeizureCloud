@@ -498,49 +498,6 @@ class SeizureController extends Controller
         return $pdf->download($filename);
     }
 
-    public function uploadVideo(Request $request, Seizure $seizure)
-    {
-        $this->authorize("update", $seizure);
-
-        // Determine which field name is being used
-        $fieldName = $request->hasFile("video") ? "video" : "video_upload";
-
-        $request->validate(
-            [
-                $fieldName => [
-                    "required",
-                    "file",
-                    "mimes:mp4,mov,avi,mkv,webm",
-                    "max:" . VideoUploadService::getMaxFileSizeMB() * 1024, // Convert MB to KB for validation
-                ],
-            ],
-            [
-                "$fieldName.max" =>
-                    "The video file may not be larger than " .
-                    VideoUploadService::getMaxFileSizeMB() .
-                    "MB.",
-                "$fieldName.mimes" =>
-                    "The video must be a file of type: " .
-                    implode(", ", VideoUploadService::getAllowedExtensions()) .
-                    ".",
-            ],
-        );
-
-        $success = $this->videoUploadService->uploadVideo(
-            $seizure,
-            $request->file($fieldName),
-        );
-
-        if (!$success) {
-            return back()->with(
-                "error",
-                "Failed to upload video. Please try again.",
-            );
-        }
-
-        return back()->with("success", "Video uploaded successfully.");
-    }
-
     public function deleteVideo(Seizure $seizure)
     {
         $this->authorize("update", $seizure);

@@ -275,41 +275,24 @@
                             </div>
                         </div>
                     @else
-                        <!-- Video Upload Form -->
+                        <!-- No Video - Edit to Add -->
                         <div class="card bg-base-200 shadow-sm">
-                            <div class="card-body p-4">
-                                <h4 class="font-semibold mb-4">Upload Video Evidence</h4>
-                                <form method="POST" action="{{ route('seizures.video.upload', $seizure) }}" enctype="multipart/form-data" class="space-y-4">
-                                    @csrf
-                                    <div class="form-control">
-                                        <label class="label">
-                                            <span class="label-text">Select Video File</span>
-                                            <span class="label-text-alt">Max {{ App\Services\VideoUploadService::getMaxFileSizeMB() }}MB</span>
-                                        </label>
-                                        <input type="file"
-                                               name="video"
-                                               id="video-upload-input"
-                                               class="file-input file-input-bordered"
-                                               accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm"
-                                               onchange="updateUploadButton()">
-                                        <div class="label">
-                                            <span class="label-text-alt text-base-content/60">
-                                                Supported formats: {{ implode(', ', App\Services\VideoUploadService::getAllowedExtensions()) }}
-                                            </span>
-                                        </div>
-                                        @error('video')
-                                            <label class="label">
-                                                <span class="label-text-alt text-error">{{ $message }}</span>
-                                            </label>
-                                        @enderror
+                            <div class="card-body p-4 text-center">
+                                <div class="flex flex-col items-center gap-3">
+                                    <svg class="w-12 h-12 text-base-content/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <div>
+                                        <h4 class="font-semibold text-base-content/70">No Video Attached</h4>
+                                        <p class="text-sm text-base-content/60 mt-1">Edit this seizure record to add video evidence</p>
                                     </div>
-                                    <button type="submit" id="upload-video-btn" class="btn btn-primary" disabled>
+                                    <a href="{{ route('seizures.edit', $seizure) }}" class="btn btn-primary btn-sm">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                         </svg>
-                                        <span id="upload-btn-text">Select Video File</span>
-                                    </button>
-                                </form>
+                                        Edit Record
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     @endif
@@ -719,26 +702,6 @@
     </div>
 
     <script>
-        function updateUploadButton() {
-            const input = document.getElementById('video-upload-input');
-            const button = document.getElementById('upload-video-btn');
-            const buttonText = document.getElementById('upload-btn-text');
-
-            if (input.files.length > 0) {
-                const file = input.files[0];
-                const fileName = file.name.length > 20 ? file.name.substring(0, 20) + '...' : file.name;
-                buttonText.textContent = `Upload ${fileName}`;
-                button.disabled = false;
-                button.classList.add('btn-success');
-                button.classList.remove('btn-primary');
-            } else {
-                buttonText.textContent = 'Select Video File';
-                button.disabled = true;
-                button.classList.remove('btn-success');
-                button.classList.add('btn-primary');
-            }
-        }
-
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(function() {
                 // Show success message

@@ -251,14 +251,7 @@ Route::middleware(["auth"])->group(function () {
         ->name("seizures.export.comprehensive-pdf")
         ->middleware("account.type:patient");
 
-    // Video upload and management routes
-    Route::post("seizures/{seizure}/video/upload", [
-        \App\Http\Controllers\SeizureController::class,
-        "uploadVideo",
-    ])
-        ->name("seizures.video.upload")
-        ->middleware("account.type:patient");
-
+    // Video management routes (upload is handled via edit form)
     Route::delete("seizures/{seizure}/video", [
         \App\Http\Controllers\SeizureController::class,
         "deleteVideo",
