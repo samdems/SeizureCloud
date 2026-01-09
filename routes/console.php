@@ -77,6 +77,8 @@ Schedule::job(new \App\Jobs\SystemHealthCheck())
     ->onOneServer()
     ->name("system-health-check");
 
+// Video token cleanup removed - videos no longer expire
+
 // Track scheduler runs for health monitoring
 Schedule::command("scheduler:heartbeat")
     ->everyMinute()

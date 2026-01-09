@@ -202,13 +202,117 @@
                         <span class="{{ $seizure->has_video_evidence ? 'text-success' : 'text-base-content/40' }}">video evidence</span>
                     </div>
                 </div>
-                @if($seizure->has_video_evidence)
+                @if($seizure->has_video_evidence || $seizure->video_file_path)
                     <div class="divider"></div>
 
-                    <h3 class="text-lg font-semibold mb-4">Video Notes</h3>
-                    <div class="alert">
-                        <p class="whitespace-pre-wrap">{{ $seizure->video_notes }}</p>
-                    </div>
+                    <h3 class="text-lg font-semibold mb-4">Video Evidence</h3>
+
+                    @if($seizure->video_file_path)
+                        <div class="card bg-base-200 shadow-sm mb-4">
+                            <div class="card-body p-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                        </svg>
+                                        <span class="font-semibold text-success">Video Available</span>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        @if($seizure->hasValidVideo())
+                                            <a href="{{ $seizure->getVideoPublicUrl() }}"
+                                               target="_blank"
+                                               class="btn btn-sm btn-primary">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-3-8a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                                </svg>
+                                                View Video
+                                            </a>
+                                            <a href="{{ $seizure->getVideoPublicUrl() }}?download=1"
+                                               class="btn btn-sm btn-outline">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-4-4m4 4l4-4m-6 4h8"></path>
+                                                </svg>
+                                                Download
+                                            </a>
+                                        @endif
+                                        <form method="POST" action="{{ route('seizures.video.delete', $seizure) }}" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-error"
+                                                    onclick="return confirm('Are you sure you want to delete this video?')">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                </svg>
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div class="text-sm space-y-1">
+                                    <div class="flex justify-between">
+                                        <span class="text-base-content/70">File Size:</span>
+                                        <span>{{ app('App\Services\VideoUploadService')->getVideoSize($seizure) ?? 'Unknown' }} MB</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-base-content/70">Direct Link:</span>
+                                        <button onclick="copyToClipboard('{{ $seizure->getVideoPublicUrl() }}')"
+                                                class="btn btn-xs btn-outline">
+                                            Copy Link
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3 flex gap-2">
+                                    <form method="POST" action="{{ route('seizures.video.regenerate-token', $seizure) }}" class="inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-xs btn-outline">
+                                            Regenerate Access Link
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <!-- Video Upload Form -->
+                        <form method="POST" action="{{ route('seizures.video.upload', $seizure) }}" enctype="multipart/form-data" class="space-y-4">
+                            @csrf
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Upload Video File</span>
+                                    <span class="label-text-alt">Max {{ App\Services\VideoUploadService::getMaxFileSizeMB() }}MB</span>
+                                </label>
+                                <input type="file"
+                                       name="video"
+                                       class="file-input file-input-bordered"
+                                       accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm">
+                                <div class="label">
+                                    <span class="label-text-alt text-base-content/60">
+                                        Supported formats: {{ implode(', ', App\Services\VideoUploadService::getAllowedExtensions()) }}
+                                    </span>
+                                </div>
+                                @error('video')
+                                    <label class="label">
+                                        <span class="label-text-alt text-error">{{ $message }}</span>
+                                    </label>
+                                @enderror
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                </svg>
+                                Upload Video
+                            </button>
+                        </form>
+                    @endif
+
+                    @if($seizure->video_notes)
+                        <h4 class="text-lg font-semibold mb-2 mt-4">Video Notes</h4>
+                        <div class="alert">
+                            <p class="whitespace-pre-wrap">{{ $seizure->video_notes }}</p>
+                        </div>
+                    @endif
                 @endif
 
                 @if($seizure->notes)
@@ -606,4 +710,47 @@
             </form>
         </div>
     </div>
+
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                // Show success message
+                const toast = document.createElement('div');
+                toast.className = 'toast toast-top toast-end';
+                toast.innerHTML = `
+                    <div class="alert alert-success">
+                        <span>Video link copied to clipboard!</span>
+                    </div>
+                `;
+                document.body.appendChild(toast);
+
+                // Remove toast after 3 seconds
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 3000);
+            }).catch(function(err) {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+
+                // Show success message
+                const toast = document.createElement('div');
+                toast.className = 'toast toast-top toast-end';
+                toast.innerHTML = `
+                    <div class="alert alert-success">
+                        <span>Video link copied to clipboard!</span>
+                    </div>
+                `;
+                document.body.appendChild(toast);
+
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 3000);
+            });
+        }
+    </script>
 </x-layouts.app>

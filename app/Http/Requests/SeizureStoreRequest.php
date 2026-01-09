@@ -58,6 +58,12 @@ class SeizureStoreRequest extends FormRequest
             // Video evidence
             "has_video_evidence" => "boolean",
             "video_notes" => "nullable|string|max:1000",
+            "video_upload" => [
+                "nullable",
+                "file",
+                "mimes:mp4,mov,avi,mkv,webm",
+                "max:" . 100 * 1024, // 100MB in KB
+            ],
 
             // Triggers
             "triggers" => "nullable|array",
@@ -139,6 +145,10 @@ class SeizureStoreRequest extends FormRequest
             "days_since_period.max" =>
                 "Days since period cannot be more than 100.",
             "video_notes.max" => "Video notes cannot exceed 1000 characters.",
+            "video_upload.file" => "The video upload must be a valid file.",
+            "video_upload.mimes" =>
+                "The video must be in MP4, MOV, AVI, MKV, or WebM format.",
+            "video_upload.max" => "The video file cannot be larger than 100MB.",
             "other_triggers.max" =>
                 "Other triggers description cannot exceed 500 characters.",
             "pre_ictal_notes.max" =>

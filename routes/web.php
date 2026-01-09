@@ -36,6 +36,12 @@ Route::post("invitations/{token}/accept-after-registration", [
     "acceptAfterRegistration",
 ])->name("invitation.accept-after-registration");
 
+// Public video viewing route (accessible without authentication)
+Route::get("video/{token}", [
+    \App\Http\Controllers\VideoController::class,
+    "view",
+])->name("seizures.video.view");
+
 Route::view("dashboard", "dashboard")
     ->middleware(["auth", "custom.verified"])
     ->name("dashboard");
@@ -243,6 +249,28 @@ Route::middleware(["auth"])->group(function () {
         "exportMonthlyComprehensivePdf",
     ])
         ->name("seizures.export.comprehensive-pdf")
+        ->middleware("account.type:patient");
+
+    // Video upload and management routes
+    Route::post("seizures/{seizure}/video/upload", [
+        \App\Http\Controllers\SeizureController::class,
+        "uploadVideo",
+    ])
+        ->name("seizures.video.upload")
+        ->middleware("account.type:patient");
+
+    Route::delete("seizures/{seizure}/video", [
+        \App\Http\Controllers\SeizureController::class,
+        "deleteVideo",
+    ])
+        ->name("seizures.video.delete")
+        ->middleware("account.type:patient");
+
+    Route::post("seizures/{seizure}/video/regenerate-token", [
+        \App\Http\Controllers\SeizureController::class,
+        "regenerateVideoToken",
+    ])
+        ->name("seizures.video.regenerate-token")
         ->middleware("account.type:patient");
     Route::resource(
         "vitals",

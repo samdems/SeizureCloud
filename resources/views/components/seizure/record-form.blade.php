@@ -19,7 +19,7 @@
     $selectedUserId = old('user_id', $seizure?->user_id ?? auth()->id());
 @endphp
 
-<form id="{{ $formId }}" action="{{ $action }}" method="post" class="space-y-6">
+<form id="{{ $formId }}" action="{{ $action }}" method="post" class="space-y-6" enctype="multipart/form-data">
     @csrf
     @if($method !== 'POST')
         @method($method)
@@ -187,13 +187,99 @@
         <label class="label">
             <span class="label-text font-semibold">Video Evidence</span>
         </label>
-        <div class="space-y-2">
+        <div class="space-y-4">
             <label class="cursor-pointer label justify-start gap-2">
                 <input type="checkbox" name="has_video_evidence" value="1"
                        {{ old('has_video_evidence', $seizure?->has_video_evidence) ? 'checked' : '' }}
                        class="checkbox checkbox-primary">
                 <span class="label-text">Video recording of seizure available</span>
             </label>
+
+            <!-- Video Upload Section -->
+            @if($isEdit && $seizure?->video_file_path)
+                <div class="card bg-base-200 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                                <span class="font-semibold text-success">Video Uploaded</span>
+                            </div>
+                            <div class="flex gap-2">
+                                @if($seizure->hasValidVideo())
+                                    <a href="{{ $seizure->getVideoPublicUrl() }}"
+                                       target="_blank"
+                                       class="btn btn-sm btn-primary">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-3-8a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        </svg>
+                                        View
+                                    </a>
+                                @endif
+                                <form method="POST" action="{{ route('seizures.video.delete', $seizure) }}" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                            class="btn btn-sm btn-error"
+                                            onclick="return confirm('Are you sure you want to delete this video?')">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        @if($seizure->hasValidVideo())
+                            <div class="text-sm space-y-1">
+                                <div class="flex justify-between">
+                                    <span class="text-base-content/70">File Size:</span>
+                                    <span>{{ app('App\Services\VideoUploadService')->getVideoSize($seizure) ?? 'Unknown' }} MB</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-base-content/70">Status:</span>
+                                    <span class="text-success">Permanently accessible</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 flex gap-2">
+                                <form method="POST" action="{{ route('seizures.video.regenerate-token', $seizure) }}" class="inline">
+                                    @csrf
+                                    <button type="submit" class="btn btn-xs btn-outline">
+                                        Regenerate Access Link
+                                    </button>
+                                </form>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @else
+                <div class="space-y-2">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Upload Video File</span>
+                            <span class="label-text-alt">Max {{ App\Services\VideoUploadService::getMaxFileSizeMB() }}MB</span>
+                        </label>
+                        <input type="file"
+                               name="video_upload"
+                               class="file-input file-input-bordered"
+                               accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm">
+                        <div class="label">
+                            <span class="label-text-alt text-base-content/60">
+                                Supported formats: {{ implode(', ', App\Services\VideoUploadService::getAllowedExtensions()) }}
+                            </span>
+                        </div>
+                        @error('video')
+                            <label class="label">
+                                <span class="label-text-alt text-error">{{ $message }}</span>
+                            </label>
+                        @enderror
+                    </div>
+                </div>
+            @endif
+
             <x-form-field
                 name="video_notes"
                 label="Video Notes"

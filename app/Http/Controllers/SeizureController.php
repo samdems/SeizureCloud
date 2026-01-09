@@ -11,10 +11,23 @@ use App\Http\Requests\SeizureUpdateRequest;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use App\Notifications\SeizureAddedNotification;
+use App\Services\VideoUploadService;
+use App\Services\QrCodeService;
 
 class SeizureController extends Controller
 {
     use AuthorizesRequests;
+
+    protected VideoUploadService $videoUploadService;
+    protected QrCodeService $qrCodeService;
+
+    public function __construct(
+        VideoUploadService $videoUploadService,
+        QrCodeService $qrCodeService,
+    ) {
+        $this->videoUploadService = $videoUploadService;
+        $this->qrCodeService = $qrCodeService;
+    }
     public function index()
     {
         $seizures = Auth::user()->seizures()->latest()->paginate(20);
@@ -62,6 +75,22 @@ class SeizureController extends Controller
         $validated = $request->validated();
 
         $seizure = Seizure::create($validated);
+
+        // Handle video upload if present
+        if ($request->hasFile("video_upload")) {
+            $uploadSuccess = $this->videoUploadService->uploadVideo(
+                $seizure,
+                $request->file("video_upload"),
+            );
+
+            if (!$uploadSuccess) {
+                // If video upload fails, still proceed but show warning
+                session()->flash(
+                    "warning",
+                    "Seizure record created but video upload failed. Please try uploading the video again from the seizure details page.",
+                );
+            }
+        }
 
         // Send notifications if enabled
         $user = Auth::user();
@@ -209,6 +238,23 @@ class SeizureController extends Controller
         $validated = $request->validated();
 
         $seizure->update($validated);
+
+        // Handle video upload if present
+        if ($request->hasFile("video_upload")) {
+            $uploadSuccess = $this->videoUploadService->uploadVideo(
+                $seizure,
+                $request->file("video_upload"),
+            );
+
+            if (!$uploadSuccess) {
+                return redirect()
+                    ->route("seizures.show", $seizure)
+                    ->with(
+                        "error",
+                        "Seizure record updated but video upload failed. Please try uploading the video again.",
+                    );
+            }
+        }
 
         return redirect()
             ->route("seizures.index")
@@ -450,5 +496,87 @@ class SeizureController extends Controller
         )}.pdf";
 
         return $pdf->download($filename);
+    }
+
+    public function uploadVideo(Request $request, Seizure $seizure)
+    {
+        $this->authorize("update", $seizure);
+
+        $request->validate(
+            [
+                "video" => [
+                    "required",
+                    "file",
+                    "mimes:mp4,mov,avi,mkv,webm",
+                    "max:" . VideoUploadService::getMaxFileSizeMB() * 1024, // Convert MB to KB for validation
+                ],
+            ],
+            [
+                "video.max" =>
+                    "The video file may not be larger than " .
+                    VideoUploadService::getMaxFileSizeMB() .
+                    "MB.",
+                "video.mimes" =>
+                    "The video must be a file of type: " .
+                    implode(", ", VideoUploadService::getAllowedExtensions()) .
+                    ".",
+            ],
+        );
+
+        $success = $this->videoUploadService->uploadVideo(
+            $seizure,
+            $request->file("video"),
+        );
+
+        if (!$success) {
+            return back()->with(
+                "error",
+                "Failed to upload video. Please try again.",
+            );
+        }
+
+        return back()->with("success", "Video uploaded successfully.");
+    }
+
+    public function deleteVideo(Seizure $seizure)
+    {
+        $this->authorize("update", $seizure);
+
+        $success = $this->videoUploadService->removeVideo($seizure);
+
+        if (!$success) {
+            return back()->with(
+                "error",
+                "Failed to delete video. Please try again.",
+            );
+        }
+
+        return back()->with("success", "Video deleted successfully.");
+    }
+
+    public function regenerateVideoToken(Seizure $seizure)
+    {
+        $this->authorize("update", $seizure);
+
+        if (!$seizure->video_file_path) {
+            return back()->with(
+                "error",
+                "No video file found for this seizure.",
+            );
+        }
+
+        $success = $this->videoUploadService->regenerateToken($seizure);
+
+        if (!$success) {
+            return back()->with(
+                "error",
+                "Failed to regenerate video access token.",
+            );
+        }
+
+        return back()->with(
+            "success",
+            "New permanent video access token generated successfully.",
+        );
     }
 }

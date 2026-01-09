@@ -459,8 +459,9 @@
                 <tr>
                     <th style="width: 15%;">Date & Time</th>
                     <th style="width: 10%;">Duration</th>
-                    <th style="width: 10%;">Severity</th>
-                    <th style="width: 15%;">Type</th>
+                    <th style="width: 8%;">Severity</th>
+                    <th style="width: 12%;">Type</th>
+                    <th style="width: 5%;">Video</th>
                     <th style="width: 20%;">Triggers</th>
                     <th style="width: 30%;">Notes</th>
                 </tr>
@@ -496,6 +497,15 @@
                             @endif
                         </td>
                         <td>{{ $seizure->seizure_type ?? 'Not specified' }}</td>
+                        <td style="text-align: center;">
+                            @if($seizure->hasValidVideo())
+                                <div style="color: #10b981; font-weight: bold; font-size: 14px;" title="Video Available">📹</div>
+                            @elseif($seizure->video_file_path)
+                                <div style="color: #f59e0b; font-weight: bold; font-size: 12px;" title="Video Expired">⚠️</div>
+                            @else
+                                <div style="color: #cbd5e0; font-size: 12px;">—</div>
+                            @endif
+                        </td>
                         <td>
                             @if($seizure->triggers && is_array($seizure->triggers))
                                 {{ implode(', ', $seizure->triggers) }}
@@ -530,14 +540,45 @@
                 <li>Emergency threshold duration: {{ $user->status_epilepticus_duration_minutes ?? 5 }} minutes</li>
                 @php
                     $emergencySeizures = $seizures->where('duration_minutes', '>=', $user->status_epilepticus_duration_minutes ?? 5);
+                    $videosAvailable = $seizures->where('video_file_path', '!=', null)->count();
+                    $validVideos = $seizures->filter(fn($s) => $s->hasValidVideo())->count();
                 @endphp
                 @if($emergencySeizures->count() > 0)
                     <li style="color: #e53e3e; font-weight: bold;">
                         WARNING: {{ $emergencySeizures->count() }} seizure(s) met emergency duration criteria
                     </li>
                 @endif
+                @if($videosAvailable > 0)
+                    <li style="color: #2d3748;">
+                        Video evidence: {{ $videosAvailable }} video(s) permanently accessible
+                    </li>
+                @endif
             </ul>
         </div>
+
+        @if($validVideos > 0)
+            <div class="summary-section keep-together" style="padding: 15px; background: #f0fff4; border-radius: 8px; margin-top: 15px;">
+                <h4 style="margin: 0 0 15px 0; color: #2d3748;">Video Evidence Quick Access</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    @foreach($seizures->filter(fn($s) => $s->hasValidVideo()) as $seizure)
+                        <div style="text-align: center; padding: 10px; border: 1px solid #c6f6d5; border-radius: 6px; background: white;">
+                            <div style="font-size: 11px; font-weight: bold; margin-bottom: 8px; color: #2d3748;">
+                                {{ $seizure->start_time->format('M j, Y H:i') }}
+                            </div>
+                            <img src="{{ app('App\Services\QrCodeService')->generateForPdf($seizure->getVideoPublicUrl(), 80) }}"
+                                 style="max-width: 80px; height: auto; margin-bottom: 5px;"
+                                 alt="QR Code for Video">
+                            <div style="font-size: 8px; color: #666;">
+                                Scan to view video
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                <div style="margin-top: 10px; font-size: 10px; color: #666; text-align: center;">
+                    QR codes provide permanent direct access to seizure videos.
+                </div>
+            </div>
+        @endif
 
         {{-- DETAILED INDIVIDUAL SEIZURE RECORDS --}}
         @foreach($seizuresDetailed as $index => $seizureData)

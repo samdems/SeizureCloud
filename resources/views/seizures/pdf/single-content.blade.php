@@ -175,11 +175,49 @@
     </div>
 </div>
 
-@if($seizure->has_video_evidence && $seizure->video_notes)
-    <div class="notes-section">
-        <h4>Video Notes</h4>
-        <p>{{ $seizure->video_notes }}</p>
-    </div>
+@if($seizure->has_video_evidence)
+    <div class="section-header">Video Evidence</div>
+
+    @if($seizure->hasValidVideo())
+        <table class="seizure-details">
+            <tr>
+                <td class="label">Video Access</td>
+                <td>
+                    <strong style="color: #10b981;">Permanently Available</strong>
+                    <br>
+                    <small>Direct video link with secure access token</small>
+                </td>
+            </tr>
+            <tr>
+                <td class="label">File Size</td>
+                <td>{{ app('App\Services\VideoUploadService')->getVideoSize($seizure) ?? 'Unknown' }} MB</td>
+            </tr>
+            <tr>
+                <td class="label">QR Code Access</td>
+                <td>
+                    <div style="text-align: center; padding: 10px;">
+                        <img src="{{ app('App\Services\QrCodeService')->generateForPdf($seizure->getVideoPublicUrl()) }}"
+                             style="max-width: 120px; height: auto;"
+                             alt="QR Code for Video Access">
+                        <br>
+                        <small style="font-size: 8px; color: #666; margin-top: 5px; display: block;">
+                            Scan with mobile device to view video
+                        </small>
+                        <small style="font-size: 7px; color: #999; margin-top: 2px; display: block; word-break: break-all;">
+                            {{ $seizure->getVideoPublicUrl() }}
+                        </small>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    @endif
+
+    @if($seizure->video_notes)
+        <div class="notes-section">
+            <h4>Video Notes</h4>
+            <p>{{ $seizure->video_notes }}</p>
+        </div>
+    @endif
 @endif
 
 @if($seizure->notes)

@@ -18,6 +18,9 @@ class Seizure extends Model
         "seizure_type",
         "has_video_evidence",
         "video_notes",
+        "video_file_path",
+        "video_public_token",
+        "video_expires_at",
         "triggers",
         "other_triggers",
         "pre_ictal_symptoms",
@@ -46,6 +49,7 @@ class Seizure extends Model
         "start_time" => "datetime",
         "end_time" => "datetime",
         "postictal_state_end" => "datetime",
+        "video_expires_at" => "datetime",
         "on_period" => "boolean",
         "ambulance_called" => "boolean",
         "slept_after" => "boolean",
@@ -77,5 +81,21 @@ class Seizure extends Model
         }
 
         return null;
+    }
+
+    public function hasValidVideo(): bool
+    {
+        return $this->video_file_path && $this->video_public_token;
+    }
+
+    public function getVideoPublicUrl(): ?string
+    {
+        if (!$this->hasValidVideo()) {
+            return null;
+        }
+
+        return route("seizures.video.view", [
+            "token" => $this->video_public_token,
+        ]);
     }
 }
