@@ -502,9 +502,12 @@ class SeizureController extends Controller
     {
         $this->authorize("update", $seizure);
 
+        // Determine which field name is being used
+        $fieldName = $request->hasFile("video") ? "video" : "video_upload";
+
         $request->validate(
             [
-                "video" => [
+                $fieldName => [
                     "required",
                     "file",
                     "mimes:mp4,mov,avi,mkv,webm",
@@ -512,11 +515,11 @@ class SeizureController extends Controller
                 ],
             ],
             [
-                "video.max" =>
+                "$fieldName.max" =>
                     "The video file may not be larger than " .
                     VideoUploadService::getMaxFileSizeMB() .
                     "MB.",
-                "video.mimes" =>
+                "$fieldName.mimes" =>
                     "The video must be a file of type: " .
                     implode(", ", VideoUploadService::getAllowedExtensions()) .
                     ".",
@@ -525,7 +528,7 @@ class SeizureController extends Controller
 
         $success = $this->videoUploadService->uploadVideo(
             $seizure,
-            $request->file("video"),
+            $request->file($fieldName),
         );
 
         if (!$success) {

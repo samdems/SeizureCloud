@@ -276,35 +276,42 @@
                         </div>
                     @else
                         <!-- Video Upload Form -->
-                        <form method="POST" action="{{ route('seizures.video.upload', $seizure) }}" enctype="multipart/form-data" class="space-y-4">
-                            @csrf
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text">Upload Video File</span>
-                                    <span class="label-text-alt">Max {{ App\Services\VideoUploadService::getMaxFileSizeMB() }}MB</span>
-                                </label>
-                                <input type="file"
-                                       name="video"
-                                       class="file-input file-input-bordered"
-                                       accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm">
-                                <div class="label">
-                                    <span class="label-text-alt text-base-content/60">
-                                        Supported formats: {{ implode(', ', App\Services\VideoUploadService::getAllowedExtensions()) }}
-                                    </span>
-                                </div>
-                                @error('video')
-                                    <label class="label">
-                                        <span class="label-text-alt text-error">{{ $message }}</span>
-                                    </label>
-                                @enderror
+                        <div class="card bg-base-200 shadow-sm">
+                            <div class="card-body p-4">
+                                <h4 class="font-semibold mb-4">Upload Video Evidence</h4>
+                                <form method="POST" action="{{ route('seizures.video.upload', $seizure) }}" enctype="multipart/form-data" class="space-y-4">
+                                    @csrf
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text">Select Video File</span>
+                                            <span class="label-text-alt">Max {{ App\Services\VideoUploadService::getMaxFileSizeMB() }}MB</span>
+                                        </label>
+                                        <input type="file"
+                                               name="video"
+                                               id="video-upload-input"
+                                               class="file-input file-input-bordered"
+                                               accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm"
+                                               onchange="updateUploadButton()">
+                                        <div class="label">
+                                            <span class="label-text-alt text-base-content/60">
+                                                Supported formats: {{ implode(', ', App\Services\VideoUploadService::getAllowedExtensions()) }}
+                                            </span>
+                                        </div>
+                                        @error('video')
+                                            <label class="label">
+                                                <span class="label-text-alt text-error">{{ $message }}</span>
+                                            </label>
+                                        @enderror
+                                    </div>
+                                    <button type="submit" id="upload-video-btn" class="btn btn-primary" disabled>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                        </svg>
+                                        <span id="upload-btn-text">Select Video File</span>
+                                    </button>
+                                </form>
                             </div>
-                            <button type="submit" class="btn btn-primary">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                </svg>
-                                Upload Video
-                            </button>
-                        </form>
+                        </div>
                     @endif
 
                     @if($seizure->video_notes)
@@ -712,6 +719,26 @@
     </div>
 
     <script>
+        function updateUploadButton() {
+            const input = document.getElementById('video-upload-input');
+            const button = document.getElementById('upload-video-btn');
+            const buttonText = document.getElementById('upload-btn-text');
+
+            if (input.files.length > 0) {
+                const file = input.files[0];
+                const fileName = file.name.length > 20 ? file.name.substring(0, 20) + '...' : file.name;
+                buttonText.textContent = `Upload ${fileName}`;
+                button.disabled = false;
+                button.classList.add('btn-success');
+                button.classList.remove('btn-primary');
+            } else {
+                buttonText.textContent = 'Select Video File';
+                button.disabled = true;
+                button.classList.remove('btn-success');
+                button.classList.add('btn-primary');
+            }
+        }
+
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(function() {
                 // Show success message
