@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class SeizureStoreRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class SeizureStoreRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        if (!auth()->check()) {
+        if (!Auth::check()) {
             return false;
         }
 
@@ -23,7 +24,7 @@ class SeizureStoreRequest extends FormRequest
         $targetUserId = $this->input("user_id");
 
         // If creating for themselves, always allowed
-        if ($targetUserId == auth()->id()) {
+        if ($targetUserId == Auth::id()) {
             return true;
         }
 
@@ -33,7 +34,7 @@ class SeizureStoreRequest extends FormRequest
             return false;
         }
 
-        return auth()->user()->hasTrustedAccessTo($targetUser);
+        return Auth::user()->hasTrustedAccessTo($targetUser);
     }
 
     /**
@@ -177,7 +178,7 @@ class SeizureStoreRequest extends FormRequest
     {
         // Set default user_id to current user if not specified
         if (!$this->has("user_id") || empty($this->input("user_id"))) {
-            $this->merge(["user_id" => auth()->id()]);
+            $this->merge(["user_id" => Auth::id()]);
         }
 
         // Ensure boolean fields are properly formatted
