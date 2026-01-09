@@ -3,7 +3,7 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
+
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use App\Models\Seizure;
@@ -62,22 +62,34 @@ class SeizureAddedNotification extends Notification
                     : "seizure_alert",
             )
             ->forUser($this->patient->id)
-            ->withMetadata([
-                "seizure_id" => $this->seizure->id,
-                "patient_id" => $this->patient->id,
-                "patient_name" => $this->patient->name,
-                "seizure_type" => $this->seizure->seizure_type,
-                "severity" => $this->seizure->severity,
-                "start_time" => $this->seizure->start_time->toIso8601String(),
-                "duration_minutes" => $this->seizure->calculated_duration,
-                "is_emergency" => $emergencyStatus["is_emergency"],
-                "emergency_reason" => $emergencyStatus["is_emergency"]
-                    ? ($emergencyStatus["status_epilepticus"]
-                        ? "Possible Status Epilepticus"
-                        : "Seizure Cluster")
-                    : null,
-                "is_for_patient" => $isPatient,
-            ]);
+            ->withMetadata(
+                array_filter(
+                    [
+                        "seizure_id" => (string) $this->seizure->id,
+                        "patient_id" => (string) $this->patient->id,
+                        "patient_name" => $this->patient->name,
+                        "seizure_type" => $this->seizure->seizure_type,
+                        "severity" => (string) $this->seizure->severity,
+                        "start_time" => $this->seizure->start_time->toIso8601String(),
+                        "duration_minutes" => $this->seizure
+                            ->calculated_duration
+                            ? (string) $this->seizure->calculated_duration
+                            : null,
+                        "is_emergency" => $emergencyStatus["is_emergency"]
+                            ? "true"
+                            : "false",
+                        "emergency_reason" => $emergencyStatus["is_emergency"]
+                            ? ($emergencyStatus["status_epilepticus"]
+                                ? "Possible Status Epilepticus"
+                                : "Seizure Cluster")
+                            : null,
+                        "is_for_patient" => $isPatient ? "true" : "false",
+                    ],
+                    function ($value) {
+                        return $value !== null;
+                    },
+                ),
+            );
         $mailMessage->greeting($greeting);
         $mailMessage->line($mainMessage);
         $mailMessage->line("**Date & Time:** {$startTime}");
@@ -125,25 +137,30 @@ class SeizureAddedNotification extends Notification
         $isPatient = $notifiable->id === $this->patient->id;
         $emergencyStatus = $this->patient->getEmergencyStatus($this->seizure);
 
-        return [
-            "type" => "seizure_added",
-            "message" => $isPatient
-                ? "A seizure was recorded"
-                : "A seizure was recorded for {$this->patient->name}",
-            "seizure_type" => $this->seizure->seizure_type,
-            "severity" => $this->seizure->severity,
-            "start_time" => $this->seizure->start_time->toDateTimeString(),
-            "duration_minutes" => $this->seizure->calculated_duration,
-            "patient_name" => $this->patient->name,
-            "patient_id" => $this->patient->id,
-            "seizure_id" => $this->seizure->id,
-            "is_emergency" => $emergencyStatus["is_emergency"],
-            "emergency_reason" => $emergencyStatus["is_emergency"]
-                ? ($emergencyStatus["status_epilepticus"]
-                    ? "Possible Status Epilepticus"
-                    : "Seizure Cluster")
-                : null,
-            "notes" => $this->seizure->notes,
-        ];
+        return array_filter(
+            [
+                "type" => "seizure_added",
+                "message" => $isPatient
+                    ? "A seizure was recorded"
+                    : "A seizure was recorded for {$this->patient->name}",
+                "seizure_type" => $this->seizure->seizure_type,
+                "severity" => $this->seizure->severity,
+                "start_time" => $this->seizure->start_time->toDateTimeString(),
+                "duration_minutes" => $this->seizure->calculated_duration,
+                "patient_name" => $this->patient->name,
+                "patient_id" => $this->patient->id,
+                "seizure_id" => $this->seizure->id,
+                "is_emergency" => $emergencyStatus["is_emergency"],
+                "emergency_reason" => $emergencyStatus["is_emergency"]
+                    ? ($emergencyStatus["status_epilepticus"]
+                        ? "Possible Status Epilepticus"
+                        : "Seizure Cluster")
+                    : null,
+                "notes" => $this->seizure->notes,
+            ],
+            function ($value) {
+                return $value !== null;
+            },
+        );
     }
 }

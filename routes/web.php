@@ -320,6 +320,10 @@ Route::middleware(["auth"])->group(function () {
             \App\Http\Controllers\MedicationController::class,
             "storeSchedule",
         ])->name("medications.schedules.store");
+        Route::put("medications/{medication}/schedules/{schedule}", [
+            \App\Http\Controllers\MedicationController::class,
+            "updateSchedule",
+        ])->name("medications.schedules.update");
         Route::delete("medications/{medication}/schedules/{schedule}", [
             \App\Http\Controllers\MedicationController::class,
             "destroySchedule",

@@ -185,11 +185,17 @@
                                                 @endif
                                             </td>
                                             <td>
-                                                <form action="{{ route('medications.schedules.destroy', [$medication, $schedule]) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-error" onclick="return confirm('Delete this schedule?')">Delete</button>
-                                                </form>
+                                                <div class="flex gap-2">
+                                                    <button class="btn btn-sm btn-info" onclick="editScheduleModal{{ $schedule->id }}.showModal()">
+                                                        <x-heroicon-o-pencil class="h-4 w-4" />
+                                                        Edit
+                                                    </button>
+                                                    <form action="{{ route('medications.schedules.destroy', [$medication, $schedule]) }}" method="POST" class="inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-sm btn-error" onclick="return confirm('Delete this schedule?')">Delete</button>
+                                                    </form>
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -569,6 +575,132 @@
             <button>close</button>
         </form>
     </dialog>
+        <!-- Edit Schedule Modals -->
+        @foreach($medication->schedules as $schedule)
+            <dialog id="editScheduleModal{{ $schedule->id }}" class="modal">
+                <div class="modal-box">
+                    <h3 class="font-bold text-lg">Edit Schedule</h3>
+                    <form method="POST" action="{{ route('medications.schedules.update', [$medication, $schedule]) }}" class="space-y-4 mt-4">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Time *</span>
+                            </label>
+                            <div class="flex flex-wrap gap-2 mb-2">
+                                <button type="button" class="btn btn-sm btn-outline" onclick="setEditScheduleTime{{ $schedule->id }}('08:00')">
+                                    Morning (8 AM)
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline" onclick="setEditScheduleTime{{ $schedule->id }}('12:00')">
+                                    Around Noon
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline" onclick="setEditScheduleTime{{ $schedule->id }}('18:00')">
+                                    Evening (6 PM)
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline" onclick="setEditScheduleTime{{ $schedule->id }}('22:00')">
+                                    Bedtime (10 PM)
+                                </button>
+                            </div>
+                            <input type="time" name="scheduled_time" id="edit_scheduled_time_{{ $schedule->id }}" class="input input-bordered" value="{{ Carbon\Carbon::parse($schedule->scheduled_time)->format('H:i') }}" required>
+                        </div>
+
+                        <x-form-field
+                            name="dosage_multiplier"
+                            label="Dosage"
+                            type="number"
+                            :value="$schedule->dosage_multiplier ?? $medication->dosage ?? ''"
+                            step="0.01"
+                            min="0.01"
+                        />
+
+                        <x-form-field
+                            name="unit"
+                            label="Unit"
+                            type="text"
+                            :value="$schedule->unit ?? $medication->unit ?? ''"
+                            placeholder="e.g., mg, ml, tablets"
+                            maxlength="50"
+                        />
+
+                        <x-form-field
+                            name="frequency"
+                            label="Frequency"
+                            type="select"
+                            id="edit_frequency_{{ $schedule->id }}"
+                            :options="[
+                                'daily' => 'Daily',
+                                'weekly' => 'Weekly',
+                                'as_needed' => 'As Needed'
+                            ]"
+                            :value="$schedule->frequency"
+                            onchange="toggleEditDaysOfWeek{{ $schedule->id }}()"
+                            required
+                        />
+
+                        <div id="editDaysOfWeekContainer{{ $schedule->id }}" class="form-control {{ $schedule->frequency === 'weekly' ? '' : 'hidden' }}">
+                            <label class="label">
+                                <span class="label-text">Days of Week</span>
+                            </label>
+                            <div class="flex flex-wrap gap-2">
+                                @foreach(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as $index => $day)
+                                    <label class="label cursor-pointer gap-2">
+                                        <input type="checkbox" name="days_of_week[]" value="{{ $index }}" class="checkbox checkbox-sm" {{ $schedule->days_of_week && in_array($index, $schedule->days_of_week) ? 'checked' : '' }}>
+                                        <span class="label-text">{{ $day }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <x-form-field
+                            name="active"
+                            label="Active"
+                            type="checkbox"
+                            value="1"
+                            class="checkbox checkbox-primary"
+                            :checked="$schedule->active"
+                        />
+
+                        <x-form-field
+                            name="notes"
+                            label="Notes"
+                            type="textarea"
+                            rows="2"
+                            :value="$schedule->notes"
+                            optional
+                        />
+
+                        <div class="modal-action">
+                            <button type="button" class="btn btn-outline" onclick="editScheduleModal{{ $schedule->id }}.close()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">
+                                <x-heroicon-o-check class="h-4 w-4" />
+                                Update Schedule
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <form method="dialog" class="modal-backdrop">
+                    <button>close</button>
+                </form>
+            </dialog>
+
+            <script>
+                function toggleEditDaysOfWeek{{ $schedule->id }}() {
+                    const frequency = document.getElementById('edit_frequency_{{ $schedule->id }}').value;
+                    const container = document.getElementById('editDaysOfWeekContainer{{ $schedule->id }}');
+
+                    if (frequency === 'weekly') {
+                        container.classList.remove('hidden');
+                    } else {
+                        container.classList.add('hidden');
+                    }
+                }
+
+                function setEditScheduleTime{{ $schedule->id }}(time) {
+                    document.getElementById('edit_scheduled_time_{{ $schedule->id }}').value = time;
+                }
+            </script>
+        @endforeach
     @endif
 
     <script>

@@ -49,8 +49,8 @@ class EmailLoggingListener
             }
 
             if (!$recipientEmail) {
-                Log::warning('Email sending without recipient', [
-                    'subject' => $message->getSubject(),
+                Log::warning("Email sending without recipient", [
+                    "subject" => $message->getSubject(),
                 ]);
                 return;
             }
@@ -59,76 +59,101 @@ class EmailLoggingListener
             $body = $this->extractEmailBody($message);
 
             // Get email type and metadata from LoggedMailMessage if available
-            $emailType = 'notification';
+            $emailType = "notification";
             $userId = null;
             $metadata = [];
 
             // Try to extract data from the original notification
-            if (isset($event->data['__laravel_notification'])) {
-                $notification = $event->data['__laravel_notification'];
+            if (isset($event->data["__laravel_notification"])) {
+                $notification = $event->data["__laravel_notification"];
 
                 // Check if notification used LoggedMailMessage
-                if (method_exists($notification, 'toMail')) {
+                if (method_exists($notification, "toMail")) {
                     try {
-                        $notifiable = $event->data['__laravel_notification_notifiable'] ?? null;
+                        $notifiable =
+                            $event->data["__laravel_notification_notifiable"] ??
+                            null;
                         if ($notifiable) {
                             $mailMessage = $notification->toMail($notifiable);
 
                             if ($mailMessage instanceof LoggedMailMessage) {
-                                $emailType = $mailMessage->getEmailType() ?? 'notification';
+                                $emailType =
+                                    $mailMessage->getEmailType() ??
+                                    "notification";
                                 $userId = $mailMessage->getUserId();
                                 $metadata = $mailMessage->getMetadata();
                             }
                         }
                     } catch (\Exception $e) {
-                        Log::debug('Could not extract LoggedMailMessage data', [
-                            'error' => $e->getMessage(),
+                        Log::debug("Could not extract LoggedMailMessage data", [
+                            "error" => $e->getMessage(),
                         ]);
                     }
                 }
 
                 // Try to infer email type from notification class name
-                if ($emailType === 'notification') {
-                    $emailType = $this->inferEmailTypeFromNotification($notification);
+                if ($emailType === "notification") {
+                    $emailType = $this->inferEmailTypeFromNotification(
+                        $notification,
+                    );
                 }
 
                 // Try to get user ID from notifiable
-                if (!$userId && isset($event->data['__laravel_notification_notifiable'])) {
-                    $notifiable = $event->data['__laravel_notification_notifiable'];
-                    if (method_exists($notifiable, 'getKey')) {
+                if (
+                    !$userId &&
+                    isset($event->data["__laravel_notification_notifiable"])
+                ) {
+                    $notifiable =
+                        $event->data["__laravel_notification_notifiable"];
+                    if (method_exists($notifiable, "getKey")) {
                         $userId = $notifiable->getKey();
                     }
                 }
             }
 
+            // Ensure metadata values are strings and filter out nulls
+            $filteredMetadata = array_filter(
+                array_map(function ($value) {
+                    if (is_bool($value)) {
+                        return $value ? "true" : "false";
+                    }
+                    if (is_numeric($value)) {
+                        return (string) $value;
+                    }
+                    return $value;
+                }, $metadata),
+                function ($value) {
+                    return $value !== null;
+                },
+            );
+
             // Create the email log entry
             $emailLog = EmailLog::create([
-                'user_id' => $userId,
-                'recipient_email' => $recipientEmail,
-                'recipient_name' => $recipientName,
-                'subject' => $message->getSubject(),
-                'body' => $body,
-                'email_type' => $emailType,
-                'status' => 'pending',
-                'provider' => config('mail.default'),
-                'metadata' => $metadata,
+                "user_id" => $userId,
+                "recipient_email" => $recipientEmail,
+                "recipient_name" => $recipientName,
+                "subject" => $message->getSubject(),
+                "body" => $body,
+                "email_type" => $emailType,
+                "status" => "pending",
+                "provider" => config("mail.default"),
+                "metadata" => $filteredMetadata,
             ]);
 
             // Store the log ID for later use when the email is sent
             $messageId = $this->generateMessageKey($message);
             self::$pendingLogs[$messageId] = $emailLog->id;
 
-            Log::info('Email log created', [
-                'email_log_id' => $emailLog->id,
-                'recipient' => $recipientEmail,
-                'subject' => $message->getSubject(),
-                'type' => $emailType,
+            Log::info("Email log created", [
+                "email_log_id" => $emailLog->id,
+                "recipient" => $recipientEmail,
+                "subject" => $message->getSubject(),
+                "type" => $emailType,
             ]);
-
         } catch (\Exception $e) {
-            Log::error('Failed to create email log', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+            Log::error("Failed to create email log", [
+                "error" => $e->getMessage(),
+                "trace" => $e->getTraceAsString(),
             ]);
         }
     }
@@ -154,23 +179,25 @@ class EmailLoggingListener
 
                 if ($emailLog) {
                     // Get provider message ID if available
-                    $providerMessageId = $message->getHeaders()->get('Message-ID')?->getBodyAsString();
+                    $providerMessageId = $message
+                        ->getHeaders()
+                        ->get("Message-ID")
+                        ?->getBodyAsString();
 
                     $emailLog->markAsSent($providerMessageId);
 
-                    Log::info('Email log updated as sent', [
-                        'email_log_id' => $emailLog->id,
-                        'provider_message_id' => $providerMessageId,
+                    Log::info("Email log updated as sent", [
+                        "email_log_id" => $emailLog->id,
+                        "provider_message_id" => $providerMessageId,
                     ]);
                 }
 
                 // Clean up the pending log
                 unset(self::$pendingLogs[$messageId]);
             }
-
         } catch (\Exception $e) {
-            Log::error('Failed to update email log as sent', [
-                'error' => $e->getMessage(),
+            Log::error("Failed to update email log as sent", [
+                "error" => $e->getMessage(),
             ]);
         }
     }
@@ -198,8 +225,8 @@ class EmailLoggingListener
 
             return null;
         } catch (\Exception $e) {
-            Log::debug('Could not extract email body', [
-                'error' => $e->getMessage(),
+            Log::debug("Could not extract email body", [
+                "error" => $e->getMessage(),
             ]);
             return null;
         }
@@ -214,7 +241,7 @@ class EmailLoggingListener
     protected function generateMessageKey(Email $message): string
     {
         $to = $message->getTo();
-        $recipientEmail = !empty($to) ? array_key_first($to) : 'unknown';
+        $recipientEmail = !empty($to) ? array_key_first($to) : "unknown";
 
         return md5($recipientEmail . $message->getSubject() . microtime());
     }
@@ -225,23 +252,24 @@ class EmailLoggingListener
      * @param object $notification
      * @return string
      */
-    protected function inferEmailTypeFromNotification(object $notification): string
-    {
+    protected function inferEmailTypeFromNotification(
+        object $notification,
+    ): string {
         $className = class_basename($notification);
 
         // Map notification class names to email types
         $typeMap = [
-            'MedicationReminderNotification' => 'medication_reminder',
-            'MedicationNotifcation' => 'medication_taken',
-            'MedicationTakenNotification' => 'medication_taken',
-            'BulkMedicationTakenNotification' => 'medication_taken',
-            'SeizureAddedNotification' => 'seizure_alert',
-            'TrustedContactInvitation' => 'invitation',
-            'VerifyEmail' => 'verification',
-            'ResetPassword' => 'password_reset',
+            "MedicationReminderNotification" => "medication_reminder",
+            "MedicationNotifcation" => "medication_taken",
+            "MedicationTakenNotification" => "medication_taken",
+            "BulkMedicationTakenNotification" => "medication_taken",
+            "SeizureAddedNotification" => "seizure_alert",
+            "TrustedContactInvitation" => "invitation",
+            "VerifyEmail" => "verification",
+            "ResetPassword" => "password_reset",
         ];
 
-        return $typeMap[$className] ?? 'notification';
+        return $typeMap[$className] ?? "notification";
     }
 
     /**
@@ -253,8 +281,8 @@ class EmailLoggingListener
     public function subscribe($events): array
     {
         return [
-            MessageSending::class => 'handleMessageSending',
-            MessageSent::class => 'handleMessageSent',
+            MessageSending::class => "handleMessageSending",
+            MessageSent::class => "handleMessageSent",
         ];
     }
 }
