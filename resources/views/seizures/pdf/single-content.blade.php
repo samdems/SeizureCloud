@@ -114,6 +114,41 @@
     @else
         <p style="color: #666; font-style: italic;">No pre-ictal symptoms recorded.</p>
     @endif
+
+    @if($seizure->pre_ictal_notes)
+        <div class="notes-section" style="margin-top: 15px;">
+            <h4>Pre-ictal Notes</h4>
+            <p>{{ $seizure->pre_ictal_notes }}</p>
+        </div>
+    @endif
+</div>
+
+<div class="section-header">Post-ictal Recovery</div>
+<table class="seizure-details">
+    <tr>
+        <td class="label">Recovery Time</td>
+        <td>{{ $seizure->recovery_time ? Str::headline($seizure->recovery_time) : 'Not recorded' }}</td>
+    </tr>
+    <tr>
+        <td class="label">Post-ictal Confusion</td>
+        <td>
+            <span class="checkbox {{ $seizure->post_ictal_confusion ? 'checked' : 'unchecked' }}">{{ $seizure->post_ictal_confusion ? 'YES' : 'NO' }}</span>
+        </td>
+    </tr>
+    <tr>
+        <td class="label">Post-ictal Headache</td>
+        <td>
+            <span class="checkbox {{ $seizure->post_ictal_headache ? 'checked' : 'unchecked' }}">{{ $seizure->post_ictal_headache ? 'YES' : 'NO' }}</span>
+        </td>
+    </tr>
+</table>
+
+@if($seizure->recovery_notes)
+    <div class="notes-section">
+        <h4>Recovery Notes</h4>
+        <p>{{ $seizure->recovery_notes }}</p>
+    </div>
+@endif
 </div>
 
 <div class="section-header">Additional Information</div>
@@ -154,11 +189,15 @@
     </div>
 @endif
 
-<div class="section-header">Wellbeing</div>
+<div class="section-header">Wellbeing & Health</div>
 <table class="seizure-details">
     <tr>
         <td class="label">Wellbeing Rating</td>
         <td>{{ $seizure->wellbeing_rating ? Str::headline($seizure->wellbeing_rating) : 'Not recorded' }}</td>
+    </tr>
+    <tr>
+        <td class="label">Sleep Quality</td>
+        <td>{{ $seizure->sleep_quality ? Str::headline($seizure->sleep_quality) : 'Not recorded' }}</td>
     </tr>
     @if($seizure->wellbeing_notes)
     <tr>
@@ -168,11 +207,37 @@
     @endif
 </table>
 
+<div class="section-header">Medication Information</div>
+<table class="seizure-details">
+    <tr>
+        <td class="label">Medication Adherence</td>
+        <td>{{ $seizure->medication_adherence ? Str::headline($seizure->medication_adherence) : 'Not recorded' }}</td>
+    </tr>
+    <tr>
+        <td class="label">Recent Medication Change</td>
+        <td>
+            <span class="checkbox {{ $seizure->recent_medication_change ? 'checked' : 'unchecked' }}">{{ $seizure->recent_medication_change ? 'YES' : 'NO' }}</span>
+        </td>
+    </tr>
+    <tr>
+        <td class="label">Experiencing Side Effects</td>
+        <td>
+            <span class="checkbox {{ $seizure->experiencing_side_effects ? 'checked' : 'unchecked' }}">{{ $seizure->experiencing_side_effects ? 'YES' : 'NO' }}</span>
+        </td>
+    </tr>
+    @if($seizure->medication_notes)
+    <tr>
+        <td class="label">Medication Notes</td>
+        <td>{{ $seizure->medication_notes }}</td>
+    </tr>
+    @endif
+</table>
+
 @if(!$medications->isEmpty())
     @if(!isset($recordNumber))
         <div class="page-break"></div>
     @endif
-    <div class="section-header">Medication Adherence Before Seizure</div>
+    <div class="section-header">Detailed Medication Adherence</div>
     @foreach($medications as $medication)
         @php
             $adherence = $medication->adherence ?? [];
