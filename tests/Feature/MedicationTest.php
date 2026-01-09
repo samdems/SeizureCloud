@@ -213,6 +213,88 @@ class MedicationTest extends TestCase
         ]);
     }
 
+    public function test_user_can_update_medication_schedule(): void
+    {
+        $user = User::factory()->create();
+        $medication = Medication::factory()->create(["user_id" => $user->id]);
+        $schedule = MedicationSchedule::factory()->create([
+            "medication_id" => $medication->id,
+            "scheduled_time" => "08:00",
+            "frequency" => "daily",
+            "dosage_multiplier" => 1.0,
+            "unit" => "mg",
+            "active" => true,
+        ]);
+
+        $updateData = [
+            "scheduled_time" => "18:00",
+            "frequency" => "weekly",
+            "days_of_week" => [1, 3, 5], // Monday, Wednesday, Friday
+            "dosage_multiplier" => 2.0,
+            "unit" => "tablets",
+            "active" => false,
+            "notes" => "Updated evening schedule",
+        ];
+
+        $response = $this->actingAs($user)->putWithCsrf(
+            route("medications.schedules.update", [$medication, $schedule]),
+            $updateData,
+        );
+
+        $response->assertRedirect();
+        $response->assertSessionHas(
+            "success",
+            "Schedule updated successfully.",
+        );
+
+        $this->assertDatabaseHas("medication_schedules", [
+            "id" => $schedule->id,
+            "scheduled_time" => "18:00:00",
+            "frequency" => "weekly",
+            "dosage_multiplier" => 2.0,
+            "unit" => "tablets",
+            "active" => false,
+            "notes" => "Updated evening schedule",
+        ]);
+
+        // Verify days_of_week JSON field
+        $updatedSchedule = MedicationSchedule::find($schedule->id);
+        $this->assertEquals([1, 3, 5], $updatedSchedule->days_of_week);
+    }
+
+    public function test_user_cannot_update_other_users_medication_schedule(): void
+    {
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+
+        $medication = Medication::factory()->create(["user_id" => $user1->id]);
+        $schedule = MedicationSchedule::factory()->create([
+            "medication_id" => $medication->id,
+            "scheduled_time" => "08:00",
+            "frequency" => "daily",
+        ]);
+
+        $updateData = [
+            "scheduled_time" => "18:00",
+            "frequency" => "weekly",
+            "active" => false,
+        ];
+
+        $response = $this->actingAs($user2)->putWithCsrf(
+            route("medications.schedules.update", [$medication, $schedule]),
+            $updateData,
+        );
+
+        $response->assertStatus(403);
+
+        // Verify schedule was not updated
+        $this->assertDatabaseHas("medication_schedules", [
+            "id" => $schedule->id,
+            "scheduled_time" => "08:00:00",
+            "frequency" => "daily",
+        ]);
+    }
+
     public function test_user_can_log_medication_taken(): void
     {
         $user = User::factory()->create();

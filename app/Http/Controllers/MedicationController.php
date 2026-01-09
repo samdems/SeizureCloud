@@ -16,6 +16,7 @@ use App\Http\Requests\MedicationLogSkippedRequest;
 use App\Http\Requests\MedicationLogBulkTakenRequest;
 use App\Http\Requests\MedicationLogUpdateRequest;
 use App\Http\Requests\MedicationScheduleStoreRequest;
+use App\Http\Requests\MedicationScheduleUpdateRequest;
 use App\Notifications\MedicationNotifcation;
 
 class MedicationController extends Controller
@@ -613,6 +614,33 @@ class MedicationController extends Controller
         $medication->schedules()->create($validated);
 
         return back()->with("success", "Schedule added successfully.");
+    }
+
+    public function updateSchedule(
+        MedicationScheduleUpdateRequest $request,
+        Medication $medication,
+        MedicationSchedule $schedule,
+    ) {
+        $this->authorize("update", $medication);
+
+        // Ensure the schedule belongs to the medication
+        if ($schedule->medication_id !== $medication->id) {
+            abort(403, "Schedule does not belong to this medication.");
+        }
+
+        $validated = $request->validated();
+
+        // Only update fields that are provided and not null
+        $updateData = [];
+        foreach ($validated as $key => $value) {
+            if ($value !== null || in_array($key, ["days_of_week", "notes"])) {
+                $updateData[$key] = $value;
+            }
+        }
+
+        $schedule->update($updateData);
+
+        return back()->with("success", "Schedule updated successfully.");
     }
 
     public function destroySchedule(
