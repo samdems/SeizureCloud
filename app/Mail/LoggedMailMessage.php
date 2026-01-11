@@ -66,7 +66,16 @@ class LoggedMailMessage extends MailMessage
      */
     public function withMetadata(array $metadata): self
     {
-        $this->metadata = array_merge($this->metadata, $metadata);
+        foreach ($metadata as $key => $value) {
+            if ($value === null) {
+                // Skip null values entirely
+                continue;
+            }
+
+            // Ensure all metadata values are stored as strings
+            $this->metadata[$key] = (string) $value;
+        }
+
         return $this;
     }
 
@@ -79,7 +88,10 @@ class LoggedMailMessage extends MailMessage
      */
     public function addMetadata(string $key, $value): self
     {
-        $this->metadata[$key] = $value;
+        if ($value !== null) {
+            $this->metadata[$key] = (string) $value;
+        }
+
         return $this;
     }
 

@@ -53,25 +53,37 @@ class MedicationNotifcation extends Notification
             $emailType = "medication_bulk_taken";
         }
 
-        // Build metadata
+        // Build metadata with normalized, non-null string values
         $metadata = [
-            "patient_id" => $this->patient->id,
-            "patient_name" => $this->patient->name,
-            "notification_type" => $this->type,
-            "is_for_patient" => $notifiable->id === $this->patient->id,
+            "patient_id" => (string) $this->patient->id,
+            "patient_name" => (string) $this->patient->name,
+            "notification_type" => (string) $this->type,
+            "is_for_patient" =>
+                $notifiable->id === $this->patient->id ? "1" : "0",
         ];
 
         if ($this->type === "bulk") {
-            $metadata["period"] = $this->period;
-            $metadata["count"] = $this->count;
-            $metadata["notes"] = $this->notes;
+            if ($this->period !== null) {
+                $metadata["period"] = (string) $this->period;
+            }
+
+            $metadata["count"] = (string) $this->count;
+
+            if ($this->notes !== null && $this->notes !== "") {
+                $metadata["notes"] = (string) $this->notes;
+            }
         } elseif ($this->type === "single") {
-            $metadata["medication_id"] = $this->medications->medication_id;
+            $metadata["medication_id"] =
+                (string) $this->medications->medication_id;
             $metadata["medication_name"] =
-                $this->medications->medication->name ?? "Unknown";
-            $metadata["skipped"] = $this->medications->skipped;
-            if ($this->medications->skipped) {
-                $metadata["skip_reason"] = $this->medications->skip_reason;
+                (string) ($this->medications->medication->name ?? "Unknown");
+            $metadata["skipped"] = $this->medications->skipped ? "1" : "0";
+            if (
+                $this->medications->skipped &&
+                $this->medications->skip_reason !== null
+            ) {
+                $metadata["skip_reason"] =
+                    (string) $this->medications->skip_reason;
             }
         }
 
