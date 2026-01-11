@@ -33,6 +33,7 @@
         <input type="hidden" id="form_start_time" name="start_time">
         <input type="hidden" id="form_end_time" name="end_time">
         <input type="hidden" id="form_duration_minutes" name="duration_minutes">
+        <input type="hidden" id="form_duration_seconds" name="duration_seconds">
     @endif
 
     <!-- User Selection (if enabled) -->
@@ -103,16 +104,36 @@
 
             <div class="form-control">
                 <label class="label">
-                    <span class="label-text font-semibold">Duration (minutes)</span>
+                    <span class="label-text font-semibold">Duration</span>
                 </label>
                 @if($timeFieldsEditable)
-                    <input type="number" id="duration_input" name="duration_minutes" min="0"
-                           value="{{ old('duration_minutes', $seizure?->duration_minutes) }}"
-                           class="input input-bordered" placeholder="Auto-calculated" onchange="updateEndTime()">
+                    <div class="flex gap-2">
+                        <div class="form-control flex-1">
+                            <input type="number" id="duration_minutes_input" name="duration_minutes" min="0" max="999"
+                                   value="{{ old('duration_minutes', $seizure ? floor(($seizure->duration_seconds ?? 0) / 60) : '') }}"
+                                   class="input input-bordered" placeholder="Minutes" onchange="updateEndTime()">
+                            <label class="label">
+                                <span class="label-text-alt">Minutes</span>
+                            </label>
+                        </div>
+                        <div class="form-control flex-1">
+                            <input type="number" id="duration_seconds_input" name="duration_seconds" min="0" max="59"
+                                   value="{{ old('duration_seconds', $seizure ? ($seizure->duration_seconds ?? 0) % 60 : '') }}"
+                                   class="input input-bordered" placeholder="Seconds" onchange="updateEndTime()">
+                            <label class="label">
+                                <span class="label-text-alt">Seconds</span>
+                            </label>
+                        </div>
+                    </div>
                 @else
                     <div id="display_duration" class="input input-bordered bg-base-200 flex items-center"></div>
                 @endif
                 @error('duration_minutes')
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ $message }}</span>
+                    </label>
+                @enderror
+                @error('duration_seconds')
                     <label class="label">
                         <span class="label-text-alt text-error">{{ $message }}</span>
                     </label>
@@ -776,25 +797,33 @@ function getColorForSeverity(value) {
 function updateHiddenFields() {
     const startInput = document.getElementById('start_time_input');
     const endInput = document.getElementById('end_time_input');
-    const durationInput = document.getElementById('duration_input');
+    const durationMinutesInput = document.getElementById('duration_minutes_input');
+    const durationSecondsInput = document.getElementById('duration_seconds_input');
 
     if (document.getElementById('form_start_time')) {
         document.getElementById('form_start_time').value = startInput.value;
         document.getElementById('form_end_time').value = endInput.value;
-        document.getElementById('form_duration_minutes').value = durationInput.value;
+        document.getElementById('form_duration_minutes').value = durationMinutesInput?.value || 0;
+        document.getElementById('form_duration_seconds').value = durationSecondsInput?.value || 0;
     }
 }
 
 function updateDuration() {
     const startInput = document.getElementById('start_time_input');
     const endInput = document.getElementById('end_time_input');
-    const durationInput = document.getElementById('duration_input');
+    const durationMinutesInput = document.getElementById('duration_minutes_input');
+    const durationSecondsInput = document.getElementById('duration_seconds_input');
 
     if (startInput.value && endInput.value) {
         const start = new Date(startInput.value);
         const end = new Date(endInput.value);
-        const diffMinutes = Math.max(0, Math.floor((end - start) / 60000));
-        durationInput.value = diffMinutes;
+        const diffSeconds = Math.max(0, Math.floor((end - start) / 1000));
+        const minutes = Math.floor(diffSeconds / 60);
+        const seconds = diffSeconds % 60;
+
+        if (durationMinutesInput) durationMinutesInput.value = minutes;
+        if (durationSecondsInput) durationSecondsInput.value = seconds;
+
         if (typeof updateHiddenFields === 'function') updateHiddenFields();
     }
 }
@@ -802,11 +831,15 @@ function updateDuration() {
 function updateEndTime() {
     const startInput = document.getElementById('start_time_input');
     const endInput = document.getElementById('end_time_input');
-    const durationInput = document.getElementById('duration_input');
+    const durationMinutesInput = document.getElementById('duration_minutes_input');
+    const durationSecondsInput = document.getElementById('duration_seconds_input');
 
-    if (startInput.value && durationInput.value) {
+    if (startInput.value && (durationMinutesInput?.value || durationSecondsInput?.value)) {
         const start = new Date(startInput.value);
-        const end = new Date(start.getTime() + (parseInt(durationInput.value) * 60000));
+        const minutes = parseInt(durationMinutesInput?.value || 0);
+        const seconds = parseInt(durationSecondsInput?.value || 0);
+        const totalSeconds = (minutes * 60) + seconds;
+        const end = new Date(start.getTime() + (totalSeconds * 1000));
 
         const offset = end.getTimezoneOffset() * 60000;
         const localDate = new Date(end.getTime() - offset);

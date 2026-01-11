@@ -49,7 +49,8 @@
             const formData = {
                 start_time: document.getElementById('start_time_input')?.value || '',
                 end_time: document.getElementById('end_time_input')?.value || '',
-                duration_minutes: document.getElementById('duration_input')?.value || '',
+                duration_minutes: document.getElementById('duration_minutes_input')?.value || '',
+                duration_seconds: document.getElementById('duration_seconds_input')?.value || '',
                 severity: document.getElementById('severity_input')?.value || '',
                 postictal_state_end: document.getElementById('postictal_state_end')?.value || '',
                 on_period: document.querySelector('input[name="on_period"]')?.checked || false,
@@ -107,7 +108,8 @@
                 // Restore form values
                 if (data.start_time) document.getElementById('start_time_input').value = data.start_time;
                 if (data.end_time) document.getElementById('end_time_input').value = data.end_time;
-                if (data.duration_minutes) document.getElementById('duration_input').value = data.duration_minutes;
+                if (data.duration_minutes) document.getElementById('duration_minutes_input').value = data.duration_minutes;
+                if (data.duration_seconds) document.getElementById('duration_seconds_input').value = data.duration_seconds;
                 if (data.severity) setSeverity(parseInt(data.severity));
                 if (data.postictal_state_end) document.getElementById('postictal_state_end').value = data.postictal_state_end;
                 if (data.on_period) document.querySelector('input[name="on_period"]').checked = data.on_period;

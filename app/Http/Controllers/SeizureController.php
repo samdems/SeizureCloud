@@ -74,6 +74,19 @@ class SeizureController extends Controller
     {
         $validated = $request->validated();
 
+        // Handle duration conversion from minutes and seconds to total seconds
+        $minutes = (int) $request->input("duration_minutes", 0);
+        $inputSeconds = (int) $request->input("duration_seconds", 0);
+
+        if ($minutes > 0 || $inputSeconds > 0) {
+            $validated["duration_seconds"] = $minutes * 60 + $inputSeconds;
+        } else {
+            $validated["duration_seconds"] = null;
+        }
+
+        // Clean up input-only fields
+        unset($validated["duration_minutes"]);
+
         $seizure = Seizure::create($validated);
 
         // Handle video upload if present
@@ -237,6 +250,19 @@ class SeizureController extends Controller
 
         $validated = $request->validated();
 
+        // Handle duration conversion from minutes and seconds to total seconds
+        $minutes = (int) $request->input("duration_minutes", 0);
+        $inputSeconds = (int) $request->input("duration_seconds", 0);
+
+        if ($minutes > 0 || $inputSeconds > 0) {
+            $validated["duration_seconds"] = $minutes * 60 + $inputSeconds;
+        } else {
+            $validated["duration_seconds"] = null;
+        }
+
+        // Clean up input-only fields
+        unset($validated["duration_minutes"]);
+
         $seizure->update($validated);
 
         // Handle video upload if present
@@ -291,8 +317,8 @@ class SeizureController extends Controller
         // Calculate statistics
         $totalSeizures = $seizures->count();
         $averageSeverity = $seizures->avg("severity");
-        $totalDuration = $seizures->sum("duration_minutes");
-        $longestSeizure = $seizures->max("duration_minutes");
+        $totalDuration = $seizures->sum("duration_seconds");
+        $longestSeizure = $seizures->max("duration_seconds");
 
         $pdf = Pdf::loadView(
             "seizures.pdf.monthly",
@@ -334,8 +360,8 @@ class SeizureController extends Controller
         // Calculate statistics
         $totalSeizures = $seizures->count();
         $averageSeverity = $seizures->avg("severity");
-        $totalDuration = $seizures->sum("duration_minutes");
-        $longestSeizure = $seizures->max("duration_minutes");
+        $totalDuration = $seizures->sum("duration_seconds");
+        $longestSeizure = $seizures->max("duration_seconds");
 
         // Get detailed data for each seizure
         $seizuresDetailed = $seizures->map(function ($seizure) use ($user) {

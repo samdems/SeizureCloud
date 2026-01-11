@@ -73,7 +73,10 @@ class SeizureAddedNotification extends Notification
                         "start_time" => $this->seizure->start_time->toIso8601String(),
                         "duration_minutes" => $this->seizure
                             ->calculated_duration
-                            ? (string) $this->seizure->calculated_duration
+                            ? (string) round(
+                                $this->seizure->calculated_duration / 60,
+                                1,
+                            )
                             : null,
                         "is_emergency" => $emergencyStatus["is_emergency"]
                             ? "true"
@@ -146,7 +149,9 @@ class SeizureAddedNotification extends Notification
                 "seizure_type" => $this->seizure->seizure_type,
                 "severity" => $this->seizure->severity,
                 "start_time" => $this->seizure->start_time->toDateTimeString(),
-                "duration_minutes" => $this->seizure->calculated_duration,
+                "duration_minutes" => $this->seizure->calculated_duration
+                    ? round($this->seizure->calculated_duration / 60, 1)
+                    : null,
                 "patient_name" => $this->patient->name,
                 "patient_id" => $this->patient->id,
                 "seizure_id" => $this->seizure->id,

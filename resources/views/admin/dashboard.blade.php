@@ -268,7 +268,7 @@
                             <div class="text-sm opacity-70">
                                 {{ $seizure->seizure_type ?? 'Unknown' }} seizure on {{ $seizure->start_time->format('M j, Y \a\t g:i A') }}
                                 @if($seizure->calculated_duration)
-                                    ({{ $seizure->calculated_duration }}min)
+                                    ({{ $seizure->formatted_duration }})
                                 @endif
                             </div>
                         </div>

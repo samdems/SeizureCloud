@@ -278,7 +278,7 @@
                                 </td>
                                 <td>
                                     @if($seizure->calculated_duration)
-                                        {{ $seizure->calculated_duration }} min
+                                        {{ $seizure->formatted_duration }}
                                     @else
                                         -
                                     @endif

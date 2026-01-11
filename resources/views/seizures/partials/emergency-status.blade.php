@@ -16,7 +16,7 @@
                                 </svg>
                                 <div>
                                     <h4 class="font-semibold">Possible Status Epilepticus</h4>
-                                    <p class="text-sm">Seizure duration ({{ $seizure->calculated_duration }} min) exceeds emergency threshold ({{ $emergencyStatus['duration_threshold'] }} min)</p>
+                                    <p class="text-sm">Seizure duration ({{ $seizure->formatted_duration }}) exceeds emergency threshold ({{ $emergencyStatus['duration_threshold'] }} min)</p>
                                 </div>
                             </div>
                         @endif

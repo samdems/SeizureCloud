@@ -13,7 +13,7 @@ class Seizure extends Model
         "user_id",
         "start_time",
         "end_time",
-        "duration_minutes",
+        "duration_seconds",
         "severity",
         "seizure_type",
         "has_video_evidence",
@@ -54,7 +54,7 @@ class Seizure extends Model
         "ambulance_called" => "boolean",
         "slept_after" => "boolean",
         "severity" => "integer",
-        "duration_minutes" => "integer",
+        "duration_seconds" => "integer",
         "days_since_period" => "integer",
         "has_video_evidence" => "boolean",
         "post_ictal_confusion" => "boolean",
@@ -72,15 +72,58 @@ class Seizure extends Model
 
     public function getCalculatedDurationAttribute(): ?int
     {
-        if ($this->duration_minutes) {
-            return $this->duration_minutes;
+        if ($this->duration_seconds) {
+            return $this->duration_seconds;
         }
 
         if ($this->start_time && $this->end_time) {
-            return $this->start_time->diffInMinutes($this->end_time);
+            return $this->start_time->diffInSeconds($this->end_time);
         }
 
         return null;
+    }
+
+    /**
+     * Get duration in minutes (for backward compatibility and display)
+     */
+    public function getDurationMinutesAttribute(): ?float
+    {
+        if (!$this->duration_seconds) {
+            return null;
+        }
+
+        return round($this->duration_seconds / 60, 1);
+    }
+
+    /**
+     * Get duration formatted as minutes and seconds for display
+     */
+    public function getFormattedDurationAttribute(): string
+    {
+        if (!$this->duration_seconds) {
+            return "Unknown";
+        }
+
+        $minutes = floor($this->duration_seconds / 60);
+        $seconds = $this->duration_seconds % 60;
+
+        if ($minutes > 0 && $seconds > 0) {
+            return "{$minutes}m {$seconds}s";
+        } elseif ($minutes > 0) {
+            return "{$minutes}m";
+        } else {
+            return "{$seconds}s";
+        }
+    }
+
+    /**
+     * Set duration from minutes and seconds
+     */
+    public function setDurationFromMinutesAndSeconds(
+        int $minutes = 0,
+        int $seconds = 0,
+    ): void {
+        $this->duration_seconds = $minutes * 60 + $seconds;
     }
 
     public function hasValidVideo(): bool

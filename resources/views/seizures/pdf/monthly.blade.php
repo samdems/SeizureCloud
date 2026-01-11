@@ -236,13 +236,13 @@
                         <td>
                             <div style="font-weight: bold;">{{ $seizure->start_time->format('M j, Y') }}</div>
                             <div style="font-size: 11px; color: #666;">{{ $seizure->start_time->format('g:i A') }}</div>
-                            @if($seizure->duration_minutes >= ($user->status_epilepticus_duration_minutes ?? 5))
+                            @if($seizure->duration_seconds >= (($user->status_epilepticus_duration_minutes ?? 5) * 60))
                                 <div class="emergency-indicator">Emergency</div>
                             @endif
                         </td>
                         <td class="duration">
                             @if($seizure->calculated_duration)
-                                {{ $seizure->calculated_duration }} min
+                                {{ $seizure->formatted_duration }}
                             @else
                                 N/A
                             @endif
@@ -294,14 +294,14 @@
             <ul style="margin: 0; padding-left: 20px; color: #4a5568;">
                 <li>This report covers {{ $seizures->count() }} seizure(s) recorded during {{ $monthName }}</li>
                 @if($totalDuration > 0)
-                    <li>Total seizure time: {{ number_format($totalDuration / 60, 1) }} hours ({{ $totalDuration }} minutes)</li>
+                    <li>Total seizure time: {{ number_format($totalDuration / 3600, 1) }} hours ({{ floor($totalDuration / 60) }}m {{ $totalDuration % 60 }}s)</li>
                 @endif
                 @if($averageSeverity)
                     <li>Average severity rating: {{ number_format($averageSeverity, 1) }} out of 10</li>
                 @endif
                 <li>Emergency threshold duration: {{ $user->status_epilepticus_duration_minutes ?? 5 }} minutes</li>
                 @php
-                    $emergencySeizures = $seizures->where('duration_minutes', '>=', $user->status_epilepticus_duration_minutes ?? 5);
+                    $emergencySeizures = $seizures->where('duration_seconds', '>=', ($user->status_epilepticus_duration_minutes ?? 5) * 60);
                 @endphp
                 @if($emergencySeizures->count() > 0)
                     <li style="color: #e53e3e; font-weight: bold;">

@@ -26,7 +26,7 @@ class SeizureFactory extends Factory
             "user_id" => 1,
             "start_time" => $startTime,
             "end_time" => $endTime,
-            "duration_minutes" => $durationMinutes,
+            "duration_seconds" => $durationMinutes * 60,
             "severity" => fake()->numberBetween(1, 10),
             "on_period" => fake()->boolean(50),
             "nhs_contact_type" => $nhsContacted
@@ -75,7 +75,7 @@ class SeizureFactory extends Factory
             fn(array $attributes) => [
                 "severity" => fake()->numberBetween(7, 10),
                 "ambulance_called" => fake()->boolean(40),
-                "duration_minutes" => fake()->numberBetween(3, 8), // Slightly longer but not excessive
+                "duration_seconds" => fake()->numberBetween(3, 8) * 60, // Slightly longer but not excessive
             ],
         );
     }
@@ -89,7 +89,7 @@ class SeizureFactory extends Factory
             fn(array $attributes) => [
                 "severity" => fake()->numberBetween(1, 4),
                 "ambulance_called" => false,
-                "duration_minutes" => fake()->numberBetween(1, 3), // Very short duration
+                "duration_seconds" => fake()->numberBetween(1, 3) * 60, // Very short duration
             ],
         );
     }
@@ -110,7 +110,7 @@ class SeizureFactory extends Factory
             return [
                 "start_time" => $date,
                 "slept_after" => fake()->boolean(90), // More likely to sleep after nighttime seizures
-                "duration_minutes" => fake()->numberBetween(1, 4), // Short nighttime seizures
+                "duration_seconds" => fake()->numberBetween(1, 4) * 60, // Short nighttime seizures
             ];
         });
     }
@@ -135,7 +135,7 @@ class SeizureFactory extends Factory
 
             return [
                 "start_time" => $newStartTime,
-                "duration_minutes" => fake()->numberBetween(1, 3), // Keep subsequent seizures short
+                "duration_seconds" => fake()->numberBetween(1, 3) * 60, // Keep subsequent seizures short
             ];
         });
     }

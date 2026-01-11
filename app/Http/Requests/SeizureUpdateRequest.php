@@ -25,7 +25,8 @@ class SeizureUpdateRequest extends FormRequest
         return [
             "start_time" => "required|date",
             "end_time" => "nullable|date|after:start_time",
-            "duration_minutes" => "nullable|integer|min:0",
+            "duration_minutes" => "nullable|integer|min:0|max:999",
+            "duration_seconds" => "nullable|integer|min:0|max:59",
             "severity" => "required|integer|min:1|max:10",
 
             // Seizure type
@@ -99,8 +100,13 @@ class SeizureUpdateRequest extends FormRequest
                 "The start time must be a valid date and time.",
             "end_time.after" => "The end time must be after the start time.",
             "duration_minutes.integer" =>
-                "Duration must be a whole number of minutes.",
-            "duration_minutes.min" => "Duration cannot be negative.",
+                "Duration minutes must be a whole number.",
+            "duration_minutes.min" => "Duration minutes cannot be negative.",
+            "duration_minutes.max" => "Duration minutes cannot exceed 999.",
+            "duration_seconds.integer" =>
+                "Duration seconds must be a whole number.",
+            "duration_seconds.min" => "Duration seconds cannot be negative.",
+            "duration_seconds.max" => "Duration seconds cannot exceed 59.",
             "severity.required" => "Please rate the severity of the seizure.",
             "severity.integer" => "Severity must be a number.",
             "severity.min" => "Severity must be at least 1.",
@@ -147,7 +153,8 @@ class SeizureUpdateRequest extends FormRequest
         return [
             "start_time" => "start time",
             "end_time" => "end time",
-            "duration_minutes" => "duration",
+            "duration_minutes" => "duration minutes",
+            "duration_seconds" => "duration seconds",
             "nhs_contact_type" => "NHS contact type",
             "postictal_state_end" => "postictal state end time",
             "ambulance_called" => "ambulance called",

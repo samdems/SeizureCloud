@@ -313,7 +313,7 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         return $seizure->calculated_duration >=
-            $this->status_epilepticus_duration_minutes;
+            $this->status_epilepticus_duration_minutes * 60;
     }
 
     /**
