@@ -24,19 +24,19 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            "name" => fake()->name(),
-            "email" => fake()->unique()->safeEmail(),
-            "email_verified_at" => now(),
-            "password" => (static::$password ??= Hash::make("password")),
-            "remember_token" => Str::random(10),
-            "two_factor_secret" => Str::random(10),
-            "two_factor_recovery_codes" => Str::random(10),
-            "two_factor_confirmed_at" => now(),
-            "account_type" => "patient",
-            "morning_time" => "06:00:00",
-            "afternoon_time" => "12:00:00",
-            "evening_time" => "18:00:00",
-            "bedtime" => "22:00:00",
+            'name' => fake()->name(),
+            'email' => fake()->unique()->safeEmail(),
+            'email_verified_at' => now(),
+            'password' => (static::$password ??= Hash::make('password')),
+            'remember_token' => Str::random(10),
+            'two_factor_secret' => Str::random(10),
+            'two_factor_recovery_codes' => Str::random(10),
+            'two_factor_confirmed_at' => now(),
+            'account_type' => 'patient',
+            'morning_time' => '06:00:00',
+            'afternoon_time' => '12:00:00',
+            'evening_time' => '18:00:00',
+            'bedtime' => '22:00:00',
         ];
     }
 
@@ -46,8 +46,8 @@ class UserFactory extends Factory
     public function unverified(): static
     {
         return $this->state(
-            fn(array $attributes) => [
-                "email_verified_at" => null,
+            fn (array $attributes) => [
+                'email_verified_at' => null,
             ],
         );
     }
@@ -58,10 +58,10 @@ class UserFactory extends Factory
     public function withoutTwoFactor(): static
     {
         return $this->state(
-            fn(array $attributes) => [
-                "two_factor_secret" => null,
-                "two_factor_recovery_codes" => null,
-                "two_factor_confirmed_at" => null,
+            fn (array $attributes) => [
+                'two_factor_secret' => null,
+                'two_factor_recovery_codes' => null,
+                'two_factor_confirmed_at' => null,
             ],
         );
     }

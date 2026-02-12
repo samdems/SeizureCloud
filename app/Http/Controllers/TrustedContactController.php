@@ -2,13 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\TrustedContact;
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use App\Http\Requests\TrustedContactStoreRequest;
 use App\Http\Requests\TrustedContactUpdateRequest;
-use App\Models\UserInvitation;
+use App\Models\TrustedContact;
+use App\Models\User;
 use App\Notifications\TrustedContactInvitation;
 use Illuminate\Support\Facades\Notification;
 
@@ -24,28 +21,28 @@ class TrustedContactController extends Controller
         // Get trusted contacts this user has granted access to
         $trustedContacts = $user
             ->trustedContacts()
-            ->with("trustedUser")
-            ->orderBy("created_at", "desc")
+            ->with('trustedUser')
+            ->orderBy('created_at', 'desc')
             ->get();
 
         // Get accounts this user has trusted access to
         $accessibleAccounts = $user
             ->trustedAccounts()
-            ->with("user")
+            ->with('user')
             ->valid()
-            ->orderBy("created_at", "desc")
+            ->orderBy('created_at', 'desc')
             ->get();
 
         // Get pending invitations sent by this user
         $sentInvitations = $user
             ->sentInvitations()
             ->pending()
-            ->orderBy("created_at", "desc")
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return view(
-            "settings.trusted-contacts.index",
-            compact("trustedContacts", "accessibleAccounts", "sentInvitations"),
+            'settings.trusted-contacts.index',
+            compact('trustedContacts', 'accessibleAccounts', 'sentInvitations'),
         );
     }
 
@@ -54,7 +51,7 @@ class TrustedContactController extends Controller
      */
     public function create()
     {
-        return view("settings.trusted-contacts.create");
+        return view('settings.trusted-contacts.create');
     }
 
     /**
@@ -67,14 +64,14 @@ class TrustedContactController extends Controller
         $validated = $request->validated();
 
         // Check if user is trying to add themselves
-        if ($validated["email"] === $user->email) {
+        if ($validated['email'] === $user->email) {
             return back()->withErrors([
-                "email" => "You cannot add yourself as a trusted contact.",
+                'email' => 'You cannot add yourself as a trusted contact.',
             ]);
         }
 
         // Find the trusted user
-        $trustedUser = User::where("email", $validated["email"])->first();
+        $trustedUser = User::where('email', $validated['email'])->first();
 
         if ($trustedUser) {
             // User exists - create trusted contact directly
@@ -82,28 +79,28 @@ class TrustedContactController extends Controller
             // Check if relationship already exists
             $existingContact = $user
                 ->trustedContacts()
-                ->where("trusted_user_id", $trustedUser->id)
+                ->where('trusted_user_id', $trustedUser->id)
                 ->first();
 
             if ($existingContact) {
                 return back()->withErrors([
-                    "email" => "This user is already in your trusted contacts.",
+                    'email' => 'This user is already in your trusted contacts.',
                 ]);
             }
 
             $trustedContact = $user->trustedContacts()->create([
-                "trusted_user_id" => $trustedUser->id,
-                "nickname" => $validated["nickname"],
-                "access_note" => $validated["access_note"],
-                "expires_at" => $validated["expires_at"],
-                "granted_at" => now(),
-                "is_active" => true,
+                'trusted_user_id' => $trustedUser->id,
+                'nickname' => $validated['nickname'],
+                'access_note' => $validated['access_note'],
+                'expires_at' => $validated['expires_at'],
+                'granted_at' => now(),
+                'is_active' => true,
             ]);
 
             return redirect()
-                ->route("settings.trusted-contacts.index")
+                ->route('settings.trusted-contacts.index')
                 ->with(
-                    "success",
+                    'success',
                     "Trusted access granted to {$trustedUser->name}.",
                 );
         } else {
@@ -112,65 +109,63 @@ class TrustedContactController extends Controller
             // Check if pending invitation already exists
             $existingInvitation = $user
                 ->sentInvitations()
-                ->where("email", $validated["email"])
+                ->where('email', $validated['email'])
                 ->pending()
                 ->first();
 
             if ($existingInvitation) {
                 return back()->withErrors([
-                    "email" =>
-                        "You already have a pending invitation for this email address.",
+                    'email' => 'You already have a pending invitation for this email address.',
                 ]);
             }
 
             // Create invitation
             $invitation = $user->sentInvitations()->create([
-                "email" => $validated["email"],
-                "nickname" => $validated["nickname"],
-                "access_note" => $validated["access_note"],
-                "expires_at" => $validated["expires_at"],
-                "status" => "pending",
+                'email' => $validated['email'],
+                'nickname' => $validated['nickname'],
+                'access_note' => $validated['access_note'],
+                'expires_at' => $validated['expires_at'],
+                'status' => 'pending',
             ]);
 
             try {
                 // Log invitation creation
-                \Log::info("Sending invitation email", [
-                    "invitation_id" => $invitation->id,
-                    "inviter" => $user->email,
-                    "invitee" => $validated["email"],
-                    "token" => $invitation->token,
+                \Log::info('Sending invitation email', [
+                    'invitation_id' => $invitation->id,
+                    'inviter' => $user->email,
+                    'invitee' => $validated['email'],
+                    'token' => $invitation->token,
                 ]);
 
                 // Send invitation email
-                Notification::route("mail", $validated["email"])->notify(
+                Notification::route('mail', $validated['email'])->notify(
                     new TrustedContactInvitation($invitation, $user),
                 );
 
-                \Log::info("Invitation email sent successfully", [
-                    "invitation_id" => $invitation->id,
-                    "invitee" => $validated["email"],
+                \Log::info('Invitation email sent successfully', [
+                    'invitation_id' => $invitation->id,
+                    'invitee' => $validated['email'],
                 ]);
 
                 return redirect()
-                    ->route("settings.trusted-contacts.index")
+                    ->route('settings.trusted-contacts.index')
                     ->with(
-                        "success",
-                        "Invitation sent to {$validated["email"]}. They'll receive an email with instructions to accept access.",
+                        'success',
+                        "Invitation sent to {$validated['email']}. They'll receive an email with instructions to accept access.",
                     );
             } catch (\Exception $e) {
-                \Log::error("Failed to send invitation email", [
-                    "invitation_id" => $invitation->id,
-                    "invitee" => $validated["email"],
-                    "error" => $e->getMessage(),
-                    "trace" => $e->getTraceAsString(),
+                \Log::error('Failed to send invitation email', [
+                    'invitation_id' => $invitation->id,
+                    'invitee' => $validated['email'],
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
                 ]);
 
                 // If email fails, delete the invitation and show error
                 $invitation->delete();
 
                 return back()->withErrors([
-                    "email" =>
-                        "Failed to send invitation email: " . $e->getMessage(),
+                    'email' => 'Failed to send invitation email: '.$e->getMessage(),
                 ]);
             }
         }
@@ -181,11 +176,11 @@ class TrustedContactController extends Controller
      */
     public function show(TrustedContact $trustedContact)
     {
-        $this->authorize("view", $trustedContact);
+        $this->authorize('view', $trustedContact);
 
         return view(
-            "settings.trusted-contacts.show",
-            compact("trustedContact"),
+            'settings.trusted-contacts.show',
+            compact('trustedContact'),
         );
     }
 
@@ -194,11 +189,11 @@ class TrustedContactController extends Controller
      */
     public function edit(TrustedContact $trustedContact)
     {
-        $this->authorize("update", $trustedContact);
+        $this->authorize('update', $trustedContact);
 
         return view(
-            "settings.trusted-contacts.edit",
-            compact("trustedContact"),
+            'settings.trusted-contacts.edit',
+            compact('trustedContact'),
         );
     }
 
@@ -209,15 +204,15 @@ class TrustedContactController extends Controller
         TrustedContactUpdateRequest $request,
         TrustedContact $trustedContact,
     ) {
-        $this->authorize("update", $trustedContact);
+        $this->authorize('update', $trustedContact);
 
         $validated = $request->validated();
 
         $trustedContact->update($validated);
 
         return redirect()
-            ->route("settings.trusted-contacts.index")
-            ->with("success", "Trusted contact updated successfully.");
+            ->route('settings.trusted-contacts.index')
+            ->with('success', 'Trusted contact updated successfully.');
     }
 
     /**
@@ -225,15 +220,15 @@ class TrustedContactController extends Controller
      */
     public function destroy(TrustedContact $trustedContact)
     {
-        $this->authorize("delete", $trustedContact);
+        $this->authorize('delete', $trustedContact);
 
         $trustedUser = $trustedContact->trustedUser;
         $trustedContact->delete();
 
         return redirect()
-            ->route("settings.trusted-contacts.index")
+            ->route('settings.trusted-contacts.index')
             ->with(
-                "success",
+                'success',
                 "Trusted access revoked from {$trustedUser->name}.",
             );
     }
@@ -243,17 +238,17 @@ class TrustedContactController extends Controller
      */
     public function toggleStatus(TrustedContact $trustedContact)
     {
-        $this->authorize("update", $trustedContact);
+        $this->authorize('update', $trustedContact);
 
         $trustedContact->update([
-            "is_active" => !$trustedContact->is_active,
+            'is_active' => ! $trustedContact->is_active,
         ]);
 
-        $status = $trustedContact->is_active ? "activated" : "deactivated";
+        $status = $trustedContact->is_active ? 'activated' : 'deactivated';
 
         return redirect()
-            ->route("settings.trusted-contacts.index")
-            ->with("success", "Trusted contact {$status} successfully.");
+            ->route('settings.trusted-contacts.index')
+            ->with('success', "Trusted contact {$status} successfully.");
     }
 
     /**
@@ -266,39 +261,39 @@ class TrustedContactController extends Controller
         // Prevent switching to own account through this method
         if ($currentUser->id === $user->id) {
             return redirect()
-                ->route("dashboard")
-                ->with("error", "You are already viewing your own account.");
+                ->route('dashboard')
+                ->with('error', 'You are already viewing your own account.');
         }
 
         // Check if current user has trusted access to this account
-        if (!$currentUser->hasTrustedAccessTo($user)) {
-            abort(403, "You do not have trusted access to this account.");
+        if (! $currentUser->hasTrustedAccessTo($user)) {
+            abort(403, 'You do not have trusted access to this account.');
         }
 
         // Verify the trusted contact relationship is still valid
         $trustedContact = $currentUser
             ->trustedAccounts()
-            ->where("user_id", $user->id)
+            ->where('user_id', $user->id)
             ->valid()
             ->first();
 
-        if (!$trustedContact) {
+        if (! $trustedContact) {
             return redirect()
-                ->route("settings.trusted-contacts.index")
+                ->route('settings.trusted-contacts.index')
                 ->with(
-                    "error",
+                    'error',
                     "Your trusted access to {$user->name}'s account has expired or been revoked.",
                 );
         }
 
         // Store the original user ID in session
-        session(["viewing_as_trusted_contact" => true]);
-        session(["original_user_id" => $currentUser->id]);
-        session(["trusted_user_id" => $user->id]);
+        session(['viewing_as_trusted_contact' => true]);
+        session(['original_user_id' => $currentUser->id]);
+        session(['trusted_user_id' => $user->id]);
 
         return redirect()
-            ->route("dashboard")
-            ->with("success", "Now viewing {$user->name}'s account.");
+            ->route('dashboard')
+            ->with('success', "Now viewing {$user->name}'s account.");
     }
 
     /**
@@ -306,27 +301,27 @@ class TrustedContactController extends Controller
      */
     public function switchBackToOwnAccount()
     {
-        if (!session("viewing_as_trusted_contact")) {
+        if (! session('viewing_as_trusted_contact')) {
             return redirect()
-                ->route("dashboard")
-                ->with("info", "You are already viewing your own account.");
+                ->route('dashboard')
+                ->with('info', 'You are already viewing your own account.');
         }
 
-        $originalUserId = session("original_user_id");
+        $originalUserId = session('original_user_id');
         $originalUser = $originalUserId
             ? \App\Models\User::find($originalUserId)
             : null;
 
         session()->forget([
-            "viewing_as_trusted_contact",
-            "original_user_id",
-            "trusted_user_id",
+            'viewing_as_trusted_contact',
+            'original_user_id',
+            'trusted_user_id',
         ]);
 
         $message = $originalUser
             ? "Switched back to your account ({$originalUser->name})."
-            : "Switched back to your own account.";
+            : 'Switched back to your own account.';
 
-        return redirect()->route("dashboard")->with("success", $message);
+        return redirect()->route('dashboard')->with('success', $message);
     }
 }

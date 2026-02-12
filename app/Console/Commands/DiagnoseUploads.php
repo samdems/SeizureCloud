@@ -3,8 +3,8 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 
 class DiagnoseUploads extends Command
 {
@@ -38,32 +38,32 @@ class DiagnoseUploads extends Command
                 [
                     'upload_max_filesize',
                     ini_get('upload_max_filesize'),
-                    $this->getUploadSizeStatus(ini_get('upload_max_filesize'))
+                    $this->getUploadSizeStatus(ini_get('upload_max_filesize')),
                 ],
                 [
                     'post_max_size',
                     ini_get('post_max_size'),
-                    $this->getUploadSizeStatus(ini_get('post_max_size'))
+                    $this->getUploadSizeStatus(ini_get('post_max_size')),
                 ],
                 [
                     'max_execution_time',
-                    ini_get('max_execution_time') . 's',
-                    ini_get('max_execution_time') >= 120 ? '✅ OK' : '⚠️  Too Low'
+                    ini_get('max_execution_time').'s',
+                    ini_get('max_execution_time') >= 120 ? '✅ OK' : '⚠️  Too Low',
                 ],
                 [
                     'max_input_time',
-                    ini_get('max_input_time') . 's',
-                    ini_get('max_input_time') >= 120 ? '✅ OK' : '⚠️  Too Low'
+                    ini_get('max_input_time').'s',
+                    ini_get('max_input_time') >= 120 ? '✅ OK' : '⚠️  Too Low',
                 ],
                 [
                     'memory_limit',
                     ini_get('memory_limit'),
-                    $this->getMemoryStatus(ini_get('memory_limit'))
+                    $this->getMemoryStatus(ini_get('memory_limit')),
                 ],
                 [
                     'file_uploads',
                     ini_get('file_uploads') ? 'Enabled' : 'Disabled',
-                    ini_get('file_uploads') ? '✅ OK' : '❌ DISABLED'
+                    ini_get('file_uploads') ? '✅ OK' : '❌ DISABLED',
                 ],
             ]
         );
@@ -85,7 +85,7 @@ class DiagnoseUploads extends Command
             $writable = $exists && File::isWritable($path);
             $permissions = $exists ? substr(sprintf('%o', fileperms($path)), -4) : 'N/A';
 
-            $status = !$exists ? '❌ Missing' : ($writable ? '✅ Writable' : '⚠️  Not Writable');
+            $status = ! $exists ? '❌ Missing' : ($writable ? '✅ Writable' : '⚠️  Not Writable');
 
             $this->line(sprintf(
                 '  %-40s [%s] %s (Perms: %s)',
@@ -100,19 +100,19 @@ class DiagnoseUploads extends Command
         // Create missing directories
         $missingDirs = [];
         foreach ($storagePaths as $label => $path) {
-            if (!File::exists($path)) {
+            if (! File::exists($path)) {
                 $missingDirs[] = $path;
             }
         }
 
-        if (!empty($missingDirs)) {
+        if (! empty($missingDirs)) {
             if ($this->confirm('Create missing directories?', true)) {
                 foreach ($missingDirs as $dir) {
                     try {
                         File::makeDirectory($dir, 0755, true);
                         $this->info("  ✅ Created: $dir");
                     } catch (\Exception $e) {
-                        $this->error("  ❌ Failed to create $dir: " . $e->getMessage());
+                        $this->error("  ❌ Failed to create $dir: ".$e->getMessage());
                     }
                 }
                 $this->newLine();
@@ -129,7 +129,7 @@ class DiagnoseUploads extends Command
                 $exists = File::exists($root);
                 $writable = $exists && File::isWritable($root);
 
-                $status = !$exists ? '❌ Root Missing' : ($writable ? '✅ OK' : '⚠️  Not Writable');
+                $status = ! $exists ? '❌ Root Missing' : ($writable ? '✅ OK' : '⚠️  Not Writable');
 
                 $this->line(sprintf(
                     '  %-15s [%s] Driver: %-8s Root: %s',
@@ -139,7 +139,7 @@ class DiagnoseUploads extends Command
                     $root
                 ));
             } catch (\Exception $e) {
-                $this->error("  ❌ $disk: " . $e->getMessage());
+                $this->error("  ❌ $disk: ".$e->getMessage());
             }
         }
         $this->newLine();
@@ -156,12 +156,12 @@ class DiagnoseUploads extends Command
                 [
                     'Temporary Upload Path',
                     $livewireTmpPath,
-                    !$livewireTmpExists ? '❌ Missing' : ($livewireTmpWritable ? '✅ Writable' : '⚠️  Not Writable')
+                    ! $livewireTmpExists ? '❌ Missing' : ($livewireTmpWritable ? '✅ Writable' : '⚠️  Not Writable'),
                 ],
                 [
                     'Middleware',
                     'Livewire\\Features\\SupportFileUploads\\FileUploadConfiguration',
-                    '✅ Built-in'
+                    '✅ Built-in',
                 ],
             ]
         );
@@ -184,7 +184,7 @@ class DiagnoseUploads extends Command
         // Test File Write
         $this->info('🧪 Testing File Write:');
         try {
-            $testPath = 'documents/test_' . time() . '.txt';
+            $testPath = 'documents/test_'.time().'.txt';
             Storage::disk('private')->put($testPath, 'Test content');
 
             if (Storage::disk('private')->exists($testPath)) {
@@ -195,7 +195,7 @@ class DiagnoseUploads extends Command
                 $this->error('  ❌ File write failed - file not found after write');
             }
         } catch (\Exception $e) {
-            $this->error('  ❌ File write test failed: ' . $e->getMessage());
+            $this->error('  ❌ File write test failed: '.$e->getMessage());
         }
         $this->newLine();
 
@@ -218,16 +218,16 @@ class DiagnoseUploads extends Command
             $recommendations[] = '⚠️  Increase max_execution_time to at least 120 seconds';
         }
 
-        if (!$livewireTmpWritable) {
-            $recommendations[] = '❌ Create and make writable: ' . $livewireTmpPath;
-            $recommendations[] = '   Run: mkdir -p ' . $livewireTmpPath . ' && chmod 755 ' . $livewireTmpPath;
+        if (! $livewireTmpWritable) {
+            $recommendations[] = '❌ Create and make writable: '.$livewireTmpPath;
+            $recommendations[] = '   Run: mkdir -p '.$livewireTmpPath.' && chmod 755 '.$livewireTmpPath;
         }
 
         if (empty($recommendations)) {
             $this->info('  ✅ No issues found! Configuration looks good.');
         } else {
             foreach ($recommendations as $rec) {
-                $this->line('  ' . $rec);
+                $this->line('  '.$rec);
             }
         }
         $this->newLine();
@@ -250,7 +250,7 @@ class DiagnoseUploads extends Command
             $this->warn('📝 Additional Steps for Production:');
             $this->line('  1. Check web server config: /etc/nginx/nginx.conf or /etc/apache2/apache2.conf');
             $this->line('  2. Verify PHP-FPM settings: /etc/php/8.x/fpm/pool.d/www.conf');
-            $this->line('  3. Check application logs: ' . storage_path('logs/laravel.log'));
+            $this->line('  3. Check application logs: '.storage_path('logs/laravel.log'));
             $this->line('  4. Monitor browser console for JavaScript errors');
             $this->line('  5. Check network tab for failed upload requests');
             $this->newLine();

@@ -21,7 +21,7 @@ class CheckAccountTypeMiddleware
         $user = $request->user();
 
         // If user is not authenticated, let auth middleware handle it
-        if (!$user) {
+        if (! $user) {
             return $next($request);
         }
 
@@ -31,18 +31,18 @@ class CheckAccountTypeMiddleware
         }
 
         // Get account type, defaulting to 'patient' if null
-        $accountType = $user->account_type ?? "patient";
+        $accountType = $user->account_type ?? 'patient';
 
         // Check if user's account type is in the allowed types
-        if (!in_array($accountType, $allowedTypes)) {
+        if (! in_array($accountType, $allowedTypes)) {
             // Determine appropriate redirect based on account type
             $redirectRoute = $this->getRedirectRoute($accountType);
 
             return redirect()
                 ->route($redirectRoute)
                 ->with(
-                    "error",
-                    "Your account type does not have permission to access this feature.",
+                    'error',
+                    'Your account type does not have permission to access this feature.',
                 );
         }
 
@@ -55,12 +55,11 @@ class CheckAccountTypeMiddleware
     private function getRedirectRoute(?string $accountType): string
     {
         return match ($accountType) {
-            "patient" => "dashboard",
-            "carer"
-                => "dashboard", // Carers can still see dashboard with trusted access
-            "medical" => "dashboard",
-            null => "dashboard", // Handle null case
-            default => "dashboard",
+            'patient' => 'dashboard',
+            'carer' => 'dashboard', // Carers can still see dashboard with trusted access
+            'medical' => 'dashboard',
+            null => 'dashboard', // Handle null case
+            default => 'dashboard',
         };
     }
 }

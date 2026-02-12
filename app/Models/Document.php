@@ -17,15 +17,15 @@ class Document extends Model
      * @var array<string>
      */
     protected $fillable = [
-        "user_id",
-        "title",
-        "description",
-        "file_name",
-        "file_path",
-        "file_type",
-        "file_size",
-        "category",
-        "document_date",
+        'user_id',
+        'title',
+        'description',
+        'file_name',
+        'file_path',
+        'file_type',
+        'file_size',
+        'category',
+        'document_date',
     ];
 
     /**
@@ -36,8 +36,8 @@ class Document extends Model
     protected function casts(): array
     {
         return [
-            "document_date" => "date",
-            "file_size" => "integer",
+            'document_date' => 'date',
+            'file_size' => 'integer',
         ];
     }
 
@@ -55,13 +55,13 @@ class Document extends Model
     public static function getCategories(): array
     {
         return [
-            "medical_report" => "Medical Report",
-            "prescription" => "Prescription",
-            "test_result" => "Test Result",
-            "scan" => "Scan/Imaging",
-            "letter" => "Letter",
-            "insurance" => "Insurance",
-            "other" => "Other",
+            'medical_report' => 'Medical Report',
+            'prescription' => 'Prescription',
+            'test_result' => 'Test Result',
+            'scan' => 'Scan/Imaging',
+            'letter' => 'Letter',
+            'insurance' => 'Insurance',
+            'other' => 'Other',
         ];
     }
 
@@ -71,7 +71,7 @@ class Document extends Model
     public function getFormattedFileSizeAttribute(): string
     {
         $bytes = $this->file_size;
-        $units = ["B", "KB", "MB", "GB"];
+        $units = ['B', 'KB', 'MB', 'GB'];
         $i = 0;
 
         while ($bytes >= 1024 && $i < count($units) - 1) {
@@ -79,7 +79,7 @@ class Document extends Model
             $i++;
         }
 
-        return round($bytes, 2) . " " . $units[$i];
+        return round($bytes, 2).' '.$units[$i];
     }
 
     /**
@@ -87,7 +87,7 @@ class Document extends Model
      */
     public function getStoragePath(): string
     {
-        return Storage::disk("private")->path($this->file_path);
+        return Storage::disk('private')->path($this->file_path);
     }
 
     /**
@@ -95,7 +95,7 @@ class Document extends Model
      */
     public function getDownloadUrl(): string
     {
-        return route("documents.download", $this->id);
+        return route('documents.download', $this->id);
     }
 
     /**
@@ -103,7 +103,7 @@ class Document extends Model
      */
     public function getViewUrl(): string
     {
-        return route("documents.view", $this->id);
+        return route('documents.view', $this->id);
     }
 
     /**
@@ -112,11 +112,11 @@ class Document extends Model
     public function isImage(): bool
     {
         return in_array($this->file_type, [
-            "image/jpeg",
-            "image/jpg",
-            "image/png",
-            "image/gif",
-            "image/webp",
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'image/gif',
+            'image/webp',
         ]);
     }
 
@@ -125,7 +125,7 @@ class Document extends Model
      */
     public function isPdf(): bool
     {
-        return $this->file_type === "application/pdf";
+        return $this->file_type === 'application/pdf';
     }
 
     /**
@@ -134,8 +134,8 @@ class Document extends Model
     public function deleteWithFile(): bool
     {
         // Delete the physical file
-        if (Storage::disk("private")->exists($this->file_path)) {
-            Storage::disk("private")->delete($this->file_path);
+        if (Storage::disk('private')->exists($this->file_path)) {
+            Storage::disk('private')->delete($this->file_path);
         }
 
         // Delete the database record
@@ -148,6 +148,7 @@ class Document extends Model
     public function getCategoryLabelAttribute(): string
     {
         $categories = self::getCategories();
-        return $categories[$this->category] ?? "Other";
+
+        return $categories[$this->category] ?? 'Other';
     }
 }

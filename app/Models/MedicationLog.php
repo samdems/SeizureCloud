@@ -11,20 +11,20 @@ class MedicationLog extends Model
     use HasFactory;
 
     protected $fillable = [
-        "medication_id",
-        "medication_schedule_id",
-        "taken_at",
-        "intended_time",
-        "dosage_taken",
-        "skipped",
-        "skip_reason",
-        "notes",
+        'medication_id',
+        'medication_schedule_id',
+        'taken_at',
+        'intended_time',
+        'dosage_taken',
+        'skipped',
+        'skip_reason',
+        'notes',
     ];
 
     protected $casts = [
-        "taken_at" => "datetime",
-        "intended_time" => "datetime",
-        "skipped" => "boolean",
+        'taken_at' => 'datetime',
+        'intended_time' => 'datetime',
+        'skipped' => 'boolean',
     ];
 
     public function medication(): BelongsTo
@@ -36,7 +36,7 @@ class MedicationLog extends Model
     {
         return $this->belongsTo(
             MedicationSchedule::class,
-            "medication_schedule_id",
+            'medication_schedule_id',
         );
     }
 
@@ -46,7 +46,7 @@ class MedicationLog extends Model
     public function isTakenLate(): bool
     {
         // If no schedule or skipped, not considered late
-        if (!$this->schedule || $this->skipped) {
+        if (! $this->schedule || $this->skipped) {
             return false;
         }
 
@@ -65,7 +65,7 @@ class MedicationLog extends Model
      */
     public function isTakenAtDifferentTime(): bool
     {
-        if (!$this->intended_time || $this->skipped) {
+        if (! $this->intended_time || $this->skipped) {
             return false;
         }
 
@@ -82,20 +82,20 @@ class MedicationLog extends Model
      */
     public function getTimeDifference(): ?string
     {
-        if (!$this->intended_time || $this->skipped) {
+        if (! $this->intended_time || $this->skipped) {
             return null;
         }
 
         $minutes = $this->taken_at->diffInMinutes($this->intended_time, false);
         if (abs($minutes) <= 10) {
-            return "On time";
+            return 'On time';
         }
 
         if ($minutes < 0) {
-            return "+" . abs($minutes) . " minutes late";
+            return '+'.abs($minutes).' minutes late';
         }
 
-        return abs($minutes) . " minutes early";
+        return abs($minutes).' minutes early';
     }
 
     /**
@@ -104,21 +104,22 @@ class MedicationLog extends Model
     public function getTakenTimeDescription(): string
     {
         if ($this->skipped) {
-            return "Skipped";
+            return 'Skipped';
         }
 
         if ($this->intended_time) {
             $difference = $this->getTimeDifference();
-            if ($difference === "On time") {
-                return "Taken on time at " . $this->taken_at->format("g:i A");
+            if ($difference === 'On time') {
+                return 'Taken on time at '.$this->taken_at->format('g:i A');
             }
-            return "Taken at " .
-                $this->taken_at->format("g:i A") .
-                " (" .
-                $difference .
-                ")";
+
+            return 'Taken at '.
+                $this->taken_at->format('g:i A').
+                ' ('.
+                $difference.
+                ')';
         }
 
-        return "Taken at " . $this->taken_at->format("g:i A");
+        return 'Taken at '.$this->taken_at->format('g:i A');
     }
 }

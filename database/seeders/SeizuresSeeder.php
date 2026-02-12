@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use App\Models\Seizure;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class SeizuresSeeder extends Seeder
@@ -16,15 +15,15 @@ class SeizuresSeeder extends Seeder
     {
         // Get the test user or create one if it doesn't exist
         $user = User::firstOrCreate(
-            ["email" => "test@example.com"],
+            ['email' => 'test@example.com'],
             [
-                "name" => "Test User",
-                "password" => "password",
-                "email_verified_at" => now(),
-                "morning_time" => "08:00",
-                "afternoon_time" => "12:00",
-                "evening_time" => "18:00",
-                "bedtime" => "22:00",
+                'name' => 'Test User',
+                'password' => 'password',
+                'email_verified_at' => now(),
+                'morning_time' => '08:00',
+                'afternoon_time' => '12:00',
+                'evening_time' => '18:00',
+                'bedtime' => '22:00',
             ],
         );
 
@@ -42,28 +41,28 @@ class SeizuresSeeder extends Seeder
     {
         // Create 3-4 seizure events over the past 6 months
         for ($i = 0; $i < 4; $i++) {
-            $eventStartDate = fake()->dateTimeBetween("-6 months", "-1 month");
+            $eventStartDate = fake()->dateTimeBetween('-6 months', '-1 month');
             $clusterType = fake()->randomElement([
-                "mild_cluster",
-                "severe_cluster",
-                "mixed_cluster",
+                'mild_cluster',
+                'severe_cluster',
+                'mixed_cluster',
             ]);
 
             switch ($clusterType) {
-                case "mild_cluster":
+                case 'mild_cluster':
                     $this->createMildCluster($user, $eventStartDate);
                     break;
-                case "severe_cluster":
+                case 'severe_cluster':
                     $this->createSevereCluster($user, $eventStartDate);
                     break;
-                case "mixed_cluster":
+                case 'mixed_cluster':
                     $this->createMixedCluster($user, $eventStartDate);
                     break;
             }
         }
 
         // Create recent cluster event (within last month)
-        $recentEventDate = fake()->dateTimeBetween("-1 month", "-1 week");
+        $recentEventDate = fake()->dateTimeBetween('-1 month', '-1 week');
         $this->createMixedCluster($user, $recentEventDate);
     }
 
@@ -79,9 +78,9 @@ class SeizuresSeeder extends Seeder
         $firstSeizure = Seizure::factory()
             ->mild()
             ->create([
-                "user_id" => $user->id,
-                "start_time" => $baseDate,
-                "duration_minutes" => fake()->numberBetween(1, 2), // Very short
+                'user_id' => $user->id,
+                'start_time' => $baseDate,
+                'duration_minutes' => fake()->numberBetween(1, 2), // Very short
             ]);
 
         $seizures[] = $firstSeizure;
@@ -102,14 +101,13 @@ class SeizuresSeeder extends Seeder
             $seizure = Seizure::factory()
                 ->mild()
                 ->create([
-                    "user_id" => $user->id,
-                    "start_time" => $newStartTime,
-                    "end_time" => $endTime,
-                    "duration_minutes" => $durationMinutes,
-                    "notes" =>
-                        $i === 1
-                            ? "Second seizure of the day"
-                            : "Multiple seizures today",
+                    'user_id' => $user->id,
+                    'start_time' => $newStartTime,
+                    'end_time' => $endTime,
+                    'duration_minutes' => $durationMinutes,
+                    'notes' => $i === 1
+                            ? 'Second seizure of the day'
+                            : 'Multiple seizures today',
                 ]);
 
             $seizures[] = $seizure;
@@ -126,11 +124,11 @@ class SeizuresSeeder extends Seeder
 
         // First severe seizure - but not too long
         $firstSeizure = Seizure::factory()->create([
-            "user_id" => $user->id,
-            "start_time" => $baseDate,
-            "duration_minutes" => fake()->numberBetween(2, 4), // Shorter
-            "severity" => fake()->numberBetween(6, 8), // Reduce severity
-            "notes" => "Start of cluster event",
+            'user_id' => $user->id,
+            'start_time' => $baseDate,
+            'duration_minutes' => fake()->numberBetween(2, 4), // Shorter
+            'severity' => fake()->numberBetween(6, 8), // Reduce severity
+            'notes' => 'Start of cluster event',
         ]);
 
         $seizures[] = $firstSeizure;
@@ -152,27 +150,26 @@ class SeizuresSeeder extends Seeder
             $nhsContacted = fake()->boolean(40);
 
             $seizure = Seizure::factory()->create([
-                "user_id" => $user->id,
-                "start_time" => $newStartTime,
-                "end_time" => $endTime,
-                "duration_minutes" => $durationMinutes,
-                "severity" => fake()->numberBetween(4, 7), // Moderate severity
-                "nhs_contact_type" => $nhsContacted
+                'user_id' => $user->id,
+                'start_time' => $newStartTime,
+                'end_time' => $endTime,
+                'duration_minutes' => $durationMinutes,
+                'severity' => fake()->numberBetween(4, 7), // Moderate severity
+                'nhs_contact_type' => $nhsContacted
                     ? fake()->randomElement([
-                        "111",
-                        "GP",
-                        "Epileptic Specialist",
+                        '111',
+                        'GP',
+                        'Epileptic Specialist',
                     ])
                     : null,
-                "ambulance_called" => fake()->boolean(10), // Much less likely
-                "notes" =>
-                    "Seizure #" .
-                    ($i + 1) .
-                    " in cluster - " .
+                'ambulance_called' => fake()->boolean(10), // Much less likely
+                'notes' => 'Seizure #'.
+                    ($i + 1).
+                    ' in cluster - '.
                     fake()->randomElement([
-                        "Still feeling unwell from previous seizure",
-                        "Postictal state from earlier seizure",
-                        "Cluster pattern continuing",
+                        'Still feeling unwell from previous seizure',
+                        'Postictal state from earlier seizure',
+                        'Cluster pattern continuing',
                     ]),
             ]);
 
@@ -191,11 +188,11 @@ class SeizuresSeeder extends Seeder
         // First seizure (moderate severity)
         $firstSeverity = fake()->numberBetween(3, 5);
         $firstSeizure = Seizure::factory()->create([
-            "user_id" => $user->id,
-            "start_time" => $baseDate,
-            "severity" => $firstSeverity,
-            "duration_minutes" => fake()->numberBetween(1, 3), // Short
-            "notes" => "Start of seizure event",
+            'user_id' => $user->id,
+            'start_time' => $baseDate,
+            'severity' => $firstSeverity,
+            'duration_minutes' => fake()->numberBetween(1, 3), // Short
+            'notes' => 'Start of seizure event',
         ]);
 
         $seizures[] = $firstSeizure;
@@ -217,16 +214,15 @@ class SeizuresSeeder extends Seeder
             $severity = fake()->numberBetween(2, 6);
 
             $seizure = Seizure::factory()->create([
-                "user_id" => $user->id,
-                "start_time" => $newStartTime,
-                "end_time" => $endTime,
-                "duration_minutes" => $durationMinutes,
-                "severity" => $severity,
-                "nhs_contact_type" =>
-                    $severity >= 6
-                        ? fake()->randomElement(["111", "GP"])
+                'user_id' => $user->id,
+                'start_time' => $newStartTime,
+                'end_time' => $endTime,
+                'duration_minutes' => $durationMinutes,
+                'severity' => $severity,
+                'nhs_contact_type' => $severity >= 6
+                        ? fake()->randomElement(['111', 'GP'])
                         : null,
-                "notes" => "Seizure #" . ($i + 1) . " in event",
+                'notes' => 'Seizure #'.($i + 1).' in event',
             ]);
 
             $seizures[] = $seizure;
@@ -242,14 +238,14 @@ class SeizuresSeeder extends Seeder
         Seizure::factory()
             ->count(fake()->numberBetween(8, 12))
             ->create([
-                "user_id" => $user->id,
+                'user_id' => $user->id,
             ]);
 
         // Create a few recent isolated seizures
         for ($i = 0; $i < 3; $i++) {
             Seizure::factory()->create([
-                "user_id" => $user->id,
-                "start_time" => fake()->dateTimeBetween("-2 weeks", "-2 days"),
+                'user_id' => $user->id,
+                'start_time' => fake()->dateTimeBetween('-2 weeks', '-2 days'),
             ]);
         }
     }
@@ -261,32 +257,32 @@ class SeizuresSeeder extends Seeder
     {
         // Create 3-4 menstrual-related seizures over past months
         for ($i = 0; $i < 4; $i++) {
-            $menstrualDate = fake()->dateTimeBetween("-6 months", "-1 week");
+            $menstrualDate = fake()->dateTimeBetween('-6 months', '-1 week');
 
             Seizure::factory()
                 ->menstrual()
                 ->create([
-                    "user_id" => $user->id,
-                    "start_time" => $menstrualDate,
-                    "notes" => fake()->randomElement([
-                        "Seizure during menstrual cycle",
-                        "Monthly pattern - menstrual seizure",
-                        "Hormonal trigger suspected",
+                    'user_id' => $user->id,
+                    'start_time' => $menstrualDate,
+                    'notes' => fake()->randomElement([
+                        'Seizure during menstrual cycle',
+                        'Monthly pattern - menstrual seizure',
+                        'Hormonal trigger suspected',
                     ]),
                 ]);
 
             // Sometimes create a second seizure during the same menstrual period
             if (fake()->boolean(40)) {
                 $secondSeizureTime = (clone $menstrualDate)->modify(
-                    "+" . fake()->numberBetween(1, 3) . " days",
+                    '+'.fake()->numberBetween(1, 3).' days',
                 );
 
                 Seizure::factory()
                     ->menstrual()
                     ->create([
-                        "user_id" => $user->id,
-                        "start_time" => $secondSeizureTime,
-                        "notes" => "Second seizure this cycle",
+                        'user_id' => $user->id,
+                        'start_time' => $secondSeizureTime,
+                        'notes' => 'Second seizure this cycle',
                     ]);
             }
         }
@@ -302,12 +298,12 @@ class SeizuresSeeder extends Seeder
             ->nighttime()
             ->count(fake()->numberBetween(4, 6))
             ->create([
-                "user_id" => $user->id,
-                "notes" => fake()->randomElement([
-                    "Nighttime seizure - woke up disoriented",
-                    "Seizure during sleep",
-                    "Found evidence of seizure in morning",
-                    "Partner witnessed nighttime seizure",
+                'user_id' => $user->id,
+                'notes' => fake()->randomElement([
+                    'Nighttime seizure - woke up disoriented',
+                    'Seizure during sleep',
+                    'Found evidence of seizure in morning',
+                    'Partner witnessed nighttime seizure',
                 ]),
             ]);
     }
@@ -319,29 +315,28 @@ class SeizuresSeeder extends Seeder
     {
         // Create only ONE status epilepticus seizure (rare occurrence)
         $statusEpilepticusDate = fake()->dateTimeBetween(
-            "-6 months",
-            "-3 months",
+            '-6 months',
+            '-3 months',
         );
         $emergencyDuration = $user->status_epilepticus_duration_minutes + 2; // Just 7 minutes
         $startTime = $statusEpilepticusDate;
         $endTime = (clone $startTime)->modify("+{$emergencyDuration} minutes");
 
         Seizure::factory()->create([
-            "user_id" => $user->id,
-            "start_time" => $startTime,
-            "end_time" => $endTime,
-            "duration_minutes" => $emergencyDuration,
-            "severity" => 8,
-            "nhs_contact_type" => "999",
-            "ambulance_called" => true,
-            "notes" =>
-                "Possible Status Epilepticus - emergency duration exceeded " .
-                $emergencyDuration .
-                " minutes",
+            'user_id' => $user->id,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'duration_minutes' => $emergencyDuration,
+            'severity' => 8,
+            'nhs_contact_type' => '999',
+            'ambulance_called' => true,
+            'notes' => 'Possible Status Epilepticus - emergency duration exceeded '.
+                $emergencyDuration.
+                ' minutes',
         ]);
 
         // Create a recent near-emergency scenario (just under thresholds)
-        $recentDate = fake()->dateTimeBetween("-2 weeks", "-3 days");
+        $recentDate = fake()->dateTimeBetween('-2 weeks', '-3 days');
 
         // Near status epilepticus (1 minute under threshold)
         $nearEmergencyDuration = 4; // Just under 5 minute threshold
@@ -351,18 +346,17 @@ class SeizuresSeeder extends Seeder
         );
 
         Seizure::factory()->create([
-            "user_id" => $user->id,
-            "start_time" => $nearStartTime,
-            "end_time" => $nearEndTime,
-            "duration_minutes" => $nearEmergencyDuration,
-            "severity" => fake()->numberBetween(5, 6),
-            "nhs_contact_type" => fake()->boolean(50) ? "111" : null,
-            "notes" =>
-                "Close to possible status epilepticus threshold - " .
-                $nearEmergencyDuration .
-                " minutes (threshold: " .
-                $user->status_epilepticus_duration_minutes .
-                " min)",
+            'user_id' => $user->id,
+            'start_time' => $nearStartTime,
+            'end_time' => $nearEndTime,
+            'duration_minutes' => $nearEmergencyDuration,
+            'severity' => fake()->numberBetween(5, 6),
+            'nhs_contact_type' => fake()->boolean(50) ? '111' : null,
+            'notes' => 'Close to possible status epilepticus threshold - '.
+                $nearEmergencyDuration.
+                ' minutes (threshold: '.
+                $user->status_epilepticus_duration_minutes.
+                ' min)',
         ]);
     }
 }

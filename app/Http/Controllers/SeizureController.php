@@ -2,19 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Seizure;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Http\Requests\SeizureStoreRequest;
 use App\Http\Requests\SeizureUpdateRequest;
+use App\Models\Seizure;
+use App\Notifications\SeizureAddedNotification;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
-use App\Notifications\SeizureAddedNotification;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class SeizureController extends Controller
 {
     use AuthorizesRequests;
+
     public function index()
     {
         $seizures = Auth::user()->seizures()->latest()->paginate(20);
@@ -24,7 +25,7 @@ class SeizureController extends Controller
             $seizureDate = $seizure->start_time->startOfDay();
             $seizure->vitals_count = Auth::user()
                 ->vitals()
-                ->whereDate("recorded_at", $seizureDate)
+                ->whereDate('recorded_at', $seizureDate)
                 ->count();
 
             // Find seizures in the same event (within configured timeframe)
@@ -38,7 +39,7 @@ class SeizureController extends Controller
 
             $seizure->event_seizure_count = Auth::user()
                 ->seizures()
-                ->whereBetween("start_time", [$eventStart, $eventEnd])
+                ->whereBetween('start_time', [$eventStart, $eventEnd])
                 ->count();
 
             // Add emergency status
@@ -49,12 +50,12 @@ class SeizureController extends Controller
             return $seizure;
         });
 
-        return view("seizures.index", compact("seizures"));
+        return view('seizures.index', compact('seizures'));
     }
 
     public function create()
     {
-        return view("seizures.create");
+        return view('seizures.create');
     }
 
     public function store(SeizureStoreRequest $request)
@@ -82,18 +83,18 @@ class SeizureController extends Controller
         }
 
         return redirect()
-            ->route("seizures.index")
-            ->with("success", "Seizure record created successfully.");
+            ->route('seizures.index')
+            ->with('success', 'Seizure record created successfully.');
     }
 
     public function show(Seizure $seizure)
     {
-        $this->authorize("view", $seizure);
+        $this->authorize('view', $seizure);
 
         // Get user's active medications with their schedules
         $medications = Auth::user()
             ->medications()
-            ->with("schedules")
+            ->with('schedules')
             ->get()
             ->map(function ($medication) use ($seizure) {
                 // Check if medication was active at time of seizure
@@ -101,10 +102,10 @@ class SeizureController extends Controller
                     $medication->active ||
                     ($medication->start_date &&
                         $medication->start_date <= $seizure->start_time &&
-                        (!$medication->end_date ||
+                        (! $medication->end_date ||
                             $medication->end_date >= $seizure->start_time));
 
-                if (!$wasActive) {
+                if (! $wasActive) {
                     return null;
                 }
 
@@ -121,7 +122,7 @@ class SeizureController extends Controller
                     $scheduledTime = $seizure->start_time
                         ->copy()
                         ->setTimeFromTimeString(
-                            $schedule->scheduled_time->format("H:i"),
+                            $schedule->scheduled_time->format('H:i'),
                         );
 
                     if ($scheduledTime <= $seizure->start_time) {
@@ -130,29 +131,28 @@ class SeizureController extends Controller
                         // Check if this dose was logged as taken
                         $log = $medication
                             ->logs()
-                            ->where("medication_schedule_id", $schedule->id)
-                            ->whereDate("taken_at", $seizureDate)
+                            ->where('medication_schedule_id', $schedule->id)
+                            ->whereDate('taken_at', $seizureDate)
                             ->first();
 
-                        if ($log && !$log->skipped) {
+                        if ($log && ! $log->skipped) {
                             $takenCount++;
                         }
 
                         $scheduledDoses[] = [
-                            "schedule" => $schedule,
-                            "taken" => $log && !$log->skipped,
-                            "log" => $log,
+                            'schedule' => $schedule,
+                            'taken' => $log && ! $log->skipped,
+                            'log' => $log,
                         ];
                     }
                 }
 
                 $medication->adherence = [
-                    "scheduled_doses" => $scheduledDoses,
-                    "taken_count" => $takenCount,
-                    "total_count" => $totalCount,
-                    "all_taken" =>
-                        $totalCount > 0 && $takenCount === $totalCount,
-                    "was_needed" => $totalCount > 0, // Medication had doses scheduled before seizure
+                    'scheduled_doses' => $scheduledDoses,
+                    'taken_count' => $takenCount,
+                    'total_count' => $totalCount,
+                    'all_taken' => $totalCount > 0 && $takenCount === $totalCount,
+                    'was_needed' => $totalCount > 0, // Medication had doses scheduled before seizure
                 ];
 
                 return $medication;
@@ -163,10 +163,10 @@ class SeizureController extends Controller
         $seizureDate = $seizure->start_time->startOfDay();
         $vitals = Auth::user()
             ->vitals()
-            ->whereDate("recorded_at", $seizureDate)
-            ->orderBy("recorded_at", "asc")
+            ->whereDate('recorded_at', $seizureDate)
+            ->orderBy('recorded_at', 'asc')
             ->get()
-            ->groupBy("type");
+            ->groupBy('type');
 
         // Get seizures from the same event (within configured timeframe)
         $halfTimeframe = intval(
@@ -177,89 +177,90 @@ class SeizureController extends Controller
 
         $seizureEvent = Auth::user()
             ->seizures()
-            ->whereBetween("start_time", [$eventStart, $eventEnd])
-            ->orderBy("start_time", "asc")
+            ->whereBetween('start_time', [$eventStart, $eventEnd])
+            ->orderBy('start_time', 'asc')
             ->get();
 
         // Get emergency status for this seizure
         $emergencyStatus = Auth::user()->getEmergencyStatus($seizure);
 
         return view(
-            "seizures.show",
+            'seizures.show',
             compact(
-                "seizure",
-                "medications",
-                "vitals",
-                "seizureEvent",
-                "emergencyStatus",
+                'seizure',
+                'medications',
+                'vitals',
+                'seizureEvent',
+                'emergencyStatus',
             ),
         );
     }
 
     public function edit(Seizure $seizure)
     {
-        $this->authorize("update", $seizure);
-        return view("seizures.edit", compact("seizure"));
+        $this->authorize('update', $seizure);
+
+        return view('seizures.edit', compact('seizure'));
     }
 
     public function update(SeizureUpdateRequest $request, Seizure $seizure)
     {
-        $this->authorize("update", $seizure);
+        $this->authorize('update', $seizure);
 
         $validated = $request->validated();
 
         $seizure->update($validated);
 
         return redirect()
-            ->route("seizures.index")
-            ->with("success", "Seizure record updated successfully.");
+            ->route('seizures.index')
+            ->with('success', 'Seizure record updated successfully.');
     }
 
     public function destroy(Seizure $seizure)
     {
-        $this->authorize("delete", $seizure);
+        $this->authorize('delete', $seizure);
         $seizure->delete();
 
         return redirect()
-            ->route("seizures.index")
-            ->with("success", "Seizure record deleted successfully.");
+            ->route('seizures.index')
+            ->with('success', 'Seizure record deleted successfully.');
     }
 
     public function exportMonthlyPdf(Request $request)
     {
-        $month = $request->get("month", now()->month);
-        $year = $request->get("year", now()->year);
+        $month = $request->get('month', now()->month);
+        $year = $request->get('year', now()->year);
 
         $startDate = Carbon::create($year, $month, 1)->startOfDay();
         $endDate = $startDate->copy()->endOfMonth()->endOfDay();
 
         $seizures = Auth::user()
             ->seizures()
-            ->whereBetween("start_time", [$startDate, $endDate])
-            ->orderBy("start_time", "asc")
+            ->whereBetween('start_time', [$startDate, $endDate])
+            ->orderBy('start_time', 'asc')
             ->get();
 
         $user = Auth::user();
-        $monthName = $startDate->format("F Y");
+        $monthName = $startDate->format('F Y');
 
         // Calculate statistics
         $totalSeizures = $seizures->count();
-        $averageSeverity = $seizures->avg("severity");
-        $totalDuration = $seizures->sum("duration_minutes");
-        $longestSeizure = $seizures->max("duration_minutes");
+        $averageSeverity = $seizures->avg('severity');
+        $totalDuration = $seizures->sum('duration_minutes');
+        $longestSeizure = $seizures->max('duration_minutes');
 
         $pdf = Pdf::loadView(
-            "seizures.pdf.monthly",
+            'seizures.pdf.monthly',
             compact(
-                "seizures",
-                "user",
-                "monthName",
-                "startDate",
-                "endDate",
-                "totalSeizures",
-                "averageSeverity",
-                "totalDuration",
-                "longestSeizure",
+                'seizures',
+                'user',
+                'monthName',
+                'startDate',
+                'endDate',
+                'totalSeizures',
+                'averageSeverity',
+                'totalDuration',
+                'longestSeizure',
             ),
         );
 
@@ -270,40 +271,40 @@ class SeizureController extends Controller
 
     public function exportMonthlyComprehensivePdf(Request $request)
     {
-        $month = $request->get("month", now()->month);
-        $year = $request->get("year", now()->year);
+        $month = $request->get('month', now()->month);
+        $year = $request->get('year', now()->year);
 
         $startDate = Carbon::create($year, $month, 1)->startOfDay();
         $endDate = $startDate->copy()->endOfMonth()->endOfDay();
 
         $seizures = Auth::user()
             ->seizures()
-            ->whereBetween("start_time", [$startDate, $endDate])
-            ->orderBy("start_time", "asc")
+            ->whereBetween('start_time', [$startDate, $endDate])
+            ->orderBy('start_time', 'asc')
             ->get();
 
         $user = Auth::user();
-        $monthName = $startDate->format("F Y");
+        $monthName = $startDate->format('F Y');
 
         // Calculate statistics
         $totalSeizures = $seizures->count();
-        $averageSeverity = $seizures->avg("severity");
-        $totalDuration = $seizures->sum("duration_minutes");
-        $longestSeizure = $seizures->max("duration_minutes");
+        $averageSeverity = $seizures->avg('severity');
+        $totalDuration = $seizures->sum('duration_minutes');
+        $longestSeizure = $seizures->max('duration_minutes');
 
         // Get detailed data for each seizure
         $seizuresDetailed = $seizures->map(function ($seizure) use ($user) {
             // Get medications active at time of seizure
             $medications = $user
                 ->medications()
-                ->with("schedules")
+                ->with('schedules')
                 ->get()
                 ->map(function ($medication) use ($seizure) {
                     $wasActive =
                         $medication->active ||
                         ($medication->start_date &&
                             $medication->start_date <= $seizure->start_time &&
-                            (!$medication->end_date ||
+                            (! $medication->end_date ||
                                 $medication->end_date >= $seizure->start_time));
 
                     return $wasActive ? $medication : null;
@@ -314,31 +315,31 @@ class SeizureController extends Controller
             $seizureDate = $seizure->start_time->startOfDay();
             $vitals = $user
                 ->vitals()
-                ->whereDate("recorded_at", $seizureDate)
-                ->orderBy("recorded_at", "asc")
+                ->whereDate('recorded_at', $seizureDate)
+                ->orderBy('recorded_at', 'asc')
                 ->get()
-                ->groupBy("type");
+                ->groupBy('type');
 
             return [
-                "seizure" => $seizure,
-                "medications" => $medications,
-                "vitals" => $vitals,
+                'seizure' => $seizure,
+                'medications' => $medications,
+                'vitals' => $vitals,
             ];
         });
 
         $pdf = Pdf::loadView(
-            "seizures.pdf.comprehensive",
+            'seizures.pdf.comprehensive',
             compact(
-                "seizures",
-                "seizuresDetailed",
-                "user",
-                "monthName",
-                "startDate",
-                "endDate",
-                "totalSeizures",
-                "averageSeverity",
-                "totalDuration",
-                "longestSeizure",
+                'seizures',
+                'seizuresDetailed',
+                'user',
+                'monthName',
+                'startDate',
+                'endDate',
+                'totalSeizures',
+                'averageSeverity',
+                'totalDuration',
+                'longestSeizure',
             ),
         );
 
@@ -349,14 +350,14 @@ class SeizureController extends Controller
 
     public function exportSinglePdf(Seizure $seizure)
     {
-        $this->authorize("view", $seizure);
+        $this->authorize('view', $seizure);
 
         $user = Auth::user();
 
         // Get medications active at time of seizure with adherence data
         $medications = Auth::user()
             ->medications()
-            ->with("schedules")
+            ->with('schedules')
             ->get()
             ->map(function ($medication) use ($seizure) {
                 // Check if medication was active at time of seizure
@@ -364,10 +365,10 @@ class SeizureController extends Controller
                     $medication->active ||
                     ($medication->start_date &&
                         $medication->start_date <= $seizure->start_time &&
-                        (!$medication->end_date ||
+                        (! $medication->end_date ||
                             $medication->end_date >= $seizure->start_time));
 
-                if (!$wasActive) {
+                if (! $wasActive) {
                     return null;
                 }
 
@@ -384,7 +385,7 @@ class SeizureController extends Controller
                     $scheduledTime = $seizure->start_time
                         ->copy()
                         ->setTimeFromTimeString(
-                            $schedule->scheduled_time->format("H:i"),
+                            $schedule->scheduled_time->format('H:i'),
                         );
 
                     if ($scheduledTime <= $seizure->start_time) {
@@ -393,29 +394,28 @@ class SeizureController extends Controller
                         // Check if this dose was logged as taken
                         $log = $medication
                             ->logs()
-                            ->where("medication_schedule_id", $schedule->id)
-                            ->whereDate("taken_at", $seizureDate)
+                            ->where('medication_schedule_id', $schedule->id)
+                            ->whereDate('taken_at', $seizureDate)
                             ->first();
 
-                        if ($log && !$log->skipped) {
+                        if ($log && ! $log->skipped) {
                             $takenCount++;
                         }
 
                         $scheduledDoses[] = [
-                            "schedule" => $schedule,
-                            "taken" => $log && !$log->skipped,
-                            "log" => $log,
+                            'schedule' => $schedule,
+                            'taken' => $log && ! $log->skipped,
+                            'log' => $log,
                         ];
                     }
                 }
 
                 $medication->adherence = [
-                    "scheduled_doses" => $scheduledDoses,
-                    "taken_count" => $takenCount,
-                    "total_count" => $totalCount,
-                    "all_taken" =>
-                        $totalCount > 0 && $takenCount === $totalCount,
-                    "was_needed" => $totalCount > 0, // Medication had doses scheduled before seizure
+                    'scheduled_doses' => $scheduledDoses,
+                    'taken_count' => $takenCount,
+                    'total_count' => $totalCount,
+                    'all_taken' => $totalCount > 0 && $takenCount === $totalCount,
+                    'was_needed' => $totalCount > 0, // Medication had doses scheduled before seizure
                 ];
 
                 return $medication;
@@ -426,27 +426,27 @@ class SeizureController extends Controller
         $seizureDate = $seizure->start_time->startOfDay();
         $vitals = Auth::user()
             ->vitals()
-            ->whereDate("recorded_at", $seizureDate)
-            ->orderBy("recorded_at", "asc")
+            ->whereDate('recorded_at', $seizureDate)
+            ->orderBy('recorded_at', 'asc')
             ->get()
-            ->groupBy("type");
+            ->groupBy('type');
 
         // Get emergency status for this seizure
         $emergencyStatus = Auth::user()->getEmergencyStatus($seizure);
 
         $pdf = Pdf::loadView(
-            "seizures.pdf.single",
+            'seizures.pdf.single',
             compact(
-                "seizure",
-                "user",
-                "medications",
-                "vitals",
-                "emergencyStatus",
+                'seizure',
+                'user',
+                'medications',
+                'vitals',
+                'emergencyStatus',
             ),
         );
 
         $filename = "seizure_{$seizure->id}_{$seizure->start_time->format(
-            "Y-m-d_H-i",
+            'Y-m-d_H-i',
         )}.pdf";
 
         return $pdf->download($filename);

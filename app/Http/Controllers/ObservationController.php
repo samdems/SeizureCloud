@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Observation;
 use App\Http\Requests\ObservationStoreRequest;
 use App\Http\Requests\ObservationUpdateRequest;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Observation;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Auth;
 
 class ObservationController extends Controller
 {
@@ -19,6 +18,7 @@ class ObservationController extends Controller
     public function index()
     {
         $observations = Auth::user()->observations()->latest('observed_at')->paginate(20);
+
         return view('observations.index', compact('observations'));
     }
 
@@ -60,6 +60,7 @@ class ObservationController extends Controller
     public function edit(Observation $observation)
     {
         $this->authorize('update', $observation);
+
         return view('observations.edit', compact('observation'));
     }
 

@@ -8,11 +8,11 @@ class LegalController extends Controller
 {
     public function privacy(): View
     {
-        return view("legal.privacy");
+        return view('legal.privacy');
     }
 
     public function terms(): View
     {
-        return view("legal.terms");
+        return view('legal.terms');
     }
 }

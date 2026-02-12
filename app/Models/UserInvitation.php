@@ -2,12 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 
 class UserInvitation extends Model
 {
@@ -19,16 +18,16 @@ class UserInvitation extends Model
      * @var list<string>
      */
     protected $fillable = [
-        "inviter_id",
-        "email",
-        "token",
-        "nickname",
-        "access_note",
-        "expires_at",
-        "invitation_expires_at",
-        "accepted_at",
-        "accepted_user_id",
-        "status",
+        'inviter_id',
+        'email',
+        'token',
+        'nickname',
+        'access_note',
+        'expires_at',
+        'invitation_expires_at',
+        'accepted_at',
+        'accepted_user_id',
+        'status',
     ];
 
     /**
@@ -39,9 +38,9 @@ class UserInvitation extends Model
     protected function casts(): array
     {
         return [
-            "expires_at" => "datetime",
-            "invitation_expires_at" => "datetime",
-            "accepted_at" => "datetime",
+            'expires_at' => 'datetime',
+            'invitation_expires_at' => 'datetime',
+            'accepted_at' => 'datetime',
         ];
     }
 
@@ -53,11 +52,11 @@ class UserInvitation extends Model
         parent::boot();
 
         static::creating(function ($invitation) {
-            if (!$invitation->token) {
+            if (! $invitation->token) {
                 $invitation->token = Str::random(60);
             }
 
-            if (!$invitation->invitation_expires_at) {
+            if (! $invitation->invitation_expires_at) {
                 $invitation->invitation_expires_at = now()->addDays(7); // Default 7 days
             }
         });
@@ -68,7 +67,7 @@ class UserInvitation extends Model
      */
     public function inviter(): BelongsTo
     {
-        return $this->belongsTo(User::class, "inviter_id");
+        return $this->belongsTo(User::class, 'inviter_id');
     }
 
     /**
@@ -76,7 +75,7 @@ class UserInvitation extends Model
      */
     public function acceptedUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, "accepted_user_id");
+        return $this->belongsTo(User::class, 'accepted_user_id');
     }
 
     /**
@@ -84,7 +83,7 @@ class UserInvitation extends Model
      */
     public function scopePending(Builder $query): Builder
     {
-        return $query->where("status", "pending");
+        return $query->where('status', 'pending');
     }
 
     /**
@@ -92,7 +91,7 @@ class UserInvitation extends Model
      */
     public function scopeAccepted(Builder $query): Builder
     {
-        return $query->where("status", "accepted");
+        return $query->where('status', 'accepted');
     }
 
     /**
@@ -100,7 +99,7 @@ class UserInvitation extends Model
      */
     public function scopeNotExpired(Builder $query): Builder
     {
-        return $query->where("invitation_expires_at", ">", now());
+        return $query->where('invitation_expires_at', '>', now());
     }
 
     /**
@@ -116,7 +115,7 @@ class UserInvitation extends Model
      */
     public function isValid(): bool
     {
-        return $this->status === "pending" &&
+        return $this->status === 'pending' &&
             $this->invitation_expires_at->isFuture();
     }
 
@@ -133,14 +132,14 @@ class UserInvitation extends Model
      */
     public function markAsAccepted(User $user): bool
     {
-        if (!$this->isValid()) {
+        if (! $this->isValid()) {
             return false;
         }
 
         $this->update([
-            "status" => "accepted",
-            "accepted_at" => now(),
-            "accepted_user_id" => $user->id,
+            'status' => 'accepted',
+            'accepted_at' => now(),
+            'accepted_user_id' => $user->id,
         ]);
 
         return true;
@@ -151,11 +150,12 @@ class UserInvitation extends Model
      */
     public function markAsCancelled(): bool
     {
-        if ($this->status !== "pending") {
+        if ($this->status !== 'pending') {
             return false;
         }
 
-        $this->update(["status" => "cancelled"]);
+        $this->update(['status' => 'cancelled']);
+
         return true;
     }
 
@@ -164,11 +164,12 @@ class UserInvitation extends Model
      */
     public function markAsExpired(): bool
     {
-        if ($this->status !== "pending") {
+        if ($this->status !== 'pending') {
             return false;
         }
 
-        $this->update(["status" => "expired"]);
+        $this->update(['status' => 'expired']);
+
         return true;
     }
 
@@ -177,7 +178,7 @@ class UserInvitation extends Model
      */
     public function getInvitationUrl(): string
     {
-        return route("invitation.show", ["token" => $this->token]);
+        return route('invitation.show', ['token' => $this->token]);
     }
 
     /**
@@ -185,7 +186,7 @@ class UserInvitation extends Model
      */
     public function getDisplayName(): string
     {
-        return $this->nickname ?: "Trusted Contact";
+        return $this->nickname ?: 'Trusted Contact';
     }
 
     /**
@@ -193,7 +194,7 @@ class UserInvitation extends Model
      */
     public function canBeResent(): bool
     {
-        return $this->status === "pending" &&
+        return $this->status === 'pending' &&
             $this->invitation_expires_at->isPast();
     }
 
@@ -202,14 +203,14 @@ class UserInvitation extends Model
      */
     public function resend(): bool
     {
-        if (!$this->canBeResent()) {
+        if (! $this->canBeResent()) {
             return false;
         }
 
         $this->update([
-            "token" => Str::random(60),
-            "invitation_expires_at" => now()->addDays(7),
-            "status" => "pending",
+            'token' => Str::random(60),
+            'invitation_expires_at' => now()->addDays(7),
+            'status' => 'pending',
         ]);
 
         return true;
@@ -220,13 +221,13 @@ class UserInvitation extends Model
      */
     public function createTrustedContact(): ?TrustedContact
     {
-        if ($this->status !== "accepted" || !$this->accepted_user_id) {
+        if ($this->status !== 'accepted' || ! $this->accepted_user_id) {
             return null;
         }
 
         // Check if trusted contact already exists
-        $existingContact = TrustedContact::where("user_id", $this->inviter_id)
-            ->where("trusted_user_id", $this->accepted_user_id)
+        $existingContact = TrustedContact::where('user_id', $this->inviter_id)
+            ->where('trusted_user_id', $this->accepted_user_id)
             ->first();
 
         if ($existingContact) {
@@ -234,13 +235,13 @@ class UserInvitation extends Model
         }
 
         return TrustedContact::create([
-            "user_id" => $this->inviter_id,
-            "trusted_user_id" => $this->accepted_user_id,
-            "nickname" => $this->nickname,
-            "access_note" => $this->access_note,
-            "expires_at" => $this->expires_at,
-            "granted_at" => $this->accepted_at,
-            "is_active" => true,
+            'user_id' => $this->inviter_id,
+            'trusted_user_id' => $this->accepted_user_id,
+            'nickname' => $this->nickname,
+            'access_note' => $this->access_note,
+            'expires_at' => $this->expires_at,
+            'granted_at' => $this->accepted_at,
+            'is_active' => true,
         ]);
     }
 }

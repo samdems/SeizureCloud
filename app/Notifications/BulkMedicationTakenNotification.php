@@ -2,11 +2,10 @@
 
 namespace App\Notifications;
 
+use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use App\Models\User;
 
 class BulkMedicationTakenNotification extends Notification
 {
@@ -33,7 +32,7 @@ class BulkMedicationTakenNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ["database", "mail"];
+        return ['database', 'mail'];
     }
 
     /**
@@ -54,9 +53,9 @@ class BulkMedicationTakenNotification extends Notification
             $mainMessage = "This is a notification that {$this->patient->name} has taken their {$this->period} medications.";
         }
 
-        $takenTime = $this->takenAt->format("M j, Y g:i A");
+        $takenTime = $this->takenAt->format('M j, Y g:i A');
 
-        $mailMessage = new MailMessage();
+        $mailMessage = new MailMessage;
         $mailMessage->subject($subject);
         $mailMessage->greeting($greeting);
         $mailMessage->line($mainMessage);
@@ -65,19 +64,19 @@ class BulkMedicationTakenNotification extends Notification
         $mailMessage->line("**Taken at:** {$takenTime}");
 
         // List medications with timing information
-        if (!empty($this->medications)) {
+        if (! empty($this->medications)) {
             // Add timing summary
             $onTimeCount = 0;
             $lateCount = 0;
             $earlyCount = 0;
 
             foreach ($this->medications as $medication) {
-                if (isset($medication["timing_info"])) {
-                    if ($medication["timing_info"] === "On time") {
+                if (isset($medication['timing_info'])) {
+                    if ($medication['timing_info'] === 'On time') {
                         $onTimeCount++;
                     } elseif (
-                        isset($medication["is_late"]) &&
-                        $medication["is_late"]
+                        isset($medication['is_late']) &&
+                        $medication['is_late']
                     ) {
                         $lateCount++;
                     } else {
@@ -100,19 +99,19 @@ class BulkMedicationTakenNotification extends Notification
                 }
 
                 $mailMessage->line(
-                    "**Timing Summary:** " . implode(", ", $timingSummary),
+                    '**Timing Summary:** '.implode(', ', $timingSummary),
                 );
             }
 
-            $mailMessage->line("**Medications taken:**");
+            $mailMessage->line('**Medications taken:**');
             foreach ($this->medications as $medication) {
-                $medicationInfo = "• {$medication["name"]} - {$medication["dosage"]}";
+                $medicationInfo = "• {$medication['name']} - {$medication['dosage']}";
 
                 if (
-                    isset($medication["timing_info"]) &&
-                    $medication["timing_info"]
+                    isset($medication['timing_info']) &&
+                    $medication['timing_info']
                 ) {
-                    $medicationInfo .= " ({$medication["timing_info"]})";
+                    $medicationInfo .= " ({$medication['timing_info']})";
                 }
 
                 $mailMessage->line($medicationInfo);
@@ -121,12 +120,12 @@ class BulkMedicationTakenNotification extends Notification
             // Add encouraging message based on timing performance
             if ($onTimeCount + $lateCount + $earlyCount > 0) {
                 if ($lateCount === 0 && $earlyCount === 0) {
-                    $mailMessage->line("🎉 Perfect timing on all medications!");
+                    $mailMessage->line('🎉 Perfect timing on all medications!');
                 } elseif ($onTimeCount >= $lateCount + $earlyCount) {
-                    $mailMessage->line("💪 Great medication adherence!");
+                    $mailMessage->line('💪 Great medication adherence!');
                 } else {
                     $mailMessage->line(
-                        "👍 Keep up the good work with your medication routine!",
+                        '👍 Keep up the good work with your medication routine!',
                     );
                 }
             }
@@ -137,11 +136,11 @@ class BulkMedicationTakenNotification extends Notification
         }
 
         $mailMessage->action(
-            "View Medication Schedule",
-            route("medications.schedule"),
+            'View Medication Schedule',
+            route('medications.schedule'),
         );
         $mailMessage->line(
-            "Great job staying on track with your medication schedule!",
+            'Great job staying on track with your medication schedule!',
         );
 
         return $mailMessage;
@@ -163,12 +162,12 @@ class BulkMedicationTakenNotification extends Notification
         $earlyCount = 0;
 
         foreach ($this->medications as $medication) {
-            if (isset($medication["timing_info"])) {
-                if ($medication["timing_info"] === "On time") {
+            if (isset($medication['timing_info'])) {
+                if ($medication['timing_info'] === 'On time') {
                     $onTimeCount++;
                 } elseif (
-                    isset($medication["is_late"]) &&
-                    $medication["is_late"]
+                    isset($medication['is_late']) &&
+                    $medication['is_late']
                 ) {
                     $lateCount++;
                 } else {
@@ -178,22 +177,22 @@ class BulkMedicationTakenNotification extends Notification
         }
 
         return [
-            "type" => "bulk_medication_taken",
-            "message" => $isPatient
+            'type' => 'bulk_medication_taken',
+            'message' => $isPatient
                 ? "You took {$this->count} {$this->period} medications"
                 : "{$this->patient->name} took {$this->count} {$this->period} medications",
-            "period" => $this->period,
-            "period_label" => $periodLabel,
-            "medication_count" => $this->count,
-            "medications" => $this->medications,
-            "taken_at" => $this->takenAt->toDateTimeString(),
-            "patient_name" => $this->patient->name,
-            "patient_id" => $this->patient->id,
-            "notes" => $this->notes,
-            "timing_summary" => [
-                "on_time" => $onTimeCount,
-                "late" => $lateCount,
-                "early" => $earlyCount,
+            'period' => $this->period,
+            'period_label' => $periodLabel,
+            'medication_count' => $this->count,
+            'medications' => $this->medications,
+            'taken_at' => $this->takenAt->toDateTimeString(),
+            'patient_name' => $this->patient->name,
+            'patient_id' => $this->patient->id,
+            'notes' => $this->notes,
+            'timing_summary' => [
+                'on_time' => $onTimeCount,
+                'late' => $lateCount,
+                'early' => $earlyCount,
             ],
         ];
     }

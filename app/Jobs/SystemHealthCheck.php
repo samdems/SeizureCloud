@@ -2,16 +2,16 @@
 
 namespace App\Jobs;
 
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class SystemHealthCheck implements ShouldQueue
 {
@@ -41,14 +41,14 @@ class SystemHealthCheck implements ShouldQueue
                 'status' => 'healthy',
                 'message' => 'Database connection successful',
                 'latency_ms' => $dbLatency,
-                'checked_at' => $timestamp
+                'checked_at' => $timestamp,
             ];
         } catch (\Exception $e) {
             $checks['database'] = [
                 'status' => 'error',
-                'message' => 'Database connection failed: ' . $e->getMessage(),
+                'message' => 'Database connection failed: '.$e->getMessage(),
                 'latency_ms' => null,
-                'checked_at' => $timestamp
+                'checked_at' => $timestamp,
             ];
         }
 
@@ -60,22 +60,22 @@ class SystemHealthCheck implements ShouldQueue
                 'message' => $queueStatus['message'],
                 'pending_jobs' => $queueStatus['pending_jobs'],
                 'failed_jobs' => $queueStatus['failed_jobs'],
-                'checked_at' => $timestamp
+                'checked_at' => $timestamp,
             ];
         } catch (\Exception $e) {
             $checks['queue'] = [
                 'status' => 'error',
-                'message' => 'Queue check failed: ' . $e->getMessage(),
+                'message' => 'Queue check failed: '.$e->getMessage(),
                 'pending_jobs' => null,
                 'failed_jobs' => null,
-                'checked_at' => $timestamp
+                'checked_at' => $timestamp,
             ];
         }
 
         // 3. Cache System Check
         try {
-            $cacheKey = 'health_check_' . time();
-            $testValue = 'test_' . uniqid();
+            $cacheKey = 'health_check_'.time();
+            $testValue = 'test_'.uniqid();
 
             Cache::put($cacheKey, $testValue, 60);
             $retrieved = Cache::get($cacheKey);
@@ -86,22 +86,22 @@ class SystemHealthCheck implements ShouldQueue
                     'status' => 'healthy',
                     'message' => 'Cache system working properly',
                     'driver' => config('cache.default'),
-                    'checked_at' => $timestamp
+                    'checked_at' => $timestamp,
                 ];
             } else {
                 $checks['cache'] = [
                     'status' => 'warning',
                     'message' => 'Cache retrieval mismatch',
                     'driver' => config('cache.default'),
-                    'checked_at' => $timestamp
+                    'checked_at' => $timestamp,
                 ];
             }
         } catch (\Exception $e) {
             $checks['cache'] = [
                 'status' => 'error',
-                'message' => 'Cache check failed: ' . $e->getMessage(),
+                'message' => 'Cache check failed: '.$e->getMessage(),
                 'driver' => config('cache.default'),
-                'checked_at' => $timestamp
+                'checked_at' => $timestamp,
             ];
         }
 
@@ -112,14 +112,14 @@ class SystemHealthCheck implements ShouldQueue
                 'status' => $storageStatus['status'],
                 'message' => $storageStatus['message'],
                 'disk_usage' => $storageStatus['disk_usage'],
-                'checked_at' => $timestamp
+                'checked_at' => $timestamp,
             ];
         } catch (\Exception $e) {
             $checks['storage'] = [
                 'status' => 'error',
-                'message' => 'Storage check failed: ' . $e->getMessage(),
+                'message' => 'Storage check failed: '.$e->getMessage(),
                 'disk_usage' => null,
-                'checked_at' => $timestamp
+                'checked_at' => $timestamp,
             ];
         }
 
@@ -130,7 +130,7 @@ class SystemHealthCheck implements ShouldQueue
             'usage_mb' => round(memory_get_usage(true) / 1024 / 1024, 2),
             'peak_mb' => round(memory_get_peak_usage(true) / 1024 / 1024, 2),
             'limit' => ini_get('memory_limit'),
-            'checked_at' => $timestamp
+            'checked_at' => $timestamp,
         ];
 
         // 6. Scheduler Check (verify last run)
@@ -187,14 +187,14 @@ class SystemHealthCheck implements ShouldQueue
                 'status' => $status,
                 'message' => $message,
                 'pending_jobs' => $pendingJobs,
-                'failed_jobs' => $failedJobs
+                'failed_jobs' => $failedJobs,
             ];
         } catch (\Exception $e) {
             return [
                 'status' => 'error',
                 'message' => 'Unable to check queue status',
                 'pending_jobs' => null,
-                'failed_jobs' => null
+                'failed_jobs' => null,
             ];
         }
     }
@@ -205,7 +205,7 @@ class SystemHealthCheck implements ShouldQueue
     private function checkStorageHealth(): array
     {
         try {
-            $testFile = 'health_check_' . time() . '.txt';
+            $testFile = 'health_check_'.time().'.txt';
             $testContent = 'Health check test file';
 
             // Try to write and read a file
@@ -217,20 +217,20 @@ class SystemHealthCheck implements ShouldQueue
                 return [
                     'status' => 'healthy',
                     'message' => 'Storage read/write operations successful',
-                    'disk_usage' => $this->getDiskUsage()
+                    'disk_usage' => $this->getDiskUsage(),
                 ];
             } else {
                 return [
                     'status' => 'error',
                     'message' => 'Storage read/write test failed',
-                    'disk_usage' => null
+                    'disk_usage' => null,
                 ];
             }
         } catch (\Exception $e) {
             return [
                 'status' => 'error',
-                'message' => 'Storage operation failed: ' . $e->getMessage(),
-                'disk_usage' => null
+                'message' => 'Storage operation failed: '.$e->getMessage(),
+                'disk_usage' => null,
             ];
         }
     }
@@ -251,11 +251,11 @@ class SystemHealthCheck implements ShouldQueue
                 return [
                     'free_gb' => round($free / 1024 / 1024 / 1024, 2),
                     'total_gb' => round($total / 1024 / 1024 / 1024, 2),
-                    'usage_percent' => $usagePercent
+                    'usage_percent' => $usagePercent,
                 ];
             }
         } catch (\Exception $e) {
-            Log::warning('Could not get disk usage: ' . $e->getMessage());
+            Log::warning('Could not get disk usage: '.$e->getMessage());
         }
 
         return null;
@@ -302,6 +302,7 @@ class SystemHealthCheck implements ShouldQueue
         $limitMB = $this->convertToMB($limit);
         if ($limitMB > 0) {
             $usagePercent = round(($usageMB / $limitMB) * 100, 2);
+
             return "Memory usage: {$usageMB} MB / {$limitMB} MB ({$usagePercent}%)";
         }
 
@@ -337,12 +338,12 @@ class SystemHealthCheck implements ShouldQueue
         $lastRun = Cache::get('scheduler_last_run');
         $now = Carbon::now();
 
-        if (!$lastRun) {
+        if (! $lastRun) {
             return [
                 'status' => 'warning',
                 'message' => 'No scheduler run detected',
                 'last_run' => null,
-                'checked_at' => $now
+                'checked_at' => $now,
             ];
         }
 
@@ -354,7 +355,7 @@ class SystemHealthCheck implements ShouldQueue
                 'status' => 'warning',
                 'message' => "Scheduler hasn't run for {$minutesSinceLastRun} minutes",
                 'last_run' => $lastRun,
-                'checked_at' => $now
+                'checked_at' => $now,
             ];
         }
 
@@ -362,7 +363,7 @@ class SystemHealthCheck implements ShouldQueue
             'status' => 'healthy',
             'message' => 'Scheduler running normally',
             'last_run' => $lastRun,
-            'checked_at' => $now
+            'checked_at' => $now,
         ];
     }
 }

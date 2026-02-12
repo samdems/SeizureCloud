@@ -2,11 +2,9 @@
 
 namespace App\Notifications;
 
-use App\Models\User;
-use App\Models\MedicationSchedule;
 use App\Mail\LoggedMailMessage;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -21,7 +19,7 @@ class MedicationReminderNotification extends Notification
         public User $patient,
         public array $overdueMedications = [],
         public array $dueMedications = [],
-        public string $reminderType = "overdue",
+        public string $reminderType = 'overdue',
     ) {
         // 'overdue', 'due', 'both'
         //
@@ -34,7 +32,7 @@ class MedicationReminderNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ["mail"];
+        return ['mail'];
     }
 
     /**
@@ -42,28 +40,28 @@ class MedicationReminderNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $mailMessage = new LoggedMailMessage();
+        $mailMessage = new LoggedMailMessage;
 
         $subject = $this->getSubject();
 
         return $mailMessage
             ->subject($subject)
-            ->emailType("medication_reminder")
+            ->emailType('medication_reminder')
             ->forUser($this->patient->id)
             ->withMetadata([
-                "reminder_type" => $this->reminderType,
-                "overdue_count" => count($this->overdueMedications),
-                "due_count" => count($this->dueMedications),
-                "patient_id" => $this->patient->id,
-                "patient_name" => $this->patient->name,
-                "is_for_patient" => $notifiable->id === $this->patient->id,
+                'reminder_type' => $this->reminderType,
+                'overdue_count' => count($this->overdueMedications),
+                'due_count' => count($this->dueMedications),
+                'patient_id' => $this->patient->id,
+                'patient_name' => $this->patient->name,
+                'is_for_patient' => $notifiable->id === $this->patient->id,
             ])
-            ->markdown("mail.medication-reminder", [
-                "overdueMedications" => $this->overdueMedications,
-                "dueMedications" => $this->dueMedications,
-                "patient" => $this->patient,
-                "recipient" => $notifiable,
-                "reminderType" => $this->reminderType,
+            ->markdown('mail.medication-reminder', [
+                'overdueMedications' => $this->overdueMedications,
+                'dueMedications' => $this->dueMedications,
+                'patient' => $this->patient,
+                'recipient' => $notifiable,
+                'reminderType' => $this->reminderType,
             ]);
     }
 
@@ -75,16 +73,16 @@ class MedicationReminderNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            "type" => "medication_reminder",
-            "reminder_type" => $this->reminderType,
-            "patient_id" => $this->patient->id,
-            "patient_name" => $this->patient->name,
-            "overdue_count" => count($this->overdueMedications),
-            "due_count" => count($this->dueMedications),
-            "overdue_medications" => $this->formatMedicationsForArray(
+            'type' => 'medication_reminder',
+            'reminder_type' => $this->reminderType,
+            'patient_id' => $this->patient->id,
+            'patient_name' => $this->patient->name,
+            'overdue_count' => count($this->overdueMedications),
+            'due_count' => count($this->dueMedications),
+            'overdue_medications' => $this->formatMedicationsForArray(
                 $this->overdueMedications,
             ),
-            "due_medications" => $this->formatMedicationsForArray(
+            'due_medications' => $this->formatMedicationsForArray(
                 $this->dueMedications,
             ),
         ];
@@ -99,14 +97,14 @@ class MedicationReminderNotification extends Notification
         $dueCount = count($this->dueMedications);
 
         if ($overdueCount > 0 && $dueCount > 0) {
-            return "Medication Reminder: Overdue and Due Medications";
+            return 'Medication Reminder: Overdue and Due Medications';
         } elseif ($overdueCount > 0) {
             return $overdueCount === 1
-                ? "Medication Reminder: 1 Overdue Medication"
+                ? 'Medication Reminder: 1 Overdue Medication'
                 : "Medication Reminder: {$overdueCount} Overdue Medications";
         } else {
             return $dueCount === 1
-                ? "Medication Reminder: 1 Medication Due"
+                ? 'Medication Reminder: 1 Medication Due'
                 : "Medication Reminder: {$dueCount} Medications Due";
         }
     }
@@ -135,11 +133,11 @@ class MedicationReminderNotification extends Notification
             return "This is a reminder that you have {$overdueCount} overdue medication(s) and {$dueCount} medication(s) currently due.";
         } elseif ($overdueCount > 0) {
             return $overdueCount === 1
-                ? "This is a reminder that you have 1 overdue medication that needs to be taken."
+                ? 'This is a reminder that you have 1 overdue medication that needs to be taken.'
                 : "This is a reminder that you have {$overdueCount} overdue medications that need to be taken.";
         } else {
             return $dueCount === 1
-                ? "This is a reminder that you have 1 medication that is currently due."
+                ? 'This is a reminder that you have 1 medication that is currently due.'
                 : "This is a reminder that you have {$dueCount} medications that are currently due.";
         }
     }
@@ -153,38 +151,38 @@ class MedicationReminderNotification extends Notification
             $medication = $schedule->medication ?? null;
 
             // Safe handling of dosage calculation
-            $dosage = "N/A";
+            $dosage = 'N/A';
             if ($medication) {
                 try {
                     $calculatedDosage = method_exists(
                         $schedule,
-                        "getCalculatedDosageWithUnit",
+                        'getCalculatedDosageWithUnit',
                     )
                         ? $schedule->getCalculatedDosageWithUnit()
                         : null;
                     $dosage =
                         $calculatedDosage ?:
-                        ($medication->dosage ?? "N/A") .
-                            " " .
-                            ($medication->unit ?? "");
+                        ($medication->dosage ?? 'N/A').
+                            ' '.
+                            ($medication->unit ?? '');
                 } catch (\Exception $e) {
                     $dosage =
-                        ($medication->dosage ?? "N/A") .
-                        " " .
-                        ($medication->unit ?? "");
+                        ($medication->dosage ?? 'N/A').
+                        ' '.
+                        ($medication->unit ?? '');
                 }
             }
 
             return [
-                "id" => $medication->id ?? 0,
-                "name" => $medication->name ?? "Unknown Medication",
-                "dosage" => $dosage,
-                "scheduled_time" => $schedule->scheduled_time
-                    ? $schedule->scheduled_time->format("H:i")
-                    : "00:00",
-                "scheduled_time_formatted" => $schedule->scheduled_time
-                    ? $schedule->scheduled_time->format("g:i A")
-                    : "Unknown time",
+                'id' => $medication->id ?? 0,
+                'name' => $medication->name ?? 'Unknown Medication',
+                'dosage' => $dosage,
+                'scheduled_time' => $schedule->scheduled_time
+                    ? $schedule->scheduled_time->format('H:i')
+                    : '00:00',
+                'scheduled_time_formatted' => $schedule->scheduled_time
+                    ? $schedule->scheduled_time->format('g:i A')
+                    : 'Unknown time',
             ];
         }, $schedules);
     }

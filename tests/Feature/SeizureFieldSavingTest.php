@@ -139,7 +139,7 @@ class SeizureFieldSavingTest extends TestCase
                 echo "  ✓ {$field}: array saved correctly\n";
                 $successCount++;
             } else {
-                echo "  ✗ {$field}: expected " . json_encode($expectedArray) . ", got " . json_encode($actualArray) . "\n";
+                echo "  ✗ {$field}: expected ".json_encode($expectedArray).', got '.json_encode($actualArray)."\n";
             }
 
             $this->assertEquals($expectedArray, $actualArray,

@@ -57,7 +57,7 @@ class EmailLoggingService
     /**
      * Log a password reset email
      */
-    public function logPasswordReset(string $email, string $name = null): EmailLog
+    public function logPasswordReset(string $email, ?string $name = null): EmailLog
     {
         $user = User::where('email', $email)->first();
 
@@ -105,7 +105,7 @@ class EmailLoggingService
             'email_type' => 'medication_reminder',
             'metadata' => [
                 'medication_count' => count($medications),
-                'medications' => array_map(function($med) {
+                'medications' => array_map(function ($med) {
                     return [
                         'name' => $med['name'] ?? 'Unknown',
                         'time' => $med['time'] ?? null,
@@ -171,7 +171,7 @@ class EmailLoggingService
     /**
      * Mark an email log as sent
      */
-    public function markAsSent(EmailLog $emailLog, string $messageId = null): void
+    public function markAsSent(EmailLog $emailLog, ?string $messageId = null): void
     {
         try {
             $emailLog->markAsSent($messageId);
@@ -186,7 +186,7 @@ class EmailLoggingService
     /**
      * Mark an email log as failed
      */
-    public function markAsFailed(EmailLog $emailLog, string $errorMessage = null): void
+    public function markAsFailed(EmailLog $emailLog, ?string $errorMessage = null): void
     {
         try {
             $emailLog->markAsFailed($errorMessage);

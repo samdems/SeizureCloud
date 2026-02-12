@@ -12,7 +12,7 @@ return [
     |
     */
 
-    "name" => env("APP_NAME", "Laravel"),
+    'name' => env('APP_NAME', 'Laravel'),
 
     /*
     |--------------------------------------------------------------------------
@@ -25,7 +25,7 @@ return [
     |
     */
 
-    "env" => env("APP_ENV", "production"),
+    'env' => env('APP_ENV', 'production'),
 
     /*
     |--------------------------------------------------------------------------
@@ -38,7 +38,7 @@ return [
     |
     */
 
-    "debug" => (bool) env("APP_DEBUG", false),
+    'debug' => (bool) env('APP_DEBUG', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -51,7 +51,7 @@ return [
     |
     */
 
-    "url" => env("APP_URL", "http://localhost"),
+    'url' => env('APP_URL', 'http://localhost'),
 
     /*
     |--------------------------------------------------------------------------
@@ -64,7 +64,7 @@ return [
     |
     */
 
-    "timezone" => "UTC",
+    'timezone' => 'UTC',
 
     /*
     |--------------------------------------------------------------------------
@@ -77,11 +77,11 @@ return [
     |
     */
 
-    "locale" => env("APP_LOCALE", "en"),
+    'locale' => env('APP_LOCALE', 'en'),
 
-    "fallback_locale" => env("APP_FALLBACK_LOCALE", "en"),
+    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
-    "faker_locale" => env("APP_FAKER_LOCALE", "en_US"),
+    'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 
     /*
     |--------------------------------------------------------------------------
@@ -94,7 +94,7 @@ return [
     |
     */
 
-    "cipher" => "AES-256-CBC",
+    'cipher' => 'AES-256-CBC',
 
     /*
     |--------------------------------------------------------------------------
@@ -106,16 +106,16 @@ return [
     |
     */
 
-    "vital_types" => [
-        "Resting BPM",
-        "Blood Pressure",
-        "Weight",
-        "Temperature",
-        "Oxygen Saturation",
-        "Blood Sugar",
-        "Sleep Hours",
-        "Water Intake (ml)",
-        "Steps",
+    'vital_types' => [
+        'Resting BPM',
+        'Blood Pressure',
+        'Weight',
+        'Temperature',
+        'Oxygen Saturation',
+        'Blood Sugar',
+        'Sleep Hours',
+        'Water Intake (ml)',
+        'Steps',
     ],
 
     /*
@@ -140,8 +140,8 @@ return [
     |
     */
 
-    "maintenance" => [
-        "driver" => env("APP_MAINTENANCE_DRIVER", "file"),
-        "store" => env("APP_MAINTENANCE_STORE", "database"),
+    'maintenance' => [
+        'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
+        'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 ];

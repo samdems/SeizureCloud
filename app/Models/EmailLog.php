@@ -77,7 +77,7 @@ class EmailLog extends Model
      */
     public function wasDelivered(): bool
     {
-        return !is_null($this->delivered_at);
+        return ! is_null($this->delivered_at);
     }
 
     /**
@@ -85,7 +85,7 @@ class EmailLog extends Model
      */
     public function wasOpened(): bool
     {
-        return !is_null($this->opened_at);
+        return ! is_null($this->opened_at);
     }
 
     /**
@@ -93,7 +93,7 @@ class EmailLog extends Model
      */
     public function wasClicked(): bool
     {
-        return !is_null($this->clicked_at);
+        return ! is_null($this->clicked_at);
     }
 
     /**
@@ -101,7 +101,7 @@ class EmailLog extends Model
      */
     public function bounced(): bool
     {
-        return !is_null($this->bounced_at) || $this->status === 'bounced';
+        return ! is_null($this->bounced_at) || $this->status === 'bounced';
     }
 
     /**
@@ -109,7 +109,7 @@ class EmailLog extends Model
      */
     public function getStatusBadgeClass(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             'sent' => 'badge-success',
             'pending' => 'badge-warning',
             'failed' => 'badge-error',
@@ -123,7 +123,7 @@ class EmailLog extends Model
      */
     public function getTypeBadgeClass(): string
     {
-        return match($this->email_type) {
+        return match ($this->email_type) {
             'verification' => 'badge-info',
             'password_reset' => 'badge-warning',
             'notification' => 'badge-primary',
@@ -139,7 +139,7 @@ class EmailLog extends Model
      */
     public function getFormattedEmailType(): string
     {
-        return match($this->email_type) {
+        return match ($this->email_type) {
             'verification' => 'Email Verification',
             'password_reset' => 'Password Reset',
             'notification' => 'Notification',
@@ -255,7 +255,7 @@ class EmailLog extends Model
     /**
      * Mark email as sent
      */
-    public function markAsSent(string $messageId = null): void
+    public function markAsSent(?string $messageId = null): void
     {
         $this->update([
             'status' => 'sent',
@@ -267,7 +267,7 @@ class EmailLog extends Model
     /**
      * Mark email as failed
      */
-    public function markAsFailed(string $errorMessage = null): void
+    public function markAsFailed(?string $errorMessage = null): void
     {
         $this->update([
             'status' => 'failed',
@@ -308,7 +308,7 @@ class EmailLog extends Model
     /**
      * Mark email as bounced
      */
-    public function markAsBounced(string $reason = null): void
+    public function markAsBounced(?string $reason = null): void
     {
         $this->update([
             'status' => 'bounced',

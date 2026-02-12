@@ -47,6 +47,7 @@ class ManageAdminUsers extends Command
                 $this->line('  php artisan admin:manage demote user@example.com');
                 $this->line('  php artisan admin:manage check user@example.com');
                 $this->line('  php artisan admin:manage list');
+
                 return 1;
         }
     }
@@ -56,35 +57,39 @@ class ManageAdminUsers extends Command
      */
     protected function promoteUser($email)
     {
-        if (!$email) {
+        if (! $email) {
             $email = $this->ask('Enter the email address of the user to promote to admin');
         }
 
         $validator = Validator::make(['email' => $email], [
-            'email' => 'required|email'
+            'email' => 'required|email',
         ]);
 
         if ($validator->fails()) {
             $this->error('Invalid email format');
+
             return 1;
         }
 
         $user = User::where('email', $email)->first();
 
-        if (!$user) {
+        if (! $user) {
             $this->error("User with email '{$email}' not found");
+
             return 1;
         }
 
         if ($user->isAdmin()) {
             $this->info("User '{$user->name}' ({$user->email}) is already an admin");
+
             return 0;
         }
 
         $confirmed = $this->confirm("Are you sure you want to promote '{$user->name}' ({$user->email}) to admin?");
 
-        if (!$confirmed) {
+        if (! $confirmed) {
             $this->info('Operation cancelled');
+
             return 0;
         }
 
@@ -101,35 +106,39 @@ class ManageAdminUsers extends Command
      */
     protected function demoteUser($email)
     {
-        if (!$email) {
+        if (! $email) {
             $email = $this->ask('Enter the email address of the user to demote from admin');
         }
 
         $validator = Validator::make(['email' => $email], [
-            'email' => 'required|email'
+            'email' => 'required|email',
         ]);
 
         if ($validator->fails()) {
             $this->error('Invalid email format');
+
             return 1;
         }
 
         $user = User::where('email', $email)->first();
 
-        if (!$user) {
+        if (! $user) {
             $this->error("User with email '{$email}' not found");
+
             return 1;
         }
 
-        if (!$user->isAdmin()) {
+        if (! $user->isAdmin()) {
             $this->info("User '{$user->name}' ({$user->email}) is not an admin");
+
             return 0;
         }
 
         $confirmed = $this->confirm("Are you sure you want to demote '{$user->name}' ({$user->email}) from admin?");
 
-        if (!$confirmed) {
+        if (! $confirmed) {
             $this->info('Operation cancelled');
+
             return 0;
         }
 
@@ -150,6 +159,7 @@ class ManageAdminUsers extends Command
 
         if ($adminUsers->isEmpty()) {
             $this->info('No admin users found');
+
             return 0;
         }
 
@@ -165,7 +175,7 @@ class ManageAdminUsers extends Command
                 $user->name,
                 $user->email,
                 $user->account_type,
-                $user->created_at->format('Y-m-d H:i:s')
+                $user->created_at->format('Y-m-d H:i:s'),
             ];
         }
 
@@ -181,33 +191,35 @@ class ManageAdminUsers extends Command
      */
     protected function checkUserAdmin($email)
     {
-        if (!$email) {
+        if (! $email) {
             $email = $this->ask('Enter the email address of the user to check');
         }
 
         $validator = Validator::make(['email' => $email], [
-            'email' => 'required|email'
+            'email' => 'required|email',
         ]);
 
         if ($validator->fails()) {
             $this->error('Invalid email format');
+
             return 1;
         }
 
         $user = User::where('email', $email)->first();
 
-        if (!$user) {
+        if (! $user) {
             $this->error("User with email '{$email}' not found");
+
             return 1;
         }
 
-        $this->line("User Information:");
+        $this->line('User Information:');
         $this->line("Name: {$user->name}");
         $this->line("Email: {$user->email}");
         $this->line("Account Type: {$user->account_type}");
-        $this->line("Admin Status: " . ($user->isAdmin() ? '✅ Yes' : '❌ No'));
+        $this->line('Admin Status: '.($user->isAdmin() ? '✅ Yes' : '❌ No'));
         $this->line("Created: {$user->created_at->format('Y-m-d H:i:s')}");
-        $this->line("Email Verified: " . ($user->hasVerifiedEmail() ? '✅ Yes' : '❌ No'));
+        $this->line('Email Verified: '.($user->hasVerifiedEmail() ? '✅ Yes' : '❌ No'));
 
         return 0;
     }

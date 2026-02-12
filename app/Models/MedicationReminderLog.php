@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Carbon\Carbon;
 
 class MedicationReminderLog extends Model
 {
@@ -68,10 +68,7 @@ class MedicationReminderLog extends Model
     /**
      * Check if enough time has passed since last reminder for this medication schedule
      *
-     * @param int $medicationScheduleId
-     * @param string $reminderType
-     * @param int $cooldownHours Default 2 hours
-     * @return bool
+     * @param  int  $cooldownHours  Default 2 hours
      */
     public static function canSendReminder(
         int $medicationScheduleId,
@@ -90,9 +87,7 @@ class MedicationReminderLog extends Model
     /**
      * Check if we can send any type of reminder for this medication schedule
      *
-     * @param int $medicationScheduleId
-     * @param int $cooldownHours Default 2 hours
-     * @return bool
+     * @param  int  $cooldownHours  Default 2 hours
      */
     public static function canSendAnyReminder(
         int $medicationScheduleId,
@@ -108,9 +103,6 @@ class MedicationReminderLog extends Model
 
     /**
      * Check how many reminders have been sent today for this medication schedule
-     *
-     * @param int $medicationScheduleId
-     * @return int
      */
     public static function todayReminderCount(int $medicationScheduleId): int
     {
@@ -122,9 +114,7 @@ class MedicationReminderLog extends Model
     /**
      * Check if daily reminder limit has been reached
      *
-     * @param int $medicationScheduleId
-     * @param int $maxPerDay Default 6 reminders per day
-     * @return bool
+     * @param  int  $maxPerDay  Default 6 reminders per day
      */
     public static function hasReachedDailyLimit(
         int $medicationScheduleId,
@@ -135,9 +125,6 @@ class MedicationReminderLog extends Model
 
     /**
      * Get the last reminder sent for this medication schedule
-     *
-     * @param int $medicationScheduleId
-     * @return MedicationReminderLog|null
      */
     public static function getLastReminder(int $medicationScheduleId): ?MedicationReminderLog
     {
@@ -148,9 +135,6 @@ class MedicationReminderLog extends Model
 
     /**
      * Log a sent medication reminder
-     *
-     * @param array $data
-     * @return MedicationReminderLog
      */
     public static function logReminder(array $data): MedicationReminderLog
     {
@@ -165,12 +149,8 @@ class MedicationReminderLog extends Model
 
     /**
      * Get reminder statistics for a user
-     *
-     * @param int $userId
-     * @param Carbon|null $fromDate
-     * @return array
      */
-    public static function getUserStats(int $userId, Carbon $fromDate = null): array
+    public static function getUserStats(int $userId, ?Carbon $fromDate = null): array
     {
         $query = static::where('user_id', $userId);
 
@@ -196,7 +176,7 @@ class MedicationReminderLog extends Model
     /**
      * Clean up old reminder logs (older than specified days)
      *
-     * @param int $olderThanDays Default 90 days
+     * @param  int  $olderThanDays  Default 90 days
      * @return int Number of deleted records
      */
     public static function cleanup(int $olderThanDays = 90): int

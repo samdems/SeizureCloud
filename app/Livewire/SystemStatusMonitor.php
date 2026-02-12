@@ -2,17 +2,21 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
+use App\Jobs\SystemHealthCheck;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use App\Jobs\SystemHealthCheck;
+use Livewire\Component;
 
 class SystemStatusMonitor extends Component
 {
     public $healthStatus = [];
+
     public $queueStats = [];
+
     public $overallStatus = [];
+
     public $lastUpdate;
+
     public $autoRefresh = true;
 
     public function mount()
@@ -82,7 +86,7 @@ class SystemStatusMonitor extends Component
 
     public function toggleAutoRefresh()
     {
-        $this->autoRefresh = !$this->autoRefresh;
+        $this->autoRefresh = ! $this->autoRefresh;
     }
 
     private function getQueueCount($table)
@@ -99,6 +103,7 @@ class SystemStatusMonitor extends Component
         try {
             $failedJobs = DB::table('failed_jobs')->count();
             $pendingJobs = DB::table('jobs')->count();
+
             return max(0, ($failedJobs + $pendingJobs) * 10);
         } catch (\Exception $e) {
             return 0;
@@ -114,6 +119,7 @@ class SystemStatusMonitor extends Component
             if ($lastFailed) {
                 return $lastFailed->failed_at;
             }
+
             return now()->subMinutes(rand(1, 30))->format('Y-m-d H:i:s');
         } catch (\Exception $e) {
             return null;
@@ -143,10 +149,10 @@ class SystemStatusMonitor extends Component
         // Determine overall status
         if ($statusCounts['error'] > 0) {
             $overall = 'error';
-            $message = $statusCounts['error'] . ' critical issue(s) detected';
+            $message = $statusCounts['error'].' critical issue(s) detected';
         } elseif ($statusCounts['warning'] > 0) {
             $overall = 'warning';
-            $message = $statusCounts['warning'] . ' warning(s) detected';
+            $message = $statusCounts['warning'].' warning(s) detected';
         } elseif ($statusCounts['checking'] > 0) {
             $overall = 'checking';
             $message = 'Health checks in progress...';

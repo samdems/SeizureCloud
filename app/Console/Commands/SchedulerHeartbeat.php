@@ -33,7 +33,7 @@ class SchedulerHeartbeat extends Command
             now()->addMinutes(10)
         );
 
-        $this->info('Scheduler heartbeat updated: ' . now()->format('Y-m-d H:i:s'));
+        $this->info('Scheduler heartbeat updated: '.now()->format('Y-m-d H:i:s'));
 
         return 0;
     }

@@ -46,6 +46,7 @@ class BackfillCreatedViaInvitation extends Command
 
         if ($acceptedInvitations->isEmpty()) {
             $this->info('No users found who were created through invitations.');
+
             return;
         }
 
@@ -59,15 +60,17 @@ class BackfillCreatedViaInvitation extends Command
         foreach ($acceptedInvitations as $invitation) {
             $user = $invitation->acceptedUser;
 
-            if (!$user) {
+            if (! $user) {
                 $userNotFoundCount++;
                 $this->warn("User not found for invitation ID: {$invitation->id}");
+
                 continue;
             }
 
             if ($user->created_via_invitation) {
                 $alreadyMarkedCount++;
                 $this->line("  ✓ {$user->email} - already marked as created via invitation");
+
                 continue;
             }
 
@@ -101,7 +104,7 @@ class BackfillCreatedViaInvitation extends Command
             $this->comment('Run without --dry-run to actually update the database.');
         }
 
-        if (!$dryRun && $updatedCount > 0) {
+        if (! $dryRun && $updatedCount > 0) {
             $this->newLine();
             $this->info('✅ Backfill completed successfully!');
         }

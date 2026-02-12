@@ -2,12 +2,12 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Event;
+use App\Listeners\EmailLoggingListener;
 use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Mail\Events\MessageSent;
-use App\Listeners\EmailLoggingListener;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,11 +27,11 @@ class AppServiceProvider extends ServiceProvider
         // Register email logging listeners
         Event::listen(MessageSending::class, [
             EmailLoggingListener::class,
-            "handleMessageSending",
+            'handleMessageSending',
         ]);
         Event::listen(MessageSent::class, [
             EmailLoggingListener::class,
-            "handleMessageSent",
+            'handleMessageSent',
         ]);
 
         Gate::policy(

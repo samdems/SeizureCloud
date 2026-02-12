@@ -12,24 +12,24 @@ class Medication extends Model
     use HasFactory;
 
     protected $fillable = [
-        "user_id",
-        "name",
-        "dosage",
-        "unit",
-        "description",
-        "prescriber",
-        "start_date",
-        "end_date",
-        "active",
-        "as_needed",
-        "notes",
+        'user_id',
+        'name',
+        'dosage',
+        'unit',
+        'description',
+        'prescriber',
+        'start_date',
+        'end_date',
+        'active',
+        'as_needed',
+        'notes',
     ];
 
     protected $casts = [
-        "start_date" => "date",
-        "end_date" => "date",
-        "active" => "boolean",
-        "as_needed" => "boolean",
+        'start_date' => 'date',
+        'end_date' => 'date',
+        'active' => 'boolean',
+        'as_needed' => 'boolean',
     ];
 
     public function user(): BelongsTo
@@ -49,6 +49,6 @@ class Medication extends Model
 
     public function todayLogs()
     {
-        return $this->logs()->whereDate("taken_at", today());
+        return $this->logs()->whereDate('taken_at', today());
     }
 }

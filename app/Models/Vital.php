@@ -15,16 +15,16 @@ class Vital extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        "user_id",
-        "type",
-        "value",
-        "recorded_at",
-        "notes",
-        "low_threshold",
-        "high_threshold",
-        "status",
-        "systolic_value",
-        "diastolic_value",
+        'user_id',
+        'type',
+        'value',
+        'recorded_at',
+        'notes',
+        'low_threshold',
+        'high_threshold',
+        'status',
+        'systolic_value',
+        'diastolic_value',
     ];
 
     /**
@@ -33,11 +33,11 @@ class Vital extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        "recorded_at" => "datetime",
-        "low_threshold" => "float",
-        "high_threshold" => "float",
-        "systolic_value" => "float",
-        "diastolic_value" => "float",
+        'recorded_at' => 'datetime',
+        'low_threshold' => 'float',
+        'high_threshold' => 'float',
+        'systolic_value' => 'float',
+        'diastolic_value' => 'float',
     ];
 
     /**
@@ -55,9 +55,9 @@ class Vital extends Model
     {
         return $this->belongsTo(
             VitalTypeThreshold::class,
-            "type",
-            "vital_type",
-        )->where("user_id", $this->user_id);
+            'type',
+            'vital_type',
+        )->where('user_id', $this->user_id);
     }
 
     /**
@@ -66,6 +66,7 @@ class Vital extends Model
     public function isTooLow(): bool
     {
         $threshold = $this->low_threshold ?? $this->getDefaultLowThreshold();
+
         return $threshold !== null && $this->value < $threshold;
     }
 
@@ -75,6 +76,7 @@ class Vital extends Model
     public function isTooHigh(): bool
     {
         $threshold = $this->high_threshold ?? $this->getDefaultHighThreshold();
+
         return $threshold !== null && $this->value > $threshold;
     }
 
@@ -91,9 +93,9 @@ class Vital extends Model
      */
     public function getDefaultLowThreshold(): ?float
     {
-        $userThreshold = VitalTypeThreshold::where("user_id", $this->user_id)
-            ->where("vital_type", $this->type)
-            ->where("is_active", true)
+        $userThreshold = VitalTypeThreshold::where('user_id', $this->user_id)
+            ->where('vital_type', $this->type)
+            ->where('is_active', true)
             ->first();
 
         if ($userThreshold) {
@@ -101,7 +103,8 @@ class Vital extends Model
         }
 
         $defaults = VitalTypeThreshold::getDefaultThresholds();
-        return $defaults[$this->type]["low"] ?? null;
+
+        return $defaults[$this->type]['low'] ?? null;
     }
 
     /**
@@ -109,9 +112,9 @@ class Vital extends Model
      */
     public function getDefaultHighThreshold(): ?float
     {
-        $userThreshold = VitalTypeThreshold::where("user_id", $this->user_id)
-            ->where("vital_type", $this->type)
-            ->where("is_active", true)
+        $userThreshold = VitalTypeThreshold::where('user_id', $this->user_id)
+            ->where('vital_type', $this->type)
+            ->where('is_active', true)
             ->first();
 
         if ($userThreshold) {
@@ -119,7 +122,8 @@ class Vital extends Model
         }
 
         $defaults = VitalTypeThreshold::getDefaultThresholds();
-        return $defaults[$this->type]["high"] ?? null;
+
+        return $defaults[$this->type]['high'] ?? null;
     }
 
     /**
@@ -128,9 +132,9 @@ class Vital extends Model
     public function getStatusBadgeClass(): string
     {
         return match ($this->status ?? $this->getStatus()) {
-            "too_low" => "badge-error",
-            "too_high" => "badge-error",
-            default => "badge-success",
+            'too_low' => 'badge-error',
+            'too_high' => 'badge-error',
+            default => 'badge-success',
         };
     }
 
@@ -139,7 +143,7 @@ class Vital extends Model
      */
     public function isBloodPressure(): bool
     {
-        return $this->type === "Blood Pressure";
+        return $this->type === 'Blood Pressure';
     }
 
     /**
@@ -148,28 +152,28 @@ class Vital extends Model
     public static function parseBloodPressure(string $value): array
     {
         // Remove any spaces and check for slash
-        $cleaned = str_replace(" ", "", $value);
+        $cleaned = str_replace(' ', '', $value);
 
-        if (strpos($cleaned, "/") !== false) {
-            $parts = explode("/", $cleaned);
+        if (strpos($cleaned, '/') !== false) {
+            $parts = explode('/', $cleaned);
             if (
                 count($parts) === 2 &&
                 is_numeric($parts[0]) &&
                 is_numeric($parts[1])
             ) {
                 return [
-                    "systolic" => (float) $parts[0],
-                    "diastolic" => (float) $parts[1],
-                    "combined_value" => (float) $parts[0], // Use systolic as primary value
+                    'systolic' => (float) $parts[0],
+                    'diastolic' => (float) $parts[1],
+                    'combined_value' => (float) $parts[0], // Use systolic as primary value
                 ];
             }
         }
 
         // If not in BP format, treat as regular value
         return [
-            "systolic" => null,
-            "diastolic" => null,
-            "combined_value" => (float) $value,
+            'systolic' => null,
+            'diastolic' => null,
+            'combined_value' => (float) $value,
         ];
     }
 
@@ -183,7 +187,7 @@ class Vital extends Model
             $this->systolic_value &&
             $this->diastolic_value
         ) {
-            return $this->systolic_value . "/" . $this->diastolic_value;
+            return $this->systolic_value.'/'.$this->diastolic_value;
         }
 
         return (string) $this->value;
@@ -195,35 +199,36 @@ class Vital extends Model
     public function getBloodPressureStatus(): string
     {
         if (
-            !$this->isBloodPressure() ||
-            !$this->systolic_value ||
-            !$this->diastolic_value
+            ! $this->isBloodPressure() ||
+            ! $this->systolic_value ||
+            ! $this->diastolic_value
         ) {
             // Use regular vital status for non-BP or incomplete BP readings
             if ($this->isTooLow()) {
-                return "too_low";
+                return 'too_low';
             }
             if ($this->isTooHigh()) {
-                return "too_high";
+                return 'too_high';
             }
-            return "normal";
+
+            return 'normal';
         }
 
-        $bpThresholds = VitalTypeThreshold::where("user_id", $this->user_id)
-            ->where("vital_type", "Blood Pressure")
-            ->where("is_active", true)
+        $bpThresholds = VitalTypeThreshold::where('user_id', $this->user_id)
+            ->where('vital_type', 'Blood Pressure')
+            ->where('is_active', true)
             ->first();
 
         // Use defaults if no user thresholds
-        if (!$bpThresholds) {
+        if (! $bpThresholds) {
             $defaults = VitalTypeThreshold::getDefaultThresholds();
-            $systolicLow = $defaults["Blood Pressure"]["systolic_low"] ?? null;
+            $systolicLow = $defaults['Blood Pressure']['systolic_low'] ?? null;
             $systolicHigh =
-                $defaults["Blood Pressure"]["systolic_high"] ?? null;
+                $defaults['Blood Pressure']['systolic_high'] ?? null;
             $diastolicLow =
-                $defaults["Blood Pressure"]["diastolic_low"] ?? null;
+                $defaults['Blood Pressure']['diastolic_low'] ?? null;
             $diastolicHigh =
-                $defaults["Blood Pressure"]["diastolic_high"] ?? null;
+                $defaults['Blood Pressure']['diastolic_high'] ?? null;
         } else {
             $systolicLow = $bpThresholds->systolic_low_threshold;
             $systolicHigh = $bpThresholds->systolic_high_threshold;
@@ -240,14 +245,14 @@ class Vital extends Model
             $diastolicHigh && $this->diastolic_value > $diastolicHigh;
 
         if ($systolicTooLow || $diastolicTooLow) {
-            return "too_low";
+            return 'too_low';
         }
 
         if ($systolicTooHigh || $diastolicTooHigh) {
-            return "too_high";
+            return 'too_high';
         }
 
-        return "normal";
+        return 'normal';
     }
 
     /**
@@ -256,39 +261,39 @@ class Vital extends Model
     public function getBloodPressureStatusText(): string
     {
         if (
-            !$this->isBloodPressure() ||
-            !$this->systolic_value ||
-            !$this->diastolic_value
+            ! $this->isBloodPressure() ||
+            ! $this->systolic_value ||
+            ! $this->diastolic_value
         ) {
             return $this->getStatusText();
         }
 
         $status = $this->getBloodPressureStatus();
 
-        if ($status === "normal") {
-            return "Normal BP";
+        if ($status === 'normal') {
+            return 'Normal BP';
         }
 
         // Check individual components for detailed status
-        $bpThresholds = VitalTypeThreshold::where("user_id", $this->user_id)
-            ->where("vital_type", "Blood Pressure")
-            ->where("is_active", true)
+        $bpThresholds = VitalTypeThreshold::where('user_id', $this->user_id)
+            ->where('vital_type', 'Blood Pressure')
+            ->where('is_active', true)
             ->first();
 
         // Use defaults if no user thresholds
         $defaults = VitalTypeThreshold::getDefaultThresholds();
         $systolicLow =
             $bpThresholds?->systolic_low_threshold ??
-            $defaults["Blood Pressure"]["systolic_low"];
+            $defaults['Blood Pressure']['systolic_low'];
         $systolicHigh =
             $bpThresholds?->systolic_high_threshold ??
-            $defaults["Blood Pressure"]["systolic_high"];
+            $defaults['Blood Pressure']['systolic_high'];
         $diastolicLow =
             $bpThresholds?->diastolic_low_threshold ??
-            $defaults["Blood Pressure"]["diastolic_low"];
+            $defaults['Blood Pressure']['diastolic_low'];
         $diastolicHigh =
             $bpThresholds?->diastolic_high_threshold ??
-            $defaults["Blood Pressure"]["diastolic_high"];
+            $defaults['Blood Pressure']['diastolic_high'];
 
         $systolicTooLow = $systolicLow && $this->systolic_value < $systolicLow;
         $systolicTooHigh =
@@ -299,20 +304,20 @@ class Vital extends Model
             $diastolicHigh && $this->diastolic_value > $diastolicHigh;
 
         if ($systolicTooLow && $diastolicTooLow) {
-            return "Both Too Low";
+            return 'Both Too Low';
         } elseif ($systolicTooHigh && $diastolicTooHigh) {
-            return "Both Too High";
+            return 'Both Too High';
         } elseif ($systolicTooLow) {
-            return "Low Systolic";
+            return 'Low Systolic';
         } elseif ($systolicTooHigh) {
-            return "High Systolic";
+            return 'High Systolic';
         } elseif ($diastolicTooLow) {
-            return "Low Diastolic";
+            return 'Low Diastolic';
         } elseif ($diastolicTooHigh) {
-            return "High Diastolic";
+            return 'High Diastolic';
         }
 
-        return "Abnormal BP";
+        return 'Abnormal BP';
     }
 
     /**
@@ -325,14 +330,14 @@ class Vital extends Model
         }
 
         if ($this->isTooLow()) {
-            return "too_low";
+            return 'too_low';
         }
 
         if ($this->isTooHigh()) {
-            return "too_high";
+            return 'too_high';
         }
 
-        return "normal";
+        return 'normal';
     }
 
     /**
@@ -345,9 +350,9 @@ class Vital extends Model
         }
 
         return match ($this->status ?? $this->getStatus()) {
-            "too_low" => "Too Low",
-            "too_high" => "Too High",
-            default => "Normal",
+            'too_low' => 'Too Low',
+            'too_high' => 'Too High',
+            default => 'Normal',
         };
     }
 }

@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Jobs\SystemHealthCheck;
+use Illuminate\Console\Command;
 
 class RunHealthCheck extends Command
 {
@@ -30,7 +30,7 @@ class RunHealthCheck extends Command
 
         if ($this->option('sync')) {
             // Run synchronously for immediate results
-            $job = new SystemHealthCheck();
+            $job = new SystemHealthCheck;
             $job->handle();
             $this->info('Health check completed synchronously.');
         } else {

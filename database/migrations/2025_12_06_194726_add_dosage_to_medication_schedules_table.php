@@ -4,15 +4,16 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::table("medication_schedules", function (Blueprint $table) {
-            $table->string("dosage")->nullable()->after("scheduled_time");
-            $table->string("unit")->nullable()->after("dosage");
+        Schema::table('medication_schedules', function (Blueprint $table) {
+            $table->string('dosage')->nullable()->after('scheduled_time');
+            $table->string('unit')->nullable()->after('dosage');
         });
     }
 
@@ -21,8 +22,8 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table("medication_schedules", function (Blueprint $table) {
-            $table->dropColumn(["dosage", "unit"]);
+        Schema::table('medication_schedules', function (Blueprint $table) {
+            $table->dropColumn(['dosage', 'unit']);
         });
     }
 };

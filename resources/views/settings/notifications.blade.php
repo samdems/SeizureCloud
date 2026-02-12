@@ -148,6 +148,9 @@
                     </div>
                 </div>
 
+                <!-- Email Preferences Section -->
+                @livewire('settings.email-preferences')
+
                 <!-- Important Notes -->
                 <div class="card bg-info/10 border border-info/30">
                     <div class="card-body">

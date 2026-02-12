@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\Vital;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class VitalsSeeder extends Seeder
@@ -96,7 +95,7 @@ class VitalsSeeder extends Seeder
                         'Feeling stressed today',
                         'After exercise',
                         'Before medication',
-                        'After morning walk'
+                        'After morning walk',
                     ]),
                 ]);
 

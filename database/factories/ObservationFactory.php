@@ -60,7 +60,7 @@ class ObservationFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'title' => "Observation about {$topic}",
-            'description' => "Detailed observation regarding {$topic}. " . $this->faker->paragraphs(2, true),
+            'description' => "Detailed observation regarding {$topic}. ".$this->faker->paragraphs(2, true),
         ]);
     }
 }

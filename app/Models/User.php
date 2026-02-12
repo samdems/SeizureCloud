@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Log;
@@ -23,25 +23,37 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var list<string>
      */
     protected $fillable = [
-        "name",
-        "email",
-        "password",
-        "account_type",
-        "avatar_style",
-        "created_via_invitation",
-        "is_admin",
-        "morning_time",
-        "afternoon_time",
-        "evening_time",
-        "bedtime",
-        "status_epilepticus_duration_minutes",
-        "emergency_seizure_count",
-        "emergency_seizure_timeframe_hours",
-        "emergency_contact_info",
-        "notify_medication_taken",
-        "notify_seizure_added",
-        "notify_trusted_contacts_medication",
-        "notify_trusted_contacts_seizures",
+        'name',
+        'email',
+        'password',
+        'account_type',
+        'avatar_style',
+        'created_via_invitation',
+        'is_admin',
+        'morning_time',
+        'afternoon_time',
+        'evening_time',
+        'bedtime',
+        'status_epilepticus_duration_minutes',
+        'emergency_seizure_count',
+        'emergency_seizure_timeframe_hours',
+        'emergency_contact_info',
+        'notify_medication_taken',
+        'notify_seizure_added',
+        'notify_trusted_contacts_medication',
+        'notify_trusted_contacts_seizures',
+        'email_frequency_medication',
+        'email_frequency_seizures',
+        'email_digest_enabled',
+        'email_digest_frequency',
+        'email_digest_day',
+        'email_digest_time',
+        'email_include_charts',
+        'email_include_summaries',
+        'email_marketing_enabled',
+        'email_medication_reminders',
+        'email_appointment_reminders',
+        'email_system_updates',
     ];
 
     /**
@@ -50,10 +62,10 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var list<string>
      */
     protected $hidden = [
-        "password",
-        "two_factor_secret",
-        "two_factor_recovery_codes",
-        "remember_token",
+        'password',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+        'remember_token',
     ];
 
     /**
@@ -64,21 +76,30 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function casts(): array
     {
         return [
-            "email_verified_at" => "datetime",
-            "password" => "hashed",
-            "morning_time" => "datetime:H:i",
-            "afternoon_time" => "datetime:H:i",
-            "evening_time" => "datetime:H:i",
-            "bedtime" => "datetime:H:i",
-            "status_epilepticus_duration_minutes" => "integer",
-            "emergency_seizure_count" => "integer",
-            "emergency_seizure_timeframe_hours" => "integer",
-            "notify_medication_taken" => "boolean",
-            "notify_seizure_added" => "boolean",
-            "notify_trusted_contacts_medication" => "boolean",
-            "notify_trusted_contacts_seizures" => "boolean",
-            "created_via_invitation" => "boolean",
-            "is_admin" => "boolean",
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'morning_time' => 'datetime:H:i',
+            'afternoon_time' => 'datetime:H:i',
+            'evening_time' => 'datetime:H:i',
+            'bedtime' => 'datetime:H:i',
+            'email_digest_time' => 'datetime:H:i',
+            'status_epilepticus_duration_minutes' => 'integer',
+            'emergency_seizure_count' => 'integer',
+            'emergency_seizure_timeframe_hours' => 'integer',
+            'email_digest_day' => 'integer',
+            'notify_medication_taken' => 'boolean',
+            'notify_seizure_added' => 'boolean',
+            'notify_trusted_contacts_medication' => 'boolean',
+            'notify_trusted_contacts_seizures' => 'boolean',
+            'email_digest_enabled' => 'boolean',
+            'email_include_charts' => 'boolean',
+            'email_include_summaries' => 'boolean',
+            'email_marketing_enabled' => 'boolean',
+            'email_medication_reminders' => 'boolean',
+            'email_appointment_reminders' => 'boolean',
+            'email_system_updates' => 'boolean',
+            'created_via_invitation' => 'boolean',
+            'is_admin' => 'boolean',
         ];
     }
 
@@ -88,10 +109,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function initials(): string
     {
         return Str::of($this->name)
-            ->explode(" ")
+            ->explode(' ')
             ->take(2)
-            ->map(fn($word) => Str::substr($word, 0, 1))
-            ->implode("");
+            ->map(fn ($word) => Str::substr($word, 0, 1))
+            ->implode('');
     }
 
     /**
@@ -99,13 +120,13 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function avatarUrl(int $size = 80): string
     {
-        $style = $this->avatar_style ?? "initials";
+        $style = $this->avatar_style ?? 'initials';
 
-        return "https://api.dicebear.com/8.x/{$style}/svg?" .
+        return "https://api.dicebear.com/8.x/{$style}/svg?".
             http_build_query([
-                "seed" => $this->email,
-                "size" => $size,
-                "backgroundColor" => "b6e3f4,c4b5fd,fbbf24,fb7185,34d399",
+                'seed' => $this->email,
+                'size' => $size,
+                'backgroundColor' => 'b6e3f4,c4b5fd,fbbf24,fb7185,34d399',
             ]);
     }
 
@@ -115,17 +136,17 @@ class User extends Authenticatable implements MustVerifyEmail
     public static function getAvailableAvatarStyles(): array
     {
         return [
-            "personas" => "Personas - Modern illustrated avatars",
-            "avataaars" => "Avataaars - Sketch style avatars",
-            "adventurer" => "Adventurer - Adventure themed avatars",
-            "big-ears" => "Big Ears - Cute cartoon avatars",
-            "big-smile" => "Big Smile - Happy cartoon avatars",
-            "bottts" => "Bottts - Robot avatars",
-            "croodles" => "Croodles - Doodle style avatars",
-            "initials" => "Initials - Letter based avatars",
-            "micah" => "Micah - Simple illustrated faces",
-            "miniavs" => "Miniavs - Minimal avatars",
-            "pixel-art" => "Pixel Art - Retro pixel avatars",
+            'personas' => 'Personas - Modern illustrated avatars',
+            'avataaars' => 'Avataaars - Sketch style avatars',
+            'adventurer' => 'Adventurer - Adventure themed avatars',
+            'big-ears' => 'Big Ears - Cute cartoon avatars',
+            'big-smile' => 'Big Smile - Happy cartoon avatars',
+            'bottts' => 'Bottts - Robot avatars',
+            'croodles' => 'Croodles - Doodle style avatars',
+            'initials' => 'Initials - Letter based avatars',
+            'micah' => 'Micah - Simple illustrated faces',
+            'miniavs' => 'Miniavs - Minimal avatars',
+            'pixel-art' => 'Pixel Art - Retro pixel avatars',
         ];
     }
 
@@ -177,7 +198,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function sentInvitations(): HasMany
     {
-        return $this->hasMany(UserInvitation::class, "inviter_id");
+        return $this->hasMany(UserInvitation::class, 'inviter_id');
     }
 
     /**
@@ -185,7 +206,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function trustedAccounts(): HasMany
     {
-        return $this->hasMany(TrustedContact::class, "trusted_user_id");
+        return $this->hasMany(TrustedContact::class, 'trusted_user_id');
     }
 
     /**
@@ -195,16 +216,16 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsToMany(
             User::class,
-            "trusted_contacts",
-            "user_id",
-            "trusted_user_id",
+            'trusted_contacts',
+            'user_id',
+            'trusted_user_id',
         )
-            ->wherePivot("is_active", true)
+            ->wherePivot('is_active', true)
             ->withPivot([
-                "nickname",
-                "access_note",
-                "granted_at",
-                "expires_at",
+                'nickname',
+                'access_note',
+                'granted_at',
+                'expires_at',
             ]);
     }
 
@@ -215,16 +236,16 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsToMany(
             User::class,
-            "trusted_contacts",
-            "trusted_user_id",
-            "user_id",
+            'trusted_contacts',
+            'trusted_user_id',
+            'user_id',
         )
-            ->wherePivot("is_active", true)
+            ->wherePivot('is_active', true)
             ->withPivot([
-                "nickname",
-                "access_note",
-                "granted_at",
-                "expires_at",
+                'nickname',
+                'access_note',
+                'granted_at',
+                'expires_at',
             ]);
     }
 
@@ -234,7 +255,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function validAccessibleAccounts(): BelongsToMany
     {
         return $this->accessibleAccounts()->whereRaw(
-            "(trusted_contacts.expires_at IS NULL OR trusted_contacts.expires_at > ?)",
+            '(trusted_contacts.expires_at IS NULL OR trusted_contacts.expires_at > ?)',
             [now()],
         );
     }
@@ -245,7 +266,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function hasTrustedAccessTo(User $user): bool
     {
         return $this->trustedAccounts()
-            ->where("user_id", $user->id)
+            ->where('user_id', $user->id)
             ->valid()
             ->exists();
     }
@@ -256,7 +277,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function hasTrustedAccessFrom(User $user): bool
     {
         return $this->trustedContacts()
-            ->where("trusted_user_id", $user->id)
+            ->where('trusted_user_id', $user->id)
             ->valid()
             ->exists();
     }
@@ -267,39 +288,39 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getTrustedContactFor(User $trustedUser): ?TrustedContact
     {
         return $this->trustedContacts()
-            ->where("trusted_user_id", $trustedUser->id)
+            ->where('trusted_user_id', $trustedUser->id)
             ->valid()
             ->first();
     }
 
     public function getTimePeriod(string $time): string
     {
-        $timeObj = \Carbon\Carbon::createFromFormat("H:i", $time);
+        $timeObj = \Carbon\Carbon::createFromFormat('H:i', $time);
         $morning = \Carbon\Carbon::createFromFormat(
-            "H:i",
-            $this->morning_time->format("H:i"),
+            'H:i',
+            $this->morning_time->format('H:i'),
         );
         $afternoon = \Carbon\Carbon::createFromFormat(
-            "H:i",
-            $this->afternoon_time->format("H:i"),
+            'H:i',
+            $this->afternoon_time->format('H:i'),
         );
         $evening = \Carbon\Carbon::createFromFormat(
-            "H:i",
-            $this->evening_time->format("H:i"),
+            'H:i',
+            $this->evening_time->format('H:i'),
         );
         $bedtime = \Carbon\Carbon::createFromFormat(
-            "H:i",
-            $this->bedtime->format("H:i"),
+            'H:i',
+            $this->bedtime->format('H:i'),
         );
 
         if ($timeObj < $afternoon) {
-            return "morning";
+            return 'morning';
         } elseif ($timeObj < $evening) {
-            return "afternoon";
+            return 'afternoon';
         } elseif ($timeObj < $bedtime) {
-            return "evening";
+            return 'evening';
         } else {
-            return "bedtime";
+            return 'bedtime';
         }
     }
 
@@ -308,7 +329,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isStatusEpilepticus(Seizure $seizure): bool
     {
-        if (!$seizure->calculated_duration) {
+        if (! $seizure->calculated_duration) {
             return false;
         }
 
@@ -320,14 +341,14 @@ class User extends Authenticatable implements MustVerifyEmail
      * Check if there's an emergency seizure cluster
      */
     public function hasEmergencySeizureCluster(
-        \Carbon\Carbon $fromTime = null,
+        ?\Carbon\Carbon $fromTime = null,
     ): bool {
         $fromTime =
             $fromTime ??
             now()->subHours($this->emergency_seizure_timeframe_hours);
 
         $seizureCount = $this->seizures()
-            ->where("start_time", ">=", $fromTime)
+            ->where('start_time', '>=', $fromTime)
             ->count();
 
         return $seizureCount >= $this->emergency_seizure_count;
@@ -346,19 +367,19 @@ class User extends Authenticatable implements MustVerifyEmail
         $eventEnd = $seizure->start_time->copy()->addHours($halfTimeframe);
 
         $eventSeizures = $this->seizures()
-            ->whereBetween("start_time", [$eventStart, $eventEnd])
+            ->whereBetween('start_time', [$eventStart, $eventEnd])
             ->count();
 
         $isClusterEmergency = $eventSeizures >= $this->emergency_seizure_count;
 
         return [
-            "is_emergency" => $isStatusEpilepticus || $isClusterEmergency,
-            "status_epilepticus" => $isStatusEpilepticus,
-            "cluster_emergency" => $isClusterEmergency,
-            "cluster_count" => $eventSeizures,
-            "duration_threshold" => $this->status_epilepticus_duration_minutes,
-            "count_threshold" => $this->emergency_seizure_count,
-            "timeframe_hours" => $this->emergency_seizure_timeframe_hours,
+            'is_emergency' => $isStatusEpilepticus || $isClusterEmergency,
+            'status_epilepticus' => $isStatusEpilepticus,
+            'cluster_emergency' => $isClusterEmergency,
+            'cluster_count' => $eventSeizures,
+            'duration_threshold' => $this->status_epilepticus_duration_minutes,
+            'count_threshold' => $this->emergency_seizure_count,
+            'timeframe_hours' => $this->emergency_seizure_timeframe_hours,
         ];
     }
 
@@ -367,7 +388,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getFormattedEmergencyContact(): ?string
     {
-        if (!$this->emergency_contact_info) {
+        if (! $this->emergency_contact_info) {
             return null;
         }
 
@@ -380,7 +401,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isPatient(): bool
     {
-        return $this->account_type === "patient";
+        return $this->account_type === 'patient';
     }
 
     /**
@@ -388,7 +409,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isCarer(): bool
     {
-        return $this->account_type === "carer";
+        return $this->account_type === 'carer';
     }
 
     /**
@@ -396,7 +417,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isMedical(): bool
     {
-        return $this->account_type === "medical";
+        return $this->account_type === 'medical';
     }
 
     /**
@@ -421,7 +442,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function canTrackSeizures(): bool
     {
-        return $this->account_type === "patient";
+        return $this->account_type === 'patient';
     }
 
     /**
@@ -430,9 +451,9 @@ class User extends Authenticatable implements MustVerifyEmail
     public static function getAccountTypes(): array
     {
         return [
-            "patient" => "Patient - Can track seizures and manage own data",
-            "carer" => "Carer - Trusted access to patient accounts only",
-            "medical" => "Medical Professional - Healthcare provider access",
+            'patient' => 'Patient - Can track seizures and manage own data',
+            'carer' => 'Carer - Trusted access to patient accounts only',
+            'medical' => 'Medical Professional - Healthcare provider access',
         ];
     }
 
@@ -453,22 +474,24 @@ class User extends Authenticatable implements MustVerifyEmail
         // Don't send verification emails to users who were created through invitations
         // since their email was already verified during the invitation acceptance process
         if ($this->wasCreatedThroughInvitation()) {
-            Log::info("Skipping email verification for invited user", [
-                "user_id" => $this->id,
-                "email" => $this->email,
-                "reason" => "User was created through invitation",
-                "already_verified" => $this->hasVerifiedEmail(),
+            Log::info('Skipping email verification for invited user', [
+                'user_id' => $this->id,
+                'email' => $this->email,
+                'reason' => 'User was created through invitation',
+                'already_verified' => $this->hasVerifiedEmail(),
             ]);
+
             return;
         }
 
         // Also skip if user is already verified (regardless of how they were created)
         if ($this->hasVerifiedEmail()) {
-            Log::info("Skipping email verification for already verified user", [
-                "user_id" => $this->id,
-                "email" => $this->email,
-                "reason" => "User email is already verified",
+            Log::info('Skipping email verification for already verified user', [
+                'user_id' => $this->id,
+                'email' => $this->email,
+                'reason' => 'User email is already verified',
             ]);
+
             return;
         }
 

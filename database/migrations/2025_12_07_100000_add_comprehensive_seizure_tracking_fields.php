@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -23,7 +24,7 @@ return new class extends Migration {
                 'atonic',
                 'tonic',
                 'clonic',
-                'unknown'
+                'unknown',
             ])->nullable()->after('severity');
 
             // Video evidence
@@ -44,7 +45,7 @@ return new class extends Migration {
                 'short',
                 'moderate',
                 'long',
-                'very_long'
+                'very_long',
             ])->nullable()->after('postictal_state_end');
             $table->boolean('post_ictal_confusion')->default(false)->after('recovery_time');
             $table->boolean('post_ictal_headache')->default(false)->after('post_ictal_confusion');
@@ -58,7 +59,7 @@ return new class extends Migration {
                 'excellent',
                 'good',
                 'fair',
-                'poor'
+                'poor',
             ])->nullable()->after('days_since_period');
             $table->boolean('recent_medication_change')->default(false)->after('medication_adherence');
             $table->boolean('experiencing_side_effects')->default(false)->after('recent_medication_change');
@@ -70,14 +71,14 @@ return new class extends Migration {
                 'good',
                 'fair',
                 'poor',
-                'very_poor'
+                'very_poor',
             ])->nullable()->after('medication_notes');
             $table->enum('sleep_quality', [
                 'excellent',
                 'good',
                 'fair',
                 'poor',
-                'very_poor'
+                'very_poor',
             ])->nullable()->after('wellbeing_rating');
             $table->text('wellbeing_notes')->nullable()->after('sleep_quality');
         });
@@ -108,7 +109,7 @@ return new class extends Migration {
                 'medication_notes',
                 'wellbeing_rating',
                 'sleep_quality',
-                'wellbeing_notes'
+                'wellbeing_notes',
             ]);
         });
     }

@@ -4,32 +4,30 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\UserInvitation;
-use App\Models\TrustedContact;
 use App\Notifications\TrustedContactInvitation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Validation\ValidationException;
 
 class InvitationController extends Controller
 {
     public function show($token)
     {
-        $invitation = UserInvitation::where("token", $token)->first();
+        $invitation = UserInvitation::where('token', $token)->first();
 
-        if (!$invitation) {
-            abort(404, "Invitation not found.");
+        if (! $invitation) {
+            abort(404, 'Invitation not found.');
         }
 
-        if ($invitation->status !== "pending") {
-            return view("invitations.already-processed", compact("invitation"));
+        if ($invitation->status !== 'pending') {
+            return view('invitations.already-processed', compact('invitation'));
         }
 
         if ($invitation->isExpired()) {
             $invitation->markAsExpired();
-            return view("invitations.expired", compact("invitation"));
+
+            return view('invitations.expired', compact('invitation'));
         }
 
         if (Auth::check()) {
@@ -40,52 +38,52 @@ class InvitationController extends Controller
             }
 
             return view(
-                "invitations.email-mismatch",
-                compact("invitation", "user"),
+                'invitations.email-mismatch',
+                compact('invitation', 'user'),
             );
         }
 
-        $existingUser = User::where("email", $invitation->email)->first();
+        $existingUser = User::where('email', $invitation->email)->first();
 
         if ($existingUser) {
             return view(
-                "invitations.login-required",
-                compact("invitation", "existingUser"),
+                'invitations.login-required',
+                compact('invitation', 'existingUser'),
             );
         }
 
         // User doesn't exist - show registration form
-        return view("invitations.register", compact("invitation"));
+        return view('invitations.register', compact('invitation'));
     }
 
     public function accept(Request $request, $token)
     {
-        $invitation = UserInvitation::where("token", $token)->first();
+        $invitation = UserInvitation::where('token', $token)->first();
 
-        if (!$invitation) {
-            abort(404, "Invitation not found.");
+        if (! $invitation) {
+            abort(404, 'Invitation not found.');
         }
 
-        if (!$invitation->isValid()) {
+        if (! $invitation->isValid()) {
             return redirect()
-                ->route("invitation.show", $token)
-                ->with("error", "This invitation is no longer valid.");
+                ->route('invitation.show', $token)
+                ->with('error', 'This invitation is no longer valid.');
         }
 
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()
-                ->route("invitation.show", $token)
-                ->with("error", "Please log in to accept this invitation.");
+                ->route('invitation.show', $token)
+                ->with('error', 'Please log in to accept this invitation.');
         }
 
         if ($user->email !== $invitation->email) {
             return redirect()
-                ->route("invitation.show", $token)
+                ->route('invitation.show', $token)
                 ->with(
-                    "error",
-                    "This invitation is for a different email address.",
+                    'error',
+                    'This invitation is for a different email address.',
                 );
         }
 
@@ -94,22 +92,22 @@ class InvitationController extends Controller
 
     public function acceptAfterRegistration(Request $request, $token)
     {
-        $invitation = UserInvitation::where("token", $token)->first();
+        $invitation = UserInvitation::where('token', $token)->first();
 
-        if (!$invitation || !$invitation->isValid()) {
+        if (! $invitation || ! $invitation->isValid()) {
             return redirect()
-                ->route("login")
-                ->with("error", "Invalid or expired invitation.");
+                ->route('login')
+                ->with('error', 'Invalid or expired invitation.');
         }
 
         $user = Auth::user();
 
-        if (!$user || $user->email !== $invitation->email) {
+        if (! $user || $user->email !== $invitation->email) {
             return redirect()
-                ->route("login")
+                ->route('login')
                 ->with(
-                    "error",
-                    "Please log in with the invited email address.",
+                    'error',
+                    'Please log in with the invited email address.',
                 );
         }
 
@@ -127,43 +125,43 @@ class InvitationController extends Controller
 
             DB::commit();
 
-            if (!$trustedContact) {
+            if (! $trustedContact) {
                 return redirect()
-                    ->route("dashboard")
+                    ->route('dashboard')
                     ->with(
-                        "info",
-                        "This trusted contact relationship already exists. " .
+                        'info',
+                        'This trusted contact relationship already exists. '.
                             "You can access {$invitation->inviter->name}'s account from your trusted contacts.",
                     );
             }
 
             return redirect()
-                ->route("dashboard")
+                ->route('dashboard')
                 ->with(
-                    "success",
-                    "Welcome! You now have trusted access to {$invitation->inviter->name}'s account. " .
-                        "You can switch between accounts using the trusted contacts menu.",
+                    'success',
+                    "Welcome! You now have trusted access to {$invitation->inviter->name}'s account. ".
+                        'You can switch between accounts using the trusted contacts menu.',
                 );
         } catch (\Exception $e) {
             DB::rollBack();
 
             return redirect()
-                ->route("dashboard")
+                ->route('dashboard')
                 ->with(
-                    "error",
-                    "There was an error processing your invitation. Please try again or contact support.",
+                    'error',
+                    'There was an error processing your invitation. Please try again or contact support.',
                 );
         }
     }
 
     public function resend(UserInvitation $invitation)
     {
-        $this->authorize("resend", $invitation);
+        $this->authorize('resend', $invitation);
 
-        if (!$invitation->canBeResent()) {
+        if (! $invitation->canBeResent()) {
             return back()->with(
-                "error",
-                "This invitation cannot be resent at this time.",
+                'error',
+                'This invitation cannot be resent at this time.',
             );
         }
 
@@ -171,37 +169,37 @@ class InvitationController extends Controller
             $invitation->resend();
 
             // Send the invitation email
-            Notification::route("mail", $invitation->email)->notify(
+            Notification::route('mail', $invitation->email)->notify(
                 new TrustedContactInvitation($invitation, $invitation->inviter),
             );
 
             return back()->with(
-                "success",
+                'success',
                 "Invitation resent to {$invitation->email}. The new invitation will expire in 7 days.",
             );
         } catch (\Exception $e) {
             return back()->with(
-                "error",
-                "Failed to resend invitation. Please try again.",
+                'error',
+                'Failed to resend invitation. Please try again.',
             );
         }
     }
 
     public function cancel(UserInvitation $invitation)
     {
-        $this->authorize("cancel", $invitation);
+        $this->authorize('cancel', $invitation);
 
-        if ($invitation->status !== "pending") {
+        if ($invitation->status !== 'pending') {
             return back()->with(
-                "error",
-                "Only pending invitations can be cancelled.",
+                'error',
+                'Only pending invitations can be cancelled.',
             );
         }
 
         $invitation->markAsCancelled();
 
         return back()->with(
-            "success",
+            'success',
             "Invitation to {$invitation->email} has been cancelled.",
         );
     }
@@ -212,17 +210,17 @@ class InvitationController extends Controller
 
         $sentInvitations = $user
             ->sentInvitations()
-            ->orderBy("created_at", "desc")
+            ->orderBy('created_at', 'desc')
             ->get();
 
-        $receivedInvitations = UserInvitation::where("email", $user->email)
-            ->with("inviter")
-            ->orderBy("created_at", "desc")
+        $receivedInvitations = UserInvitation::where('email', $user->email)
+            ->with('inviter')
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return view(
-            "invitations.manage",
-            compact("sentInvitations", "receivedInvitations"),
+            'invitations.manage',
+            compact('sentInvitations', 'receivedInvitations'),
         );
     }
 
@@ -230,50 +228,50 @@ class InvitationController extends Controller
     {
         $currentUser = Auth::user();
 
-        if (!$currentUser->hasTrustedAccessTo($user)) {
-            abort(403, "You do not have trusted access to this account.");
+        if (! $currentUser->hasTrustedAccessTo($user)) {
+            abort(403, 'You do not have trusted access to this account.');
         }
 
-        session(["viewing_as_trusted_contact" => true]);
-        session(["original_user_id" => $currentUser->id]);
-        session(["trusted_user_id" => $user->id]);
+        session(['viewing_as_trusted_contact' => true]);
+        session(['original_user_id' => $currentUser->id]);
+        session(['trusted_user_id' => $user->id]);
 
         return redirect()
-            ->route("dashboard")
-            ->with("success", "Now viewing {$user->name}'s account.");
+            ->route('dashboard')
+            ->with('success', "Now viewing {$user->name}'s account.");
     }
 
     public function decline($token)
     {
-        $invitation = UserInvitation::where("token", $token)->first();
+        $invitation = UserInvitation::where('token', $token)->first();
 
-        if (!$invitation) {
-            abort(404, "Invitation not found.");
+        if (! $invitation) {
+            abort(404, 'Invitation not found.');
         }
 
-        if ($invitation->status !== "pending") {
+        if ($invitation->status !== 'pending') {
             return redirect()
-                ->route("dashboard")
-                ->with("info", "This invitation has already been processed.");
+                ->route('dashboard')
+                ->with('info', 'This invitation has already been processed.');
         }
 
         $invitation->markAsCancelled();
 
         return redirect()
-            ->route("dashboard")
-            ->with("success", "Invitation declined successfully.");
+            ->route('dashboard')
+            ->with('success', 'Invitation declined successfully.');
     }
 
     public function preview($token)
     {
-        if (!app()->environment("local")) {
+        if (! app()->environment('local')) {
             abort(404);
         }
 
-        $invitation = UserInvitation::where("token", $token)->first();
+        $invitation = UserInvitation::where('token', $token)->first();
 
-        if (!$invitation) {
-            abort(404, "Invitation not found.");
+        if (! $invitation) {
+            abort(404, 'Invitation not found.');
         }
 
         $notification = new \App\Notifications\TrustedContactInvitation(
@@ -281,12 +279,12 @@ class InvitationController extends Controller
             $invitation->inviter,
         );
         $mailMessage = $notification->toMail(
-            new \Illuminate\Notifications\AnonymousNotifiable(),
+            new \Illuminate\Notifications\AnonymousNotifiable,
         );
 
         return view(
-            "invitations.preview",
-            compact("mailMessage", "invitation"),
+            'invitations.preview',
+            compact('mailMessage', 'invitation'),
         );
     }
 }

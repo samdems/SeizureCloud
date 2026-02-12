@@ -2,17 +2,17 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
 use App\Models\Medication;
-use App\Models\MedicationSchedule;
 use App\Models\MedicationLog;
+use App\Models\MedicationSchedule;
 use App\Models\TrustedContact;
+use App\Models\User;
 use App\Notifications\MedicationReminderNotification;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
-use Carbon\Carbon;
 
 class MedicationReminderTest extends TestCase
 {
@@ -57,7 +57,7 @@ class MedicationReminderTest extends TestCase
         Notification::assertSentTo(
             $patient,
             MedicationReminderNotification::class,
-            function ($notification) use ($medication) {
+            function ($notification) {
                 return count($notification->overdueMedications) === 1 &&
                        $notification->overdueMedications[0]->medication->name === 'Test Medication';
             }

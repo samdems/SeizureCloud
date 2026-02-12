@@ -2,11 +2,9 @@
 
 namespace App\Notifications;
 
-use App\Models\UserInvitation;
-use App\Models\User;
 use App\Mail\LoggedMailMessage;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Models\User;
+use App\Models\UserInvitation;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -27,7 +25,7 @@ class TrustedContactInvitation extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ["mail"];
+        return ['mail'];
     }
 
     /**
@@ -35,30 +33,29 @@ class TrustedContactInvitation extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $appName = config("app.name");
+        $appName = config('app.name');
         $inviterName = $this->inviter->name;
         $invitationUrl = $this->invitation->getInvitationUrl();
         $expirationDate = $this->invitation->invitation_expires_at->format(
             'M j, Y \a\t g:i A',
         );
 
-        $mailMessage = new LoggedMailMessage();
+        $mailMessage = new LoggedMailMessage;
         $mailMessage
             ->subject(
                 "You've been invited to access {$inviterName}'s health records",
             )
-            ->emailType("invitation")
+            ->emailType('invitation')
             ->forUser($this->inviter->id)
             ->withMetadata([
-                "invitation_id" => $this->invitation->id,
-                "inviter_id" => $this->inviter->id,
-                "inviter_name" => $this->inviter->name,
-                "invitation_type" =>
-                    $this->invitation->invitation_type ?? "trusted_contact",
-                "nickname" => $this->invitation->nickname,
-                "expires_at" => $this->invitation->invitation_expires_at->toIso8601String(),
+                'invitation_id' => $this->invitation->id,
+                'inviter_id' => $this->inviter->id,
+                'inviter_name' => $this->inviter->name,
+                'invitation_type' => $this->invitation->invitation_type ?? 'trusted_contact',
+                'nickname' => $this->invitation->nickname,
+                'expires_at' => $this->invitation->invitation_expires_at->toIso8601String(),
             ]);
-        $mailMessage->greeting("Hello!");
+        $mailMessage->greeting('Hello!');
         $mailMessage->line(
             "{$inviterName} has invited you to become a trusted contact on {$appName}.",
         );
@@ -66,9 +63,9 @@ class TrustedContactInvitation extends Notification
         $mailMessage->line(
             "• View {$inviterName}'s seizure records and emergency status",
         );
-        $mailMessage->line("• See medication schedules and logs");
-        $mailMessage->line("• Access vital signs data");
-        $mailMessage->line("• Monitor health information during emergencies");
+        $mailMessage->line('• See medication schedules and logs');
+        $mailMessage->line('• Access vital signs data');
+        $mailMessage->line('• Monitor health information during emergencies');
 
         if ($this->invitation->nickname) {
             $mailMessage->line(
@@ -82,7 +79,7 @@ class TrustedContactInvitation extends Notification
             );
         }
 
-        $mailMessage->action("Accept Invitation", $invitationUrl);
+        $mailMessage->action('Accept Invitation', $invitationUrl);
         $mailMessage->line("This invitation will expire on {$expirationDate}.");
         $mailMessage->line(
             "If you already have an account on {$appName}, clicking the link above will automatically grant you access. If you don't have an account, you'll be guided through creating one.",
@@ -105,11 +102,11 @@ class TrustedContactInvitation extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            "invitation_id" => $this->invitation->id,
-            "inviter_id" => $this->inviter->id,
-            "inviter_name" => $this->inviter->name,
-            "nickname" => $this->invitation->nickname,
-            "expires_at" => $this->invitation->invitation_expires_at,
+            'invitation_id' => $this->invitation->id,
+            'inviter_id' => $this->inviter->id,
+            'inviter_name' => $this->inviter->name,
+            'nickname' => $this->invitation->nickname,
+            'expires_at' => $this->invitation->invitation_expires_at,
         ];
     }
 }

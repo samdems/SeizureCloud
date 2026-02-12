@@ -3,7 +3,6 @@
 namespace Tests;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
-use Tests\CreatesApplication;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -30,7 +29,8 @@ abstract class TestCase extends BaseTestCase
      */
     public function postWithCsrf($uri, array $data = [], array $headers = [])
     {
-        $data["_token"] = $this->getCsrfToken();
+        $data['_token'] = $this->getCsrfToken();
+
         return $this->post($uri, $data, $headers);
     }
 
@@ -39,7 +39,8 @@ abstract class TestCase extends BaseTestCase
      */
     public function putWithCsrf($uri, array $data = [], array $headers = [])
     {
-        $data["_token"] = $this->getCsrfToken();
+        $data['_token'] = $this->getCsrfToken();
+
         return $this->put($uri, $data, $headers);
     }
 
@@ -48,7 +49,8 @@ abstract class TestCase extends BaseTestCase
      */
     public function deleteWithCsrf($uri, array $data = [], array $headers = [])
     {
-        $data["_token"] = $this->getCsrfToken();
+        $data['_token'] = $this->getCsrfToken();
+
         return $this->delete($uri, $data, $headers);
     }
 }

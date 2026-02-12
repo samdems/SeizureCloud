@@ -23,16 +23,16 @@ class ProfileUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "name" => ["required", "string", "max:255"],
-            "email" => [
-                "required",
-                "string",
-                "lowercase",
-                "email",
-                "max:255",
-                Rule::unique("users")->ignore(auth()->id()),
+            'name' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required',
+                'string',
+                'lowercase',
+                'email',
+                'max:255',
+                Rule::unique('users')->ignore(auth()->id()),
             ],
-            "account_type" => ["required", "in:patient,carer,medical"],
+            'account_type' => ['required', 'in:patient,carer,medical'],
         ];
     }
 
@@ -44,14 +44,14 @@ class ProfileUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            "name.required" => "Please enter your name.",
-            "name.max" => "Name cannot exceed 255 characters.",
-            "email.required" => "Please enter your email address.",
-            "email.email" => "Please enter a valid email address.",
-            "email.max" => "Email cannot exceed 255 characters.",
-            "email.unique" => "This email is already taken.",
-            "account_type.required" => "Please select your account type.",
-            "account_type.in" => "Please select a valid account type.",
+            'name.required' => 'Please enter your name.',
+            'name.max' => 'Name cannot exceed 255 characters.',
+            'email.required' => 'Please enter your email address.',
+            'email.email' => 'Please enter a valid email address.',
+            'email.max' => 'Email cannot exceed 255 characters.',
+            'email.unique' => 'This email is already taken.',
+            'account_type.required' => 'Please select your account type.',
+            'account_type.in' => 'Please select a valid account type.',
         ];
     }
 
@@ -63,9 +63,9 @@ class ProfileUpdateRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            "name" => "full name",
-            "email" => "email address",
-            "account_type" => "account type",
+            'name' => 'full name',
+            'email' => 'email address',
+            'account_type' => 'account type',
         ];
     }
 
@@ -76,9 +76,9 @@ class ProfileUpdateRequest extends FormRequest
     {
         // Trim whitespace and ensure proper formatting
         $this->merge([
-            "name" => trim($this->name ?? ""),
-            "email" => strtolower(trim($this->email ?? "")),
-            "account_type" => $this->account_type ?? "patient",
+            'name' => trim($this->name ?? ''),
+            'email' => strtolower(trim($this->email ?? '')),
+            'account_type' => $this->account_type ?? 'patient',
         ]);
     }
 }

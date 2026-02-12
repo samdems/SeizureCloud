@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Builder;
 
 class TrustedContact extends Model
 {
@@ -17,13 +17,13 @@ class TrustedContact extends Model
      * @var list<string>
      */
     protected $fillable = [
-        "user_id",
-        "trusted_user_id",
-        "nickname",
-        "access_note",
-        "is_active",
-        "granted_at",
-        "expires_at",
+        'user_id',
+        'trusted_user_id',
+        'nickname',
+        'access_note',
+        'is_active',
+        'granted_at',
+        'expires_at',
     ];
 
     /**
@@ -34,9 +34,9 @@ class TrustedContact extends Model
     protected function casts(): array
     {
         return [
-            "is_active" => "boolean",
-            "granted_at" => "datetime",
-            "expires_at" => "datetime",
+            'is_active' => 'boolean',
+            'granted_at' => 'datetime',
+            'expires_at' => 'datetime',
         ];
     }
 
@@ -53,7 +53,7 @@ class TrustedContact extends Model
      */
     public function trustedUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, "trusted_user_id");
+        return $this->belongsTo(User::class, 'trusted_user_id');
     }
 
     /**
@@ -61,7 +61,7 @@ class TrustedContact extends Model
      */
     public function scopeActive(Builder $query): Builder
     {
-        return $query->where("is_active", true);
+        return $query->where('is_active', true);
     }
 
     /**
@@ -70,7 +70,7 @@ class TrustedContact extends Model
     public function scopeNotExpired(Builder $query): Builder
     {
         return $query->where(function ($query) {
-            $query->whereNull("expires_at")->orWhere("expires_at", ">", now());
+            $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
         });
     }
 

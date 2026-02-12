@@ -4,24 +4,25 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::create("medications", function (Blueprint $table) {
+        Schema::create('medications', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("user_id")->constrained()->onDelete("cascade");
-            $table->string("name");
-            $table->string("dosage")->nullable();
-            $table->string("unit")->nullable(); // mg, ml, tablets, etc.
-            $table->text("description")->nullable();
-            $table->string("prescriber")->nullable();
-            $table->date("start_date")->nullable();
-            $table->date("end_date")->nullable();
-            $table->boolean("active")->default(true);
-            $table->text("notes")->nullable();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('name');
+            $table->string('dosage')->nullable();
+            $table->string('unit')->nullable(); // mg, ml, tablets, etc.
+            $table->text('description')->nullable();
+            $table->string('prescriber')->nullable();
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
+            $table->boolean('active')->default(true);
+            $table->text('notes')->nullable();
             $table->timestamps();
         });
     }
@@ -31,6 +32,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists("medications");
+        Schema::dropIfExists('medications');
     }
 };

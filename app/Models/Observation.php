@@ -15,10 +15,10 @@ class Observation extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        "user_id",
-        "title",
-        "description",
-        "observed_at",
+        'user_id',
+        'title',
+        'description',
+        'observed_at',
     ];
 
     /**
@@ -27,7 +27,7 @@ class Observation extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        "observed_at" => "datetime",
+        'observed_at' => 'datetime',
     ];
 
     /**

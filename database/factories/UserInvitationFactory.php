@@ -39,7 +39,7 @@ class UserInvitationFactory extends Factory
                 'Sibling',
                 'Medical Guardian',
                 'Healthcare Proxy',
-                'Trusted Friend'
+                'Trusted Friend',
             ]),
             'access_note' => fake()->optional(0.6)->paragraph(),
             'expires_at' => fake()->optional(0.3)->dateTimeBetween('+1 month', '+1 year'),

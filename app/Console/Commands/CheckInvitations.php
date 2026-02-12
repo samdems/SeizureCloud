@@ -38,6 +38,7 @@ class CheckInvitations extends Command
 
         if ($invitations->isEmpty()) {
             $this->info('No invitations found.');
+
             return;
         }
 
@@ -54,9 +55,9 @@ class CheckInvitations extends Command
                 $invitation->inviter->name ?? 'Unknown',
                 ucfirst($invitation->status),
                 $invitation->created_at->format('M j, Y g:i A'),
-                $invitation->invitation_expires_at->format('M j, Y g:i A') .
+                $invitation->invitation_expires_at->format('M j, Y g:i A').
                     ($invitation->invitation_expires_at->isPast() ? ' (EXPIRED)' : ''),
-                substr($invitation->token, 0, 10) . '...'
+                substr($invitation->token, 0, 10).'...',
             ];
         }
 

@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\VitalTypeThreshold;
 use App\Models\User;
+use App\Models\VitalTypeThreshold;
 
 class VitalTypeThresholdPolicy
 {
