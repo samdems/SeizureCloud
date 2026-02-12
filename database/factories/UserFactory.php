@@ -37,6 +37,19 @@ class UserFactory extends Factory
             'afternoon_time' => '12:00:00',
             'evening_time' => '18:00:00',
             'bedtime' => '22:00:00',
+            // Email preference defaults (matching migration defaults)
+            'email_frequency_medication' => 'immediate',
+            'email_frequency_seizures' => 'immediate',
+            'email_digest_enabled' => false,
+            'email_digest_frequency' => 'weekly',
+            'email_digest_day' => 1,
+            'email_digest_time' => '08:00:00',
+            'email_include_charts' => true,
+            'email_include_summaries' => true,
+            'email_marketing_enabled' => false,
+            'email_medication_reminders' => true,
+            'email_appointment_reminders' => true,
+            'email_system_updates' => true,
         ];
     }
 

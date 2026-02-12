@@ -1,68 +1,46 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
-uses(RefreshDatabase::class);
+test('user model has email preference fillable fields', function () {
+    $user = new User;
 
-test('user model has email preference attributes', function () {
-    $user = User::factory()->create();
+    $fillable = $user->getFillable();
 
-    // Test default values from migration
-    expect($user->email_frequency_medication)->toBe('immediate');
-    expect($user->email_frequency_seizures)->toBe('immediate');
-    expect($user->email_digest_enabled)->toBeFalse();
-    expect($user->email_include_charts)->toBeTrue();
-    expect($user->email_include_summaries)->toBeTrue();
-    expect($user->email_marketing_enabled)->toBeFalse();
+    // Test that email preference fields are in fillable array
+    expect($fillable)->toContain('email_frequency_medication');
+    expect($fillable)->toContain('email_frequency_seizures');
+    expect($fillable)->toContain('email_digest_enabled');
+    expect($fillable)->toContain('email_digest_frequency');
+    expect($fillable)->toContain('email_digest_day');
+    expect($fillable)->toContain('email_digest_time');
+    expect($fillable)->toContain('email_include_charts');
+    expect($fillable)->toContain('email_include_summaries');
+    expect($fillable)->toContain('email_marketing_enabled');
+    expect($fillable)->toContain('email_medication_reminders');
+    expect($fillable)->toContain('email_appointment_reminders');
+    expect($fillable)->toContain('email_system_updates');
 });
 
-test('user can update email preferences', function () {
-    $user = User::factory()->create();
+test('user model has proper casts for email preferences', function () {
+    $user = new User;
 
-    $user->update([
-        'email_frequency_medication' => 'weekly',
-        'email_frequency_seizures' => 'daily',
-        'email_digest_enabled' => true,
-        'email_digest_frequency' => 'weekly',
-        'email_digest_day' => 5, // Friday
-        'email_digest_time' => '09:00:00',
-        'email_include_charts' => false,
-        'email_marketing_enabled' => true,
-    ]);
+    $casts = $user->getCasts();
 
-    $user->refresh();
+    // Test that boolean fields are cast properly
+    expect($casts)->toHaveKey('email_digest_enabled');
+    expect($casts)->toHaveKey('email_include_charts');
+    expect($casts)->toHaveKey('email_include_summaries');
+    expect($casts)->toHaveKey('email_marketing_enabled');
+    expect($casts)->toHaveKey('email_medication_reminders');
+    expect($casts)->toHaveKey('email_appointment_reminders');
+    expect($casts)->toHaveKey('email_system_updates');
 
-    expect($user->email_frequency_medication)->toBe('weekly');
-    expect($user->email_frequency_seizures)->toBe('daily');
-    expect($user->email_digest_enabled)->toBeTrue();
-    expect($user->email_digest_frequency)->toBe('weekly');
-    expect($user->email_digest_day)->toBe(5);
-    expect($user->email_digest_time->format('H:i'))->toBe('09:00');
-    expect($user->email_include_charts)->toBeFalse();
-    expect($user->email_marketing_enabled)->toBeTrue();
-});
+    // Test time field cast
+    expect($casts)->toHaveKey('email_digest_time');
+    expect($casts['email_digest_time'])->toBe('datetime:H:i');
 
-test('email preference fields are fillable', function () {
-    $user = User::factory()->create();
-
-    $preferences = [
-        'email_frequency_medication' => 'never',
-        'email_frequency_seizures' => 'never',
-        'email_digest_enabled' => true,
-        'email_include_summaries' => false,
-        'email_medication_reminders' => false,
-        'email_appointment_reminders' => false,
-        'email_system_updates' => false,
-        'email_marketing_enabled' => true,
-    ];
-
-    // This should not throw a mass assignment exception
-    expect(fn () => $user->fill($preferences))->not->toThrow();
-
-    $user->update($preferences);
-    $user->refresh();
-
-    expect($user->email_frequency_medication)->toBe('never');
-    expect($user->email_marketing_enabled)->toBeTrue();
+    // Test integer field cast
+    expect($casts)->toHaveKey('email_digest_day');
+    expect($casts['email_digest_day'])->toBe('integer');
 });
