@@ -12,20 +12,20 @@ class MedicationSchedule extends Model
     use HasFactory;
 
     protected $fillable = [
-        "medication_id",
-        "scheduled_time",
-        "dosage_multiplier",
-        "unit",
-        "days_of_week",
-        "frequency",
-        "active",
-        "notes",
+        'medication_id',
+        'scheduled_time',
+        'dosage_multiplier',
+        'unit',
+        'days_of_week',
+        'frequency',
+        'active',
+        'notes',
     ];
 
     protected $casts = [
-        "scheduled_time" => "datetime:H:i",
-        "days_of_week" => "array",
-        "active" => "boolean",
+        'scheduled_time' => 'datetime:H:i',
+        'days_of_week' => 'array',
+        'active' => 'boolean',
     ];
 
     public function medication(): BelongsTo
@@ -40,11 +40,11 @@ class MedicationSchedule extends Model
 
     public function isScheduledForToday(): bool
     {
-        if ($this->frequency === "as_needed") {
+        if ($this->frequency === 'as_needed') {
             return false;
         }
 
-        if ($this->frequency === "daily" || empty($this->days_of_week)) {
+        if ($this->frequency === 'daily' || empty($this->days_of_week)) {
             return true;
         }
 
@@ -53,22 +53,25 @@ class MedicationSchedule extends Model
 
     public function getCalculatedDosage(): ?string
     {
-        if (!$this->dosage_multiplier) {
-            return null;
+        if (! $this->dosage_multiplier || ! $this->medication->dosage) {
+            return $this->medication->dosage ?? null;
         }
 
-        return number_format(floatval($this->dosage_multiplier), 2, ".", "");
+        $calculatedDosage = floatval($this->medication->dosage) * floatval($this->dosage_multiplier);
+
+        return number_format($calculatedDosage, 2, '.', '');
     }
 
     public function getCalculatedDosageWithUnit(): ?string
     {
         $dosage = $this->getCalculatedDosage();
-        if (!$dosage) {
+        if (! $dosage) {
             return null;
         }
 
         $unit = $this->unit ?? $this->medication->unit;
-        return $dosage . " " . $unit;
+
+        return $dosage.' '.$unit;
     }
 
     /**
@@ -78,14 +81,14 @@ class MedicationSchedule extends Model
     {
         $checkDate = $date ? \Carbon\Carbon::parse($date) : now();
 
-        if ($date && !$this->isScheduledForDay($checkDate)) {
+        if ($date && ! $this->isScheduledForDay($checkDate)) {
             return false;
-        } elseif (!$date && !$this->isScheduledForToday()) {
+        } elseif (! $date && ! $this->isScheduledForToday()) {
             return false;
         }
 
         // For historical dates, only check if it's today
-        if ($date && !$checkDate->isToday()) {
+        if ($date && ! $checkDate->isToday()) {
             return false;
         }
 
@@ -103,14 +106,14 @@ class MedicationSchedule extends Model
     {
         $checkDate = $date ? \Carbon\Carbon::parse($date) : now();
 
-        if ($date && !$this->isScheduledForDay($checkDate)) {
+        if ($date && ! $this->isScheduledForDay($checkDate)) {
             return false;
-        } elseif (!$date && !$this->isScheduledForToday()) {
+        } elseif (! $date && ! $this->isScheduledForToday()) {
             return false;
         }
 
         // For historical dates, only check if it's today
-        if ($date && !$checkDate->isToday()) {
+        if ($date && ! $checkDate->isToday()) {
             return false;
         }
 
@@ -127,11 +130,11 @@ class MedicationSchedule extends Model
      */
     public function isScheduledForDay(\Carbon\Carbon $date): bool
     {
-        if ($this->frequency === "as_needed") {
+        if ($this->frequency === 'as_needed') {
             return false;
         }
 
-        if ($this->frequency === "daily" || empty($this->days_of_week)) {
+        if ($this->frequency === 'daily' || empty($this->days_of_week)) {
             return true;
         }
 

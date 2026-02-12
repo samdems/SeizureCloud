@@ -17,7 +17,7 @@ class MedicationLogFactory extends Factory
     public function definition(): array
     {
         $skipped = fake()->boolean(10);
-        $takenAt = fake()->dateTimeBetween("-60 days", "-11 days");
+        $takenAt = fake()->dateTimeBetween('-60 days', '-11 days');
 
         // For intended_time, sometimes use the same time, sometimes offset by a few minutes
         $intendedTime = fake()->optional(80)->dateTime($takenAt);
@@ -28,23 +28,23 @@ class MedicationLogFactory extends Factory
         }
 
         return [
-            "medication_id" => \App\Models\Medication::factory(),
-            "medication_schedule_id" => fake()->optional()->randomNumber(),
-            "taken_at" => $takenAt,
-            "intended_time" => $intendedTime,
-            "dosage_taken" => $skipped
+            'medication_id' => \App\Models\Medication::factory(),
+            'medication_schedule_id' => null, // Let tests explicitly set this if needed
+            'taken_at' => $takenAt,
+            'intended_time' => $intendedTime,
+            'dosage_taken' => $skipped
                 ? null
-                : fake()->randomElement(["500 mg", "100 mg", "250 mg", "5 mg"]),
-            "skipped" => $skipped,
-            "skip_reason" => $skipped
+                : fake()->randomElement(['500 mg', '100 mg', '250 mg', '5 mg']),
+            'skipped' => $skipped,
+            'skip_reason' => $skipped
                 ? fake()->randomElement([
-                    "Forgot",
-                    "Side effects",
-                    "Ran out",
-                    "Felt better",
+                    'Forgot',
+                    'Side effects',
+                    'Ran out',
+                    'Felt better',
                 ])
                 : null,
-            "notes" => fake()->optional()->sentence(),
+            'notes' => fake()->optional()->sentence(),
         ];
     }
 }

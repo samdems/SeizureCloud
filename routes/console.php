@@ -4,34 +4,34 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
-Artisan::command("inspire", function () {
+Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
-})->purpose("Display an inspiring quote");
+})->purpose('Display an inspiring quote');
 
 // Schedule medication reminders with anti-spam protection
 // Default: Every 15 minutes with 2-hour cooldown between same medication reminders
 $reminderFrequency = config(
-    "medication_reminders.scheduling.check_frequency_minutes",
+    'medication_reminders.scheduling.check_frequency_minutes',
     15,
 );
 
-if (config("medication_reminders.features.enabled", true)) {
-    $command = Schedule::command("medication:send-reminders")
+if (config('medication_reminders.features.enabled', true)) {
+    $command = Schedule::command('medication:send-reminders')
         ->cron("*/{$reminderFrequency} * * * *") // Dynamic frequency from config
         ->withoutOverlapping()
         ->onOneServer()
         ->runInBackground()
         ->emailOutputOnFailure(
-            config("medication_reminders.analytics.summary_report_email"),
+            config('medication_reminders.analytics.summary_report_email'),
         );
 
     // Add description showing current spam protection settings
     $cooldownHours = config(
-        "medication_reminders.spam_prevention.cooldown_hours",
+        'medication_reminders.spam_prevention.cooldown_hours',
         2,
     );
     $maxPerDay = config(
-        "medication_reminders.spam_prevention.max_reminders_per_day",
+        'medication_reminders.spam_prevention.max_reminders_per_day',
         6,
     );
     $command->description(
@@ -39,9 +39,9 @@ if (config("medication_reminders.features.enabled", true)) {
     );
 } else {
     // Medication reminders are disabled via config
-    Schedule::command("medication:send-reminders --dry-run")
+    Schedule::command('medication:send-reminders --dry-run')
         ->daily()
-        ->description("Medication reminders disabled in config");
+        ->description('Medication reminders disabled in config');
 }
 
 // Alternative schedules (uncomment and modify as needed):
@@ -64,20 +64,20 @@ if (config("medication_reminders.features.enabled", true)) {
 // Clean up old reminder logs (runs daily at 2 AM)
 Schedule::call(function () {
     \App\Models\MedicationReminderLog::cleanup(
-        config("medication_reminders.spam_prevention.log_retention_days", 90),
+        config('medication_reminders.spam_prevention.log_retention_days', 90),
     );
 })
-    ->dailyAt("02:00")
-    ->name("cleanup-medication-reminder-logs");
+    ->dailyAt('02:00')
+    ->name('cleanup-medication-reminder-logs');
 
-// System health check (runs every minute)
-Schedule::job(new \App\Jobs\SystemHealthCheck())
-    ->everyMinute()
-    ->withoutOverlapping()
-    ->onOneServer()
-    ->name("system-health-check");
+// System health check (runs every minute) - DISABLED
+// Schedule::job(new \App\Jobs\SystemHealthCheck())
+//     ->everyMinute()
+//     ->withoutOverlapping()
+//     ->onOneServer()
+//     ->name("system-health-check");
 
-// Track scheduler runs for health monitoring
-Schedule::command("scheduler:heartbeat")
-    ->everyMinute()
-    ->name("scheduler-heartbeat");
+// Track scheduler runs for health monitoring - DISABLED
+// Schedule::command("scheduler:heartbeat")
+//     ->everyMinute()
+//     ->name("scheduler-heartbeat");
